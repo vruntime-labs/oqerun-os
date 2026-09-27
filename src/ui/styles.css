@@ -1,0 +1,44 @@
+:root {
+  --bg: #0A122A;
+  --text: #F8FAFC;
+  --accent: #00D4FF;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, sans-serif;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+.boot-screen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.boot-screen h1 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 3rem;
+  letter-spacing: 0.12em;
+}
+
+.boot-screen p:last-child {
+  color: var(--accent);
+}
