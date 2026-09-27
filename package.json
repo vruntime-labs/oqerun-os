@@ -1,0 +1,18 @@
+{
+  "name": "oqerun-os",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Web, Reimagined as an Operating System.",
+  "author": "VRuntime Labs",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
+  }
+}
