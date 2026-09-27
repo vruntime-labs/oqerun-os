@@ -1,4 +1,5 @@
 import { Boot } from "./Boot";
+import { Desktop } from "../shell/Desktop";
 
 export class Kernel {
   readonly version = "0.1.0";
@@ -23,6 +24,6 @@ export class Kernel {
       if (status) status.textContent = text;
     });
 
-    console.log(`Oqerun Kernel ${this.version} booted.`);
+    new Desktop().render();
   }
 }
