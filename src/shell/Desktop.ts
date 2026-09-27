@@ -1,19 +1,45 @@
+import { StartMenu } from "./StartMenu";
+
 export class Desktop {
+  private startMenu = new StartMenu();
+
   render(): void {
     const app = document.getElementById("app");
     if (!app) return;
 
     app.innerHTML = `
       <div class="desktop">
-        <div class="desktop-area"></div>
+
+        <div class="desktop-area">
+
+          <div class="desktop-icon">
+            <div class="icon-box">🖥️</div>
+            <span>Computer</span>
+          </div>
+
+        </div>
+
+        <div id="start-menu" class="start-menu" style="display:none;">
+          <h3>Oqerun</h3>
+          <button>Terminal</button>
+          <button>Explorer</button>
+          <button>Settings</button>
+        </div>
 
         <footer class="taskbar">
-          <button class="start-btn">O</button>
+          <button id="start-btn" class="start-btn">O</button>
+
           <div class="taskbar-title">Oqerun OS</div>
+
           <div id="clock">--:--</div>
         </footer>
+
       </div>
     `;
+
+    document
+      .getElementById("start-btn")
+      ?.addEventListener("click", () => this.startMenu.toggle());
 
     this.startClock();
   }
