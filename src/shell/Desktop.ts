@@ -2,6 +2,7 @@ import { StartMenu } from "./StartMenu";
 import { Explorer } from "./Explorer";
 import { Computer } from "./Computer";
 import { Terminal } from "./Terminal";
+import { Settings } from "./Settings";
 import { WindowManager } from "../window/WindowManager";
 import { Kernel } from "../core/Kernel";
 
@@ -12,11 +13,13 @@ export class Desktop {
   private explorer: Explorer;
   private computer: Computer;
   private terminal: Terminal;
+  private settings: Settings;
 
   constructor(private kernel: Kernel) {
     this.explorer = new Explorer(this.kernel, this.wm);
     this.computer = new Computer(this.kernel, this.wm);
     this.terminal = new Terminal(this.kernel, this.wm);
+    this.settings = new Settings(this.kernel, this.wm);
   }
 
   render(): void {
@@ -72,17 +75,7 @@ export class Desktop {
 
     document
       .getElementById("open-settings")
-      ?.addEventListener("click", () => {
-        this.wm.open({
-          id: "settings",
-          title: "Settings",
-          content: "<p>Settings coming soon...</p>",
-          width: 500,
-          height: 360,
-          x: 220,
-          y: 110
-        });
-      });
+      ?.addEventListener("click", () => this.settings.open());
   }
 
   private startClock(): void {
