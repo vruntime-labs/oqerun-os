@@ -6,15 +6,21 @@
 
   <title>Oqerun OS</title>
 
-  <link rel="manifest" href="%BASE_URL%manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="%BASE_URL%branding/favicon/favicon.svg" />
+  <!-- Official Oqerun Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/oqerun-os/branding/favicon/favicon.svg">
+  <link rel="icon" type="image/png" sizes="1024x1024" href="/oqerun-os/branding/icon-flat-1024.png">
+  <link rel="apple-touch-icon" href="/oqerun-os/branding/icon-flat-1024.png">
 
-  <meta name="theme-color" content="#0A122A" />
+  <!-- PWA -->
+  <link rel="manifest" href="/oqerun-os/manifest.json">
+
+  <!-- Browser Theme -->
+  <meta name="theme-color" content="#0A122A">
 </head>
-
 <body>
   <div id="app"></div>
 
+  <!-- Vite Entry -->
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
