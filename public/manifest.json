@@ -1,19 +1,12 @@
 {
-  "name": "Oqerun OS",
-  "short_name": "Oqerun",
-  "description": "The Web, Reimagined as an Operating System.",
-  "start_url": "/oqerun-os/",
-  "display": "standalone",
-  "background_color": "#0A122A",
-  "theme_color": "#0A122A",
   "icons": [
     {
-      "src": "/oqerun-os/icons/icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/oqerun-os/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
