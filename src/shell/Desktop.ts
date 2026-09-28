@@ -34,7 +34,11 @@ export class Desktop {
         <div class="desktop-area">
 
           <div class="desktop-icon" id="computer-icon">
-            <div class="icon-box">🖥️</div>
+            <img
+              src="/oqerun-os/icons/computer.png"
+              alt="Computer"
+              class="desktop-icon-image"
+            />
             <span>Computer</span>
           </div>
 
@@ -43,9 +47,28 @@ export class Desktop {
         <div id="start-menu" class="start-menu" style="display:none;">
           <h3>Oqerun</h3>
 
-          <button id="open-terminal">Terminal</button>
-          <button id="open-explorer">Explorer</button>
-          <button id="open-settings">Settings</button>
+          <button id="open-terminal">
+            <img
+              src="/oqerun-os/icons/terminal.png"
+              alt="Terminal"
+              class="start-icon"
+            />
+            <span>Terminal</span>
+          </button>
+
+          <button id="open-explorer">
+            <img
+              src="/oqerun-os/icons/explorer.png"
+              alt="Explorer"
+              class="start-icon"
+            />
+            <span>Explorer</span>
+          </button>
+
+          <button id="open-settings">
+            ⚙️
+            <span>Settings</span>
+          </button>
         </div>
 
         <footer class="taskbar">
