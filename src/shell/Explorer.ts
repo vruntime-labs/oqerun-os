@@ -1,122 +1,123 @@
 import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
+import { Path } from "../vfs/Path";
 
 export class Explorer {
+  private readonly WINDOW_ID = "explorer";
+  private currentPath = "/home/user";
+
   constructor(
     private kernel: Kernel,
     private wm: WindowManager
   ) {}
 
   async open(path = "/home/user"): Promise<void> {
-    const items = await this.kernel.sys.list(path);
-    const windowId = `explorer-${path.replace(/\//g, "-")}`;
-
-    const parentPath = this.getParentPath(path);
-
-    const breadcrumbs = this.buildBreadcrumbs(path);
-
-    const list =
-      items.length === 0
-        ? "<p>This folder is empty.</p>"
-        : items
-            .map((item) => {
-              const nextPath = `${path}/${item}`.replace(/\/+/g, "/");
-
-              return `
-                <div class="explorer-item" data-path="${nextPath}">
-                  📁 ${item}
-                </div>
-              `;
-            })
-            .join("");
+    this.currentPath = Path.normalize(path);
 
     this.wm.open({
-      id: windowId,
-      title: `Explorer — ${path}`,
-      width: 720,
-      height: 480,
-      x: 120,
-      y: 70,
-      content: `
-        <div class="explorer">
+      id: this.WINDOW_ID,
+      title: "Explorer",
+      width: 560,
+      height: 380,
+      x: 90,
+      y: 55,
+      content: this.render()
+    });
 
-          <div class="explorer-toolbar">
-            <button class="explorer-btn" data-home>Home</button>
-            <button class="explorer-btn" data-up>Up</button>
+    requestAnimationFrame(() => this.attachEvents());
+  }
 
-            <div class="explorer-path">
-              ${breadcrumbs}
-            </div>
+  private render(): string {
+    const parts = this.currentPath.split("/").filter(Boolean);
+
+    const breadcrumbs = [
+      `<span class="breadcrumb" data-path="/">home</span>`,
+      ...parts.slice(1).map((_, index) => {
+        const p = "/" + parts.slice(0, index + 2).join("/");
+        return `<span>/</span><span class="breadcrumb" data-path="${p}">${parts[index + 1]}</span>`;
+      })
+    ].join(" ");
+
+    return `
+      <div class="explorer">
+        <div class="explorer-toolbar">
+          <button class="explorer-btn" data-home>Home</button>
+          <button class="explorer-btn" data-up>Up</button>
+
+          <div class="explorer-path">
+            ${breadcrumbs}
           </div>
-
-          <div class="explorer-list">
-            ${list}
-          </div>
-
         </div>
-      `
-    });
 
-    requestAnimationFrame(() => {
-      const win = document.getElementById(windowId);
-      if (!win) return;
+        <div class="explorer-divider"></div>
 
-      win.querySelectorAll<HTMLElement>(".explorer-item").forEach((item) => {
-        item.addEventListener("dblclick", () => {
-          const next = item.dataset.path;
-          if (next) this.open(next);
-        });
-      });
-
-      win.querySelector<HTMLElement>("[data-home]")
-        ?.addEventListener("click", () => {
-          this.open("/home/user");
-        });
-
-      win.querySelector<HTMLElement>("[data-up]")
-        ?.addEventListener("click", () => {
-          this.open(parentPath);
-        });
-
-      win.querySelectorAll<HTMLElement>(".breadcrumb").forEach((crumb) => {
-        crumb.addEventListener("click", () => {
-          const target = crumb.dataset.path;
-          if (target) this.open(target);
-        });
-      });
-    });
+        <div class="explorer-list" id="explorer-list">
+          Loading...
+        </div>
+      </div>
+    `;
   }
 
-  private getParentPath(path: string): string {
-    if (path === "/" || path === "/home") return "/home/user";
+  private async attachEvents(): Promise<void> {
+    const win = document.getElementById(this.WINDOW_ID);
+    if (!win) return;
 
-    const parts = path.split("/").filter(Boolean);
-    parts.pop();
+    const list = win.querySelector("#explorer-list") as HTMLElement;
+    if (!list) return;
 
-    if (parts.length === 0) return "/home/user";
+    const entries = await this.kernel.sys.list(this.currentPath);
 
-    return "/" + parts.join("/");
-  }
+    if (entries.length === 0) {
+      list.innerHTML = `<div class="explorer-item">This folder is empty.</div>`;
+    } else {
+      list.innerHTML = entries
+        .map(name => {
+          const full = Path.join(this.currentPath, name);
 
-  private buildBreadcrumbs(path: string): string {
-    const parts = path.split("/").filter(Boolean);
-
-    if (parts.length === 0) {
-      return `<span class="breadcrumb" data-path="/">/</span>`;
+          return `
+            <div class="explorer-item" data-folder="${full}">
+              <span class="explorer-icon">📁</span>
+              <span class="explorer-name">${name}</span>
+            </div>
+          `;
+        })
+        .join("");
     }
 
-    let current = "";
+    win.querySelector("[data-home]")?.addEventListener("click", () => {
+      this.refresh("/home/user");
+    });
 
-    return parts
-      .map((part) => {
-        current += "/" + part;
+    win.querySelector("[data-up]")?.addEventListener("click", () => {
+      const parent = Path.dirname(this.currentPath);
+      this.refresh(parent === "" ? "/" : parent);
+    });
 
-        return `
-          <span class="breadcrumb" data-path="${current}">
-            ${part}
-          </span>
-        `;
-      })
-      .join(" / ");
+    win.querySelectorAll(".breadcrumb").forEach(el => {
+      el.addEventListener("click", () => {
+        this.refresh((el as HTMLElement).dataset.path || "/");
+      });
+    });
+
+    win.querySelectorAll(".explorer-item[data-folder]").forEach(el => {
+      el.addEventListener("dblclick", () => {
+        const next = (el as HTMLElement).dataset.folder;
+        if (next) this.refresh(next);
+      });
+    });
+  }
+
+  private async refresh(path: string): Promise<void> {
+    this.currentPath = Path.normalize(path);
+
+    const win = document.getElementById(this.WINDOW_ID);
+    if (!win) return;
+
+    const content = win.querySelector(".window-content") as HTMLElement;
+    if (!content) return;
+
+    content.innerHTML = this.render();
+
+    await this.attachEvents();
   }
 }
