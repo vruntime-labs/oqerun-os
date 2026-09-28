@@ -72,7 +72,9 @@ export class Desktop {
         </div>
 
         <footer class="taskbar">
-          <button id="start-btn" class="start-btn">O</button>
+         <button id="start-btn" class="start-btn" aria-label="Open Start Menu">
+  <img src="/oqerun-os/branding/start-orb.png" alt="Oqerun Start" class="start-orb">
+</button>
 
           <div class="taskbar-title">Oqerun OS</div>
 
