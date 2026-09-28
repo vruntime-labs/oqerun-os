@@ -1,5 +1,5 @@
 import "./ui/styles.css";
-import { Kernel } from "./kernel/Kernel";
+import { Kernel } from "./core/Kernel";
 
 const kernel = new Kernel();
 kernel.boot();
