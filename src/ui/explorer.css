@@ -1,0 +1,107 @@
+/* =========================================================
+   Oqerun Explorer
+========================================================= */
+
+.explorer{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  color:var(--text);
+}
+
+.explorer-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  border-bottom:1px solid var(--border);
+}
+
+.explorer-btn{
+  background:var(--surface-2);
+  color:var(--text);
+  border:none;
+  border-radius:8px;
+  padding:8px 14px;
+  cursor:pointer;
+  transition:.18s;
+}
+
+.explorer-btn:hover{
+  filter:brightness(1.08);
+}
+
+.explorer-path{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  color:var(--muted);
+  font-size:14px;
+  flex-wrap:wrap;
+}
+
+.breadcrumb{
+  cursor:pointer;
+  color:var(--muted);
+}
+
+.breadcrumb:hover{
+  color:var(--accent);
+}
+
+.explorer-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:14px 8px;
+}
+
+.explorer-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:.18s;
+  color:var(--text);
+}
+
+.explorer-item:hover{
+  background:color-mix(in srgb,var(--surface-2) 60%,transparent);
+}
+
+.explorer-icon{
+  width:22px;
+  text-align:center;
+  font-size:18px;
+}
+
+.explorer-name{
+  color:var(--text);
+  font-weight:500;
+}
+
+.explorer-divider{
+  height:1px;
+  background:var(--border);
+  margin:10px 0;
+}
+
+/* Light Theme */
+
+#app.theme-light .explorer{
+  color:var(--text);
+}
+
+#app.theme-light .explorer-item{
+  color:var(--text);
+}
+
+#app.theme-light .explorer-name{
+  color:var(--text);
+}
+
+#app.theme-light .explorer-path{
+  color:var(--muted);
+}
