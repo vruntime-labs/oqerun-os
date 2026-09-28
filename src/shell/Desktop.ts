@@ -1,15 +1,19 @@
 import { StartMenu } from "./StartMenu";
 import { Explorer } from "./Explorer";
+import { Computer } from "./Computer";
 import { WindowManager } from "../window/WindowManager";
 import { Kernel } from "../core/Kernel";
 
 export class Desktop {
   private startMenu = new StartMenu();
   private wm = new WindowManager();
+
   private explorer: Explorer;
+  private computer: Computer;
 
   constructor(private kernel: Kernel) {
     this.explorer = new Explorer(this.kernel, this.wm);
+    this.computer = new Computer(this.kernel, this.wm);
   }
 
   render(): void {
@@ -52,12 +56,12 @@ export class Desktop {
       ?.addEventListener("click", () => this.startMenu.toggle());
 
     document
-      .getElementById("open-explorer")
-      ?.addEventListener("click", () => this.explorer.open("/home/user"));
+      .getElementById("computer-icon")
+      ?.addEventListener("dblclick", () => this.computer.open());
 
     document
-      .getElementById("computer-icon")
-      ?.addEventListener("dblclick", () => this.explorer.open("/home/user"));
+      .getElementById("open-explorer")
+      ?.addEventListener("click", () => this.explorer.open("/home/user"));
 
     document
       .getElementById("open-terminal")
