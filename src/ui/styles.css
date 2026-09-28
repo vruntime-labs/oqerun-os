@@ -536,3 +536,38 @@ body{
   color:white;
   font-family:inherit;
 }
+
+/* ==========================================
+   Oqerun OS Official System Icon Styles
+========================================== */
+
+.app-icon{
+    width:28px;
+    height:28px;
+    object-fit:contain;
+    user-select:none;
+}
+
+.desktop-icon-image{
+    width:56px;
+    height:56px;
+    object-fit:contain;
+    filter:drop-shadow(0 0 12px rgba(0,212,255,.28));
+    transition:transform .18s ease;
+}
+
+.desktop-icon-image:hover{
+    transform:scale(1.06);
+}
+
+.start-icon{
+    width:22px;
+    height:22px;
+    object-fit:contain;
+}
+
+.taskbar-icon{
+    width:26px;
+    height:26px;
+    object-fit:contain;
+}
