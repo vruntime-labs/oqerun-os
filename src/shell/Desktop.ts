@@ -1,9 +1,16 @@
 import { StartMenu } from "./StartMenu";
+import { Explorer } from "./Explorer";
 import { WindowManager } from "../window/WindowManager";
+import { Kernel } from "../core/Kernel";
 
 export class Desktop {
   private startMenu = new StartMenu();
   private wm = new WindowManager();
+  private explorer: Explorer;
+
+  constructor(private kernel: Kernel) {
+    this.explorer = new Explorer(this.kernel, this.wm);
+  }
 
   render(): void {
     const app = document.getElementById("app");
@@ -45,30 +52,24 @@ export class Desktop {
       ?.addEventListener("click", () => this.startMenu.toggle());
 
     document
+      .getElementById("open-explorer")
+      ?.addEventListener("click", () => this.explorer.open("/home/user"));
+
+    document
+      .getElementById("computer-icon")
+      ?.addEventListener("dblclick", () => this.explorer.open("/home/user"));
+
+    document
       .getElementById("open-terminal")
       ?.addEventListener("click", () => {
         this.wm.open({
           id: "terminal",
           title: "Terminal",
-          content: "<p>Oqerun Terminal coming soon...</p>",
+          content: "<p>Terminal coming soon...</p>",
           width: 520,
           height: 320,
           x: 140,
           y: 90
-        });
-      });
-
-    document
-      .getElementById("open-explorer")
-      ?.addEventListener("click", () => {
-        this.wm.open({
-          id: "explorer",
-          title: "File Explorer",
-          content: "<p>Virtual File System coming soon...</p>",
-          width: 620,
-          height: 400,
-          x: 180,
-          y: 80
         });
       });
 
@@ -78,25 +79,11 @@ export class Desktop {
         this.wm.open({
           id: "settings",
           title: "Settings",
-          content: "<p>Settings panel coming soon...</p>",
+          content: "<p>Settings coming soon...</p>",
           width: 500,
           height: 360,
           x: 220,
           y: 110
-        });
-      });
-
-    document
-      .getElementById("computer-icon")
-      ?.addEventListener("dblclick", () => {
-        this.wm.open({
-          id: "computer",
-          title: "Computer",
-          content: "<p>Computer view coming soon...</p>",
-          width: 620,
-          height: 400,
-          x: 160,
-          y: 70
         });
       });
   }
