@@ -49,7 +49,6 @@ export class Desktop {
         </div>
 
         <footer class="taskbar">
-
           <button id="start-btn" class="start-btn">O</button>
 
           <div class="taskbar-title">Oqerun OS</div>
@@ -57,7 +56,6 @@ export class Desktop {
           <div id="taskbar-apps"></div>
 
           <div id="clock">--:--</div>
-
         </footer>
 
       </div>
@@ -65,6 +63,13 @@ export class Desktop {
 
     this.bindEvents();
     this.startClock();
+  }
+
+  private hideStartMenu(): void {
+    const menu = document.getElementById("start-menu");
+    if (menu) {
+      menu.style.display = "none";
+    }
   }
 
   private bindEvents(): void {
@@ -79,21 +84,21 @@ export class Desktop {
     document
       .getElementById("open-explorer")
       ?.addEventListener("click", () => {
-        this.startMenu.hide();
+        this.hideStartMenu();
         this.explorer.open("/home/user");
       });
 
     document
       .getElementById("open-terminal")
       ?.addEventListener("click", () => {
-        this.startMenu.hide();
+        this.hideStartMenu();
         this.terminal.open();
       });
 
     document
       .getElementById("open-settings")
       ?.addEventListener("click", () => {
-        this.startMenu.hide();
+        this.hideStartMenu();
         this.settings.open();
       });
 
@@ -104,7 +109,7 @@ export class Desktop {
         !target.closest("#start-menu") &&
         !target.closest("#start-btn")
       ) {
-        this.startMenu.hide();
+        this.hideStartMenu();
       }
     });
   }
