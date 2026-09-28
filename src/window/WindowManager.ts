@@ -1,62 +1,186 @@
-import { OqWindow, WindowOptions } from "./Window";
-import { ProcessManager } from "../process/ProcessManager";
+import { Window } from "./Window";
+
+export interface WindowOptions {
+  id: string;
+  title: string;
+  content: string;
+  width?: number;
+  height?: number;
+  x?: number;
+  y?: number;
+}
+
+interface ManagedWindow {
+  id: string;
+  instance: Window;
+  minimized: boolean;
+  maximized: boolean;
+}
 
 export class WindowManager {
-  private windows = new Map<string, { window: OqWindow; pid: number }>();
+  private windows = new Map<string, ManagedWindow>();
+  private activeWindow: string | null = null;
   private zIndex = 100;
-  private processManager = new ProcessManager();
-
-  private getDesktopArea(): HTMLElement | null {
-    return document.querySelector(".desktop-area");
-  }
 
   open(options: WindowOptions): void {
-    if (this.windows.has(options.id)) {
+
+    const existing = this.windows.get(options.id);
+
+    if (existing) {
+      this.restore(options.id);
       this.focus(options.id);
       return;
     }
 
-    const desktop = this.getDesktopArea();
-    if (!desktop) return;
-
-    const pid = this.processManager.create(options.title);
-
-    const win = new OqWindow(options);
-    const element = win.render();
-
-    win.focus(++this.zIndex);
-
-    // Focus window
-    element.addEventListener("pointerdown", () => this.focus(options.id));
-
-    // Close button
-    const closeBtn = element.querySelector(".win-close");
-    closeBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.close(options.id);
+    const win = new Window({
+      ...options,
+      onClose: () => this.close(options.id),
+      onMinimize: () => this.minimize(options.id),
+      onMaximize: () => this.toggleMaximize(options.id),
+      onFocus: () => this.focus(options.id)
     });
 
-    desktop.appendChild(element);
+    win.render();
 
-    this.windows.set(options.id, { window: win, pid });
+    this.windows.set(options.id,{
+      id:options.id,
+      instance:win,
+      minimized:false,
+      maximized:false
+    });
+
+    this.focus(options.id);
+    this.updateTaskbar();
   }
 
-  focus(id: string): void {
-    const entry = this.windows.get(id);
-    if (!entry) return;
-    entry.window.focus(++this.zIndex);
-  }
+  close(id:string):void{
 
-  close(id: string): void {
-    const entry = this.windows.get(id);
-    if (!entry) return;
+    const managed=this.windows.get(id);
+    if(!managed) return;
 
-    entry.window.close();
-    this.processManager.kill(entry.pid);
+    managed.instance.destroy();
     this.windows.delete(id);
+
+    if(this.activeWindow===id){
+      this.activeWindow=null;
+    }
+
+    this.updateTaskbar();
   }
 
-  listProcesses() {
-    return this.processManager.list();
+  minimize(id:string):void{
+
+    const managed=this.windows.get(id);
+    if(!managed || managed.minimized) return;
+
+    managed.instance.hide();
+    managed.minimized=true;
+
+    if(this.activeWindow===id){
+      this.activeWindow=null;
+    }
+
+    this.updateTaskbar();
+  }
+
+  restore(id:string):void{
+
+    const managed=this.windows.get(id);
+    if(!managed) return;
+
+    managed.instance.show();
+    managed.minimized=false;
+
+    this.focus(id);
+    this.updateTaskbar();
+  }
+
+  toggleMaximize(id:string):void{
+
+    const managed=this.windows.get(id);
+    if(!managed) return;
+
+    managed.maximized=!managed.maximized;
+
+    if(managed.maximized){
+      managed.instance.maximize();
+    }else{
+      managed.instance.restore();
+    }
+
+    this.focus(id);
+  }
+
+  focus(id:string):void{
+
+    const managed=this.windows.get(id);
+    if(!managed) return;
+
+    this.activeWindow=id;
+    this.zIndex++;
+
+    managed.instance.setZIndex(this.zIndex);
+
+    this.windows.forEach((w,key)=>{
+      w.instance.setActive(key===id);
+    });
+
+    this.updateTaskbar();
+  }
+
+  toggleFromTaskbar(id:string):void{
+
+    const managed=this.windows.get(id);
+    if(!managed) return;
+
+    if(managed.minimized){
+      this.restore(id);
+      return;
+    }
+
+    if(this.activeWindow===id){
+      this.minimize(id);
+      return;
+    }
+
+    this.focus(id);
+  }
+
+  private updateTaskbar():void{
+
+    const container=document.getElementById("taskbar-apps");
+    if(!container) return;
+
+    container.innerHTML="";
+
+    this.windows.forEach(win=>{
+
+      const button=document.createElement("button");
+      button.className="taskbar-app";
+
+      if(this.activeWindow===win.id){
+        button.classList.add("active");
+      }
+
+      if(win.minimized){
+        button.classList.add("minimized");
+      }
+
+      button.textContent=win.instance.getTitle();
+
+      button.onclick=()=>{
+        this.toggleFromTaskbar(win.id);
+      };
+
+      container.appendChild(button);
+    });
+  }
+
+  getWindows():string[]{
+    return [...this.windows.keys()];
+  }
+
+  getActiveWindow():string|null{
+    return this.activeWindow;
   }
 }
