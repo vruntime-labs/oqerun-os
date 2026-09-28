@@ -29,7 +29,8 @@ export class Kernel {
 
     await this.initializeSystem();
 
-    new Desktop().render();
+    // Launch the desktop with kernel access
+    new Desktop(this).render();
 
     console.log(`Oqerun Core ${this.version} started.`);
   }
