@@ -18,18 +18,18 @@ export class OqWindow {
     this.element.className = "oq-window";
     this.element.id = options.id;
 
+    this.element.style.position = "absolute";
     this.element.style.width = `${options.width ?? 520}px`;
     this.element.style.height = `${options.height ?? 340}px`;
     this.element.style.left = `${options.x ?? 120}px`;
     this.element.style.top = `${options.y ?? 80}px`;
-    this.element.style.position = "absolute";
 
     this.element.innerHTML = `
       <div class="window-titlebar">
         <span class="window-title">${options.title}</span>
 
         <div class="window-controls">
-          <button class="win-close" aria-label="Close">✕</button>
+          <button class="win-close" type="button" aria-label="Close">✕</button>
         </div>
       </div>
 
@@ -38,17 +38,8 @@ export class OqWindow {
       </div>
     `;
 
-    this.element
-      .querySelector(".win-close")
-      ?.addEventListener("click", () => {
-        this.element.dispatchEvent(
-          new CustomEvent("window:close", {
-            bubbles: true,
-            detail: { id: this.options.id }
-          })
-        );
-      });
-
+    // Only dragging is handled here.
+    // WindowManager handles the close button.
     Drag.enable(this.element);
   }
 
