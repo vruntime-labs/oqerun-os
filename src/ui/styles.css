@@ -175,7 +175,7 @@ body{
 }
 
 .desktop-icon{
-  width:82px;
+  width:84px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -184,21 +184,16 @@ body{
   user-select:none;
 }
 
-.icon-box{
-  width:54px;
-  height:54px;
-  display:grid;
-  place-items:center;
-  border-radius:16px;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.12);
-  font-size:28px;
-  transition:.2s;
+.desktop-icon-image{
+  width:56px;
+  height:56px;
+  object-fit:contain;
+  filter:drop-shadow(0 0 12px rgba(0,212,255,.28));
+  transition:transform .18s ease;
 }
 
-.desktop-icon:hover .icon-box{
-  transform:translateY(-2px);
-  border-color:rgba(255,255,255,.25);
+.desktop-icon:hover .desktop-icon-image{
+  transform:translateY(-2px) scale(1.05);
 }
 
 .desktop-icon span{
@@ -236,6 +231,10 @@ body{
 }
 
 .start-menu button{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
   background:transparent;
   border:none;
   color:var(--text);
@@ -243,10 +242,17 @@ body{
   padding:10px;
   border-radius:10px;
   cursor:pointer;
+  transition:.18s;
 }
 
 .start-menu button:hover{
   background:rgba(255,255,255,.08);
+}
+
+.start-icon{
+  width:22px;
+  height:22px;
+  object-fit:contain;
 }
 
 /* =========================
@@ -303,9 +309,14 @@ body{
 }
 
 .taskbar-app{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
   padding:6px 12px;
   border:none;
   border-radius:8px;
+
   background:rgba(255,255,255,.08);
   color:var(--text);
   cursor:pointer;
@@ -318,6 +329,12 @@ body{
 
 .taskbar-app.minimized{
   opacity:.6;
+}
+
+.taskbar-icon{
+  width:26px;
+  height:26px;
+  object-fit:contain;
 }
 
 #clock{
@@ -454,6 +471,12 @@ body{
   background:rgba(255,255,255,.06);
 }
 
+.explorer-icon{
+  width:22px;
+  height:22px;
+  object-fit:contain;
+}
+
 /* =========================
    Computer
 ========================= */
@@ -476,6 +499,7 @@ body{
   border-radius:18px;
   padding:20px;
   cursor:pointer;
+  transition:.2s;
 }
 
 .computer-card:hover{
@@ -484,7 +508,9 @@ body{
 }
 
 .computer-icon{
-  font-size:36px;
+  width:42px;
+  height:42px;
+  object-fit:contain;
   margin-bottom:12px;
 }
 
@@ -537,37 +563,26 @@ body{
   font-family:inherit;
 }
 
-/* ==========================================
-   Oqerun OS Official System Icon Styles
-========================================== */
+#terminal-input::placeholder{
+  color:#7f93b8;
+}
+
+.terminal-output::-webkit-scrollbar{
+  width:8px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.18);
+  border-radius:999px;
+}
+
+/* =========================
+   Oqerun Official System Icons
+========================= */
 
 .app-icon{
-    width:28px;
-    height:28px;
-    object-fit:contain;
-    user-select:none;
-}
-
-.desktop-icon-image{
-    width:56px;
-    height:56px;
-    object-fit:contain;
-    filter:drop-shadow(0 0 12px rgba(0,212,255,.28));
-    transition:transform .18s ease;
-}
-
-.desktop-icon-image:hover{
-    transform:scale(1.06);
-}
-
-.start-icon{
-    width:22px;
-    height:22px;
-    object-fit:contain;
-}
-
-.taskbar-icon{
-    width:26px;
-    height:26px;
-    object-fit:contain;
+  width:28px;
+  height:28px;
+  object-fit:contain;
+  user-select:none;
 }
