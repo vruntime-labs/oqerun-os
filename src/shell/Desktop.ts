@@ -26,27 +26,38 @@ export class Desktop {
     const app = document.getElementById("app");
     if (!app) return;
 
+    app.classList.add("theme-system");
+
     app.innerHTML = `
       <div class="desktop">
 
         <div class="desktop-area">
+
           <div class="desktop-icon" id="computer-icon">
             <div class="icon-box">🖥️</div>
             <span>Computer</span>
           </div>
+
         </div>
 
         <div id="start-menu" class="start-menu" style="display:none;">
           <h3>Oqerun</h3>
+
           <button id="open-terminal">Terminal</button>
           <button id="open-explorer">Explorer</button>
           <button id="open-settings">Settings</button>
         </div>
 
         <footer class="taskbar">
+
           <button id="start-btn" class="start-btn">O</button>
+
           <div class="taskbar-title">Oqerun OS</div>
+
+          <div id="taskbar-apps"></div>
+
           <div id="clock">--:--</div>
+
         </footer>
 
       </div>
@@ -67,15 +78,35 @@ export class Desktop {
 
     document
       .getElementById("open-explorer")
-      ?.addEventListener("click", () => this.explorer.open("/home/user"));
+      ?.addEventListener("click", () => {
+        this.startMenu.hide();
+        this.explorer.open("/home/user");
+      });
 
     document
       .getElementById("open-terminal")
-      ?.addEventListener("click", () => this.terminal.open());
+      ?.addEventListener("click", () => {
+        this.startMenu.hide();
+        this.terminal.open();
+      });
 
     document
       .getElementById("open-settings")
-      ?.addEventListener("click", () => this.settings.open());
+      ?.addEventListener("click", () => {
+        this.startMenu.hide();
+        this.settings.open();
+      });
+
+    document.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+
+      if (
+        !target.closest("#start-menu") &&
+        !target.closest("#start-btn")
+      ) {
+        this.startMenu.hide();
+      }
+    });
   }
 
   private startClock(): void {
