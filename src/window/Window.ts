@@ -1,3 +1,5 @@
+import { Drag } from "./Drag";
+
 export interface WindowOptions {
   id: string;
   title: string;
@@ -9,36 +11,49 @@ export interface WindowOptions {
 }
 
 export class OqWindow {
-  constructor(private options: WindowOptions) {}
+  private element: HTMLDivElement;
 
-  render(): HTMLDivElement {
-    const win = document.createElement("div");
-    win.className = "oq-window";
-    win.id = this.options.id;
+  constructor(private options: WindowOptions) {
+    this.element = document.createElement("div");
+    this.element.className = "oq-window";
+    this.element.id = options.id;
 
-    win.style.width = `${this.options.width ?? 520}px`;
-    win.style.height = `${this.options.height ?? 340}px`;
-    win.style.left = `${this.options.x ?? 120}px`;
-    win.style.top = `${this.options.y ?? 80}px`;
+    this.element.style.width = `${options.width ?? 520}px`;
+    this.element.style.height = `${options.height ?? 340}px`;
+    this.element.style.left = `${options.x ?? 120}px`;
+    this.element.style.top = `${options.y ?? 80}px`;
+    this.element.style.position = "absolute";
 
-    win.innerHTML = `
+    this.element.innerHTML = `
       <div class="window-titlebar">
-        <span>${this.options.title}</span>
+        <span class="window-title">${options.title}</span>
 
         <div class="window-controls">
-          <button class="win-close">✕</button>
+          <button class="win-close" aria-label="Close">✕</button>
         </div>
       </div>
 
       <div class="window-content">
-        ${this.options.content}
+        ${options.content}
       </div>
     `;
 
-    win.querySelector(".win-close")?.addEventListener("click", () => {
-      win.remove();
-    });
+    this.element
+      .querySelector(".win-close")
+      ?.addEventListener("click", () => this.close());
 
-    return win;
+    Drag.enable(this.element);
+  }
+
+  render(): HTMLDivElement {
+    return this.element;
+  }
+
+  close(): void {
+    this.element.remove();
+  }
+
+  focus(zIndex: number): void {
+    this.element.style.zIndex = String(zIndex);
   }
 }
