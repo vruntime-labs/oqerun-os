@@ -1,9 +1,10 @@
-:root {
-  --bg: #0A122A;
-  --surface: #101B3A;
-  --text: #F8FAFC;
-  --accent: #00D4FF;
-  --border: rgba(255,255,255,.08);
+:root{
+  --bg:#0A122A;
+  --surface:rgba(16,27,58,.88);
+  --surface-2:#13224A;
+  --text:#F8FAFC;
+  --accent:#00D4FF;
+  --border:rgba(255,255,255,.08);
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -17,11 +18,13 @@ body{
   background:var(--bg);
   color:var(--text);
   font-family:Inter,sans-serif;
+  overflow:hidden;
 }
 
 /* Boot */
 
 .boot-screen{
+  width:100%;
   height:100%;
   display:flex;
   flex-direction:column;
@@ -32,12 +35,14 @@ body{
 }
 
 .boot-screen h1{
+  font-family:"Space Grotesk",sans-serif;
   font-size:3rem;
   letter-spacing:.12em;
-  font-family:"Space Grotesk",sans-serif;
 }
 
-#boot-status{color:var(--accent);}
+#boot-status{
+  color:var(--accent);
+}
 
 /* Desktop */
 
@@ -51,7 +56,75 @@ body{
 
 .desktop-area{
   flex:1;
+  position:relative;
+  padding:24px;
 }
+
+.desktop-icon{
+  width:82px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.icon-box{
+  width:58px;
+  height:58px;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.10);
+  font-size:28px;
+}
+
+.desktop-icon span{
+  text-align:center;
+  font-size:13px;
+}
+
+/* Start Menu */
+
+.start-menu{
+  position:absolute;
+  bottom:64px;
+  left:14px;
+  width:240px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:16px;
+  border-radius:18px;
+  background:rgba(18,31,66,.95);
+  backdrop-filter:blur(18px);
+  border:1px solid var(--border);
+  box-shadow:0 18px 45px rgba(0,0,0,.35);
+}
+
+.start-menu h3{
+  margin-bottom:6px;
+}
+
+.start-menu button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+  transition:.18s;
+}
+
+.start-menu button:hover{
+  background:rgba(0,212,255,.18);
+}
+
+/* Taskbar */
 
 .taskbar{
   height:52px;
@@ -59,8 +132,8 @@ body{
   align-items:center;
   gap:12px;
   padding:0 14px;
-  background:rgba(16,27,58,.88);
-  backdrop-filter:blur(12px);
+  background:var(--surface);
+  backdrop-filter:blur(16px);
   border-top:1px solid var(--border);
 }
 
@@ -82,4 +155,51 @@ body{
 #clock{
   margin-left:auto;
   font-variant-numeric:tabular-nums;
+}
+
+/* Windows */
+
+.oq-window{
+  position:absolute;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 18px 40px rgba(0,0,0,.35);
+}
+
+.window-titlebar{
+  height:42px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 14px;
+  background:rgba(255,255,255,.04);
+  cursor:move;
+  user-select:none;
+}
+
+.window-controls{
+  display:flex;
+  gap:8px;
+}
+
+.window-controls button{
+  width:26px;
+  height:26px;
+  border:none;
+  border-radius:8px;
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  cursor:pointer;
+}
+
+.window-controls button:hover{
+  background:#ff5f57;
+}
+
+.window-content{
+  height:calc(100% - 42px);
+  padding:16px;
+  overflow:auto;
 }
