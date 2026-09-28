@@ -1,11 +1,76 @@
-/* =========================================================
-   Oqerun Boot Screen
-========================================================= */
+:root{
+  --bg:#07112c;
+  --surface:#13224a;
+  --surface-2:#1b2d5d;
+  --text:#eef4ff;
+  --muted:#9fb2d8;
+  --accent:#00d4ff;
+  --border:rgba(255,255,255,.08);
+}
+
+/* =========================
+   Theme Engine
+========================= */
+
+#app.theme-dark{
+  --bg:#07112c;
+  --surface:#13224a;
+  --surface-2:#1b2d5d;
+  --text:#eef4ff;
+  --muted:#9fb2d8;
+  --border:rgba(255,255,255,.08);
+}
+
+#app.theme-light{
+  --bg:#eef4ff;
+  --surface:#ffffff;
+  --surface-2:#dfe8f8;
+  --text:#0a122a;
+  --muted:#5a6c8f;
+  --border:rgba(10,18,42,.08);
+}
+
+#app.theme-system{
+  --bg:#07112c;
+  --surface:#13224a;
+  --surface-2:#1b2d5d;
+  --text:#eef4ff;
+  --muted:#9fb2d8;
+  --border:rgba(255,255,255,.08);
+}
+
+/* =========================
+   Global
+========================= */
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html,
+body,
+#app{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Inter,system-ui,sans-serif;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  transition:background .25s,color .25s;
+}
+
+/* =========================
+   Boot Screen
+========================= */
 
 .boot-screen{
   position:fixed;
   inset:0;
-
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -13,7 +78,7 @@
   gap:18px;
 
   background:
-    linear-gradient(rgba(7,17,44,.15), rgba(7,17,44,.35)),
+    linear-gradient(rgba(7,17,44,.15),rgba(7,17,44,.35)),
     url("/oqerun-os/boot/boot-screen.webp");
 
   background-size:cover;
@@ -32,43 +97,40 @@
 .boot-title{
   font-size:32px;
   font-weight:700;
-  color:#EEF4FF;
-  letter-spacing:.04em;
+  color:#eef4ff;
 }
 
 .boot-version{
-  color:#9FB2D8;
+  color:#9fb2d8;
   font-size:15px;
+}
+
+.boot-status{
+  color:#00d4ff;
+  font-size:14px;
 }
 
 .boot-dots{
   display:flex;
   gap:8px;
-  margin-top:12px;
 }
 
 .boot-dots span{
   width:8px;
   height:8px;
   border-radius:50%;
-  background:#00D4FF;
+  background:#00d4ff;
   animation:bounce 1.2s infinite;
 }
 
-.boot-dots span:nth-child(2){
-  animation-delay:.2s;
-}
-
-.boot-dots span:nth-child(3){
-  animation-delay:.4s;
-}
+.boot-dots span:nth-child(2){animation-delay:.2s;}
+.boot-dots span:nth-child(3){animation-delay:.4s;}
 
 @keyframes pulseGlow{
   0%,100%{
     transform:scale(1);
     filter:drop-shadow(0 0 8px rgba(0,212,255,.35));
   }
-
   50%{
     transform:scale(1.04);
     filter:drop-shadow(0 0 20px rgba(0,212,255,.75));
@@ -80,9 +142,397 @@
     transform:translateY(0);
     opacity:.5;
   }
-
   40%{
     transform:translateY(-6px);
     opacity:1;
   }
+}
+
+/* =========================
+   Desktop
+========================= */
+
+.desktop{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+
+  background:
+    linear-gradient(rgba(7,17,44,.18),rgba(7,17,44,.45)),
+    url("/oqerun-os/wallpapers/pulse-night.webp");
+
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
+.desktop-area{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  padding:18px;
+}
+
+.desktop-icon{
+  width:82px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.icon-box{
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  font-size:28px;
+  transition:.2s;
+}
+
+.desktop-icon:hover .icon-box{
+  transform:translateY(-2px);
+  border-color:rgba(255,255,255,.25);
+}
+
+.desktop-icon span{
+  font-size:12px;
+  text-align:center;
+  color:var(--text);
+}
+
+/* =========================
+   Start Menu
+========================= */
+
+.start-menu{
+  position:absolute;
+  left:18px;
+  bottom:78px;
+  width:230px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:16px;
+
+  background:rgba(19,34,74,.86);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+
+  border:1px solid var(--border);
+  border-radius:20px;
+
+  box-shadow:0 18px 40px rgba(0,0,0,.35);
+}
+
+.start-menu h3{
+  color:var(--text);
+}
+
+.start-menu button{
+  background:transparent;
+  border:none;
+  color:var(--text);
+  text-align:left;
+  padding:10px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.start-menu button:hover{
+  background:rgba(255,255,255,.08);
+}
+
+/* =========================
+   Floating Taskbar
+========================= */
+
+.taskbar{
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:12px;
+
+  height:52px;
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:0 14px;
+
+  background:rgba(19,34,74,.72);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+
+  box-shadow:0 12px 35px rgba(0,0,0,.35);
+}
+
+.start-btn{
+  width:34px;
+  height:34px;
+  border:none;
+  border-radius:10px;
+  background:var(--accent);
+  color:#001018;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.taskbar-title{
+  font-weight:600;
+}
+
+#taskbar-apps{
+  display:flex;
+  gap:8px;
+  flex:1;
+  overflow-x:auto;
+}
+
+#taskbar-apps::-webkit-scrollbar{
+  display:none;
+}
+
+.taskbar-app{
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  cursor:pointer;
+}
+
+.taskbar-app.active{
+  background:var(--accent);
+  color:#001018;
+}
+
+.taskbar-app.minimized{
+  opacity:.6;
+}
+
+#clock{
+  margin-left:auto;
+}
+
+/* =========================
+   Windows
+========================= */
+
+.oq-window{
+  position:absolute;
+
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+
+  border:1px solid var(--border);
+  border-radius:18px;
+
+  overflow:hidden;
+
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+
+  transition:.15s;
+}
+
+.oq-window.active{
+  border-color:rgba(0,212,255,.35);
+  box-shadow:0 28px 70px rgba(0,0,0,.45);
+}
+
+.window-titlebar{
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  background:rgba(27,45,93,.8);
+  border-bottom:1px solid var(--border);
+  cursor:move;
+}
+
+.window-title{
+  font-weight:600;
+}
+
+.window-controls{
+  display:flex;
+  gap:6px;
+}
+
+.window-controls button{
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius:8px;
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  cursor:pointer;
+}
+
+.win-close:hover{background:#ff5f57;color:white;}
+.win-min:hover{background:#f5c542;color:#111;}
+.win-max:hover{background:#3ddc84;color:#111;}
+
+.window-content{
+  height:calc(100% - 42px);
+  overflow:auto;
+  padding:16px;
+}
+
+/* =========================
+   Explorer
+========================= */
+
+.explorer{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+
+.explorer-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+}
+
+.explorer-btn{
+  background:var(--surface-2);
+  border:none;
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.explorer-path{
+  color:var(--muted);
+}
+
+.breadcrumb{
+  cursor:pointer;
+}
+
+.breadcrumb:hover{
+  color:var(--accent);
+}
+
+.explorer-divider{
+  height:1px;
+  background:var(--border);
+}
+
+.explorer-list{
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.explorer-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.explorer-item:hover{
+  background:rgba(255,255,255,.06);
+}
+
+/* =========================
+   Computer
+========================= */
+
+.computer-app{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+
+.computer-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:18px;
+}
+
+.computer-card{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+  cursor:pointer;
+}
+
+.computer-card:hover{
+  border-color:rgba(0,212,255,.35);
+  background:rgba(0,212,255,.08);
+}
+
+.computer-icon{
+  font-size:36px;
+  margin-bottom:12px;
+}
+
+/* =========================
+   Terminal
+========================= */
+
+.terminal{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  background:#08101f;
+  border-radius:10px;
+  overflow:hidden;
+  font-family:"JetBrains Mono","Cascadia Code",monospace;
+}
+
+.terminal-output{
+  flex:1;
+  overflow:auto;
+  padding:14px;
+  color:#d7e8ff;
+  line-height:1.6;
+}
+
+.terminal-output div{
+  margin-bottom:4px;
+}
+
+.terminal-input-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  background:#0c1830;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+
+#terminal-path{
+  color:var(--accent);
+  font-weight:600;
+}
+
+#terminal-input{
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:white;
+  font-family:inherit;
 }
