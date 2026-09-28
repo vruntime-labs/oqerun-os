@@ -24,14 +24,11 @@ export class Terminal {
       y: 90,
       content: `
         <div class="terminal">
-          <div id="terminal-output" class="terminal-output">
-            <div>Oqerun Terminal v0.3</div>
-            <div>Type <b>help</b> to begin.</div>
-          </div>
+          <div id="terminal-output" class="terminal-output"></div>
 
           <div class="terminal-input-row">
             <span id="terminal-path">${this.currentPath}</span>
-            <input id="terminal-input" type="text" autocomplete="off">
+            <input id="terminal-input" type="text" autocomplete="off" spellcheck="false">
           </div>
         </div>
       `
@@ -48,20 +45,25 @@ export class Terminal {
     const input = win.querySelector("#terminal-input") as HTMLInputElement;
     const pathLabel = win.querySelector("#terminal-path") as HTMLElement;
 
+    this.printBanner(output);
     input.focus();
 
     input.addEventListener("keydown", async (e) => {
+
       if (e.key === "ArrowUp") {
         e.preventDefault();
+
         if (this.history.length) {
           this.historyIndex = Math.max(0, this.historyIndex - 1);
           input.value = this.history[this.historyIndex];
         }
+
         return;
       }
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
+
         if (this.history.length) {
           this.historyIndex = Math.min(
             this.history.length,
@@ -73,6 +75,13 @@ export class Terminal {
               ? ""
               : this.history[this.historyIndex];
         }
+
+        return;
+      }
+
+      if (e.key === "Tab") {
+        e.preventDefault();
+        await this.autocomplete(input);
         return;
       }
 
@@ -80,55 +89,93 @@ export class Terminal {
 
       const command = input.value.trim();
 
-      output.innerHTML += `<div><span>${this.currentPath}$</span> ${command}</div>`;
+      output.innerHTML += `
+        <div class="terminal-line">
+          <span class="terminal-prompt">${this.currentPath}$</span> ${command}
+        </div>
+      `;
 
       if (command) {
         this.history.push(command);
         this.historyIndex = this.history.length;
       }
 
-      await this.run(command, output, pathLabel);
+      await this.execute(command, output, pathLabel);
 
       input.value = "";
       output.scrollTop = output.scrollHeight;
     });
   }
 
-  private async run(
+  private printBanner(output: HTMLDivElement): void {
+    output.innerHTML = `
+      <div>Oqerun Terminal v0.3</div>
+      <div>Type <b>help</b> to begin.</div>
+      <div></div>
+    `;
+  }
+
+  private async execute(
+    command: string,
+    output: HTMLDivElement,
+    pathLabel: HTMLElement
+  ): Promise<void> {
+
+    if (!command) return;
+
+    const commands = command
+      .split("&&")
+      .map(c => c.trim())
+      .filter(Boolean);
+
+    for (const cmd of commands) {
+      await this.runSingle(cmd, output, pathLabel);
+    }
+  }
+
+  private async runSingle(
     command: string,
     output: HTMLDivElement,
     pathLabel: HTMLElement
   ) {
-    const [cmd, ...args] = command.split(" ");
+
+    const [cmd, ...args] = command.split(/\s+/);
 
     switch (cmd) {
-      case "":
-        return;
 
       case "help":
         output.innerHTML += `
-          <div>Commands</div>
-          <div>pwd ls cd mkdir touch cat</div>
-          <div>clear echo history rm mv cp open</div>
+          <div>Available commands</div>
+          <div>pwd</div>
+          <div>ls</div>
+          <div>cd &lt;folder&gt;</div>
+          <div>mkdir &lt;folder&gt;</div>
+          <div>touch &lt;file&gt;</div>
+          <div>cat &lt;file&gt;</div>
+          <div>echo &lt;text&gt;</div>
+          <div>history</div>
+          <div>clear</div>
+          <div>open</div>
+          <div></div>
         `;
         break;
 
       case "clear":
-        output.innerHTML = "";
+        this.printBanner(output);
         break;
 
       case "pwd":
         output.innerHTML += `<div>${this.currentPath}</div>`;
         break;
 
-      case "history":
-        this.history.forEach((c, i) => {
-          output.innerHTML += `<div>${i + 1}  ${c}</div>`;
-        });
-        break;
-
       case "echo":
         output.innerHTML += `<div>${args.join(" ")}</div>`;
+        break;
+
+      case "history":
+        this.history.forEach((c, i) => {
+          output.innerHTML += `<div>${i + 1}. ${c}</div>`;
+        });
         break;
 
       case "ls":
@@ -136,34 +183,30 @@ export class Terminal {
           const items = await this.kernel.sys.list(this.currentPath);
           output.innerHTML += `<div>${items.join("   ") || "(empty)"}</div>`;
         } catch {
-          output.innerHTML += `<div>Cannot read directory.</div>`;
+          output.innerHTML += `<div>Unable to read directory.</div>`;
         }
         break;
 
       case "cd":
-        if (!args[0]) break;
-
-        if (args[0] === "..") {
-          const parts = this.currentPath.split("/").filter(Boolean);
-          parts.pop();
-          this.currentPath = "/" + parts.join("/");
-          if (!this.currentPath || this.currentPath === "") this.currentPath = "/";
-        } else {
-          this.currentPath =
-            `${this.currentPath}/${args[0]}`.replace(/\/+/g, "/");
-        }
-
-        pathLabel.textContent = this.currentPath;
+        await this.changeDirectory(args[0], output, pathLabel);
         break;
 
       case "mkdir":
-        if (!args[0]) break;
+        if (!args[0]) {
+          output.innerHTML += `<div>Usage: mkdir &lt;folder&gt;</div>`;
+          break;
+        }
+
         await this.kernel.sys.mkdir(`${this.currentPath}/${args[0]}`);
         output.innerHTML += `<div>Directory created.</div>`;
         break;
 
       case "touch":
-        if (!args[0]) break;
+        if (!args[0]) {
+          output.innerHTML += `<div>Usage: touch &lt;file&gt;</div>`;
+          break;
+        }
+
         await this.kernel.sys.write(`${this.currentPath}/${args[0]}`, "");
         output.innerHTML += `<div>File created.</div>`;
         break;
@@ -175,30 +218,90 @@ export class Terminal {
           const text = await this.kernel.sys.read(
             `${this.currentPath}/${args[0]}`
           );
+
           output.innerHTML += `<div>${text || "(empty file)"}</div>`;
         } catch {
           output.innerHTML += `<div>File not found.</div>`;
         }
         break;
 
-      case "rm":
-        output.innerHTML += `<div>Delete support is coming next.</div>`;
-        break;
-
-      case "mv":
-        output.innerHTML += `<div>Move support is coming next.</div>`;
-        break;
-
-      case "cp":
-        output.innerHTML += `<div>Copy support is coming next.</div>`;
-        break;
-
       case "open":
         new Explorer(this.kernel, this.wm).open(this.currentPath);
         break;
 
+      case "rm":
+      case "mv":
+      case "cp":
+        output.innerHTML += `<div>${cmd}: coming in the next filesystem update.</div>`;
+        break;
+
       default:
         output.innerHTML += `<div>Unknown command: ${cmd}</div>`;
+    }
+  }
+
+  private async changeDirectory(
+    target: string | undefined,
+    output: HTMLDivElement,
+    pathLabel: HTMLElement
+  ) {
+
+    if (!target) return;
+
+    if (target === "..") {
+      const parts = this.currentPath.split("/").filter(Boolean);
+      parts.pop();
+      this.currentPath = parts.length ? "/" + parts.join("/") : "/";
+      pathLabel.textContent = this.currentPath;
+      return;
+    }
+
+    const next =
+      target.startsWith("/")
+        ? target
+        : `${this.currentPath}/${target}`.replace(/\/+/g, "/");
+
+    try {
+      await this.kernel.sys.list(next);
+      this.currentPath = next;
+      pathLabel.textContent = this.currentPath;
+    } catch {
+      output.innerHTML += `<div>No such directory: ${target}</div>`;
+    }
+  }
+
+  private async autocomplete(input: HTMLInputElement): Promise<void> {
+
+    const value = input.value.trim();
+
+    const commands = [
+      "help",
+      "pwd",
+      "ls",
+      "cd",
+      "mkdir",
+      "touch",
+      "cat",
+      "echo",
+      "history",
+      "clear",
+      "open"
+    ];
+
+    if (!value.includes(" ")) {
+      const match = commands.find(c => c.startsWith(value));
+      if (match) input.value = match;
+      return;
+    }
+
+    const [cmd, partial] = value.split(/\s+/, 2);
+
+    if (cmd === "cd" || cmd === "cat") {
+      try {
+        const items = await this.kernel.sys.list(this.currentPath);
+        const match = items.find(i => i.startsWith(partial || ""));
+        if (match) input.value = `${cmd} ${match}`;
+      } catch {}
     }
   }
 }
