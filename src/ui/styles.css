@@ -203,3 +203,36 @@ body{
   padding:16px;
   overflow:auto;
 }
+
+/* Explorer */
+
+.explorer{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+
+.explorer-toolbar{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+}
+
+.explorer-list{
+  flex:1;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.explorer-item{
+  padding:10px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:.18s;
+}
+
+.explorer-item:hover{
+  background:rgba(0,212,255,.12);
+}
