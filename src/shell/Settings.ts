@@ -1,13 +1,20 @@
 import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
 
+interface Preferences {
+  theme: "system" | "dark" | "light";
+  accent: string;
+}
+
 export class Settings {
+  private readonly PREF_PATH = "/system/preferences.json";
+
   constructor(
     private kernel: Kernel,
     private wm: WindowManager
   ) {}
 
-  open(): void {
+  async open(): Promise<void> {
     const windowId = "settings";
 
     this.wm.open({
@@ -60,12 +67,12 @@ export class Settings {
 
               <div class="storage-card">
                 <h3>Oqerun Drive</h3>
-                <p>Ready</p>
+                <p>Preferences are stored in <code>/system/preferences.json</code>.</p>
               </div>
 
               <div class="storage-card">
                 <h3>This Computer</h3>
-                <p>Connect folders when needed.</p>
+                <p>Real folders can be connected later.</p>
               </div>
 
               <div class="storage-card">
@@ -78,13 +85,8 @@ export class Settings {
               <h2>System</h2>
 
               <div class="storage-card">
-                <h3>System Status</h3>
-                <p>Core services are running.</p>
-              </div>
-
-              <div class="storage-card">
-                <h3>Filesystem</h3>
-                <p>Oqerun Drive initialized.</p>
+                <h3>Core</h3>
+                <p>All core services are running.</p>
               </div>
             </div>
 
@@ -97,13 +99,8 @@ export class Settings {
               </div>
 
               <div class="storage-card">
-                <h3>Build</h3>
+                <h3>Edition</h3>
                 <p>Web Edition</p>
-              </div>
-
-              <div class="storage-card">
-                <h3>License</h3>
-                <p>Open Source</p>
               </div>
             </div>
 
@@ -112,12 +109,17 @@ export class Settings {
       `
     });
 
-    requestAnimationFrame(() => this.attach(windowId));
+    requestAnimationFrame(async () => {
+      await this.attach(windowId);
+    });
   }
 
-  private attach(windowId: string): void {
+  private async attach(windowId: string): Promise<void> {
     const win = document.getElementById(windowId);
     if (!win) return;
+
+    const prefs = await this.loadPreferences();
+    this.applyPreferences(prefs);
 
     const tabs = win.querySelectorAll<HTMLElement>(".settings-tab");
     const panels = win.querySelectorAll<HTMLElement>(".settings-panel");
@@ -138,36 +140,77 @@ export class Settings {
     });
 
     win.querySelectorAll<HTMLElement>("[data-theme]").forEach(button => {
-      button.addEventListener("click", () => {
-        const theme = button.dataset.theme || "system";
-
-        if (theme === "dark") {
-          document.documentElement.style.setProperty("--bg", "#07112c");
-          document.documentElement.style.setProperty("--surface", "#13224a");
-          document.documentElement.style.setProperty("--surface-2", "#1b2d5d");
-        }
-
-        if (theme === "light") {
-          document.documentElement.style.setProperty("--bg", "#eef4ff");
-          document.documentElement.style.setProperty("--surface", "#ffffff");
-          document.documentElement.style.setProperty("--surface-2", "#dfe8f8");
-        }
-
-        if (theme === "system") {
-          document.documentElement.style.removeProperty("--bg");
-          document.documentElement.style.removeProperty("--surface");
-          document.documentElement.style.removeProperty("--surface-2");
-        }
+      button.addEventListener("click", async () => {
+        prefs.theme = button.dataset.theme as Preferences["theme"];
+        this.applyPreferences(prefs);
+        await this.savePreferences(prefs);
       });
     });
 
     win.querySelectorAll<HTMLElement>(".accent").forEach(button => {
-      button.addEventListener("click", () => {
-        const color = button.dataset.color;
-        if (color) {
-          document.documentElement.style.setProperty("--accent", color);
-        }
+      button.addEventListener("click", async () => {
+        prefs.accent = button.dataset.color || "#00D4FF";
+        this.applyPreferences(prefs);
+        await this.savePreferences(prefs);
       });
     });
+  }
+
+  private async loadPreferences(): Promise<Preferences> {
+    const defaults: Preferences = {
+      theme: "system",
+      accent: "#00D4FF"
+    };
+
+    try {
+      if (!(await this.kernel.sys.exists(this.PREF_PATH))) {
+        await this.savePreferences(defaults);
+        return defaults;
+      }
+
+      const data = await this.kernel.sys.read(this.PREF_PATH);
+      return { ...defaults, ...JSON.parse(data) };
+    } catch {
+      return defaults;
+    }
+  }
+
+  private async savePreferences(prefs: Preferences): Promise<void> {
+    await this.kernel.sys.write(
+      this.PREF_PATH,
+      JSON.stringify(prefs, null, 2)
+    );
+  }
+
+  private applyPreferences(prefs: Preferences): void {
+    const root = document.documentElement;
+
+    root.style.setProperty("--accent", prefs.accent);
+
+    switch (prefs.theme) {
+      case "light":
+        root.style.setProperty("--bg", "#EEF4FF");
+        root.style.setProperty("--surface", "#FFFFFF");
+        root.style.setProperty("--surface-2", "#DFE8F8");
+        root.style.setProperty("--text", "#0A122A");
+        root.style.setProperty("--muted", "#5A6C8F");
+        break;
+
+      case "dark":
+        root.style.setProperty("--bg", "#07112C");
+        root.style.setProperty("--surface", "#13224A");
+        root.style.setProperty("--surface-2", "#1B2D5D");
+        root.style.setProperty("--text", "#EEF4FF");
+        root.style.setProperty("--muted", "#9FB2D8");
+        break;
+
+      case "system":
+        root.style.removeProperty("--bg");
+        root.style.removeProperty("--surface");
+        root.style.removeProperty("--surface-2");
+        root.style.removeProperty("--text");
+        root.style.removeProperty("--muted");
+        break;
+    }
   }
 }
