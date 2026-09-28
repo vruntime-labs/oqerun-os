@@ -26,26 +26,24 @@ export class WindowManager {
 
     win.focus(++this.zIndex);
 
-    element.addEventListener("pointerdown", () => {
-      this.focus(options.id);
-    });
+    // Focus window
+    element.addEventListener("pointerdown", () => this.focus(options.id));
 
-    element.addEventListener("window:close", () => {
+    // Close button
+    const closeBtn = element.querySelector(".win-close");
+    closeBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
       this.close(options.id);
     });
 
     desktop.appendChild(element);
 
-    this.windows.set(options.id, {
-      window: win,
-      pid
-    });
+    this.windows.set(options.id, { window: win, pid });
   }
 
   focus(id: string): void {
     const entry = this.windows.get(id);
     if (!entry) return;
-
     entry.window.focus(++this.zIndex);
   }
 
