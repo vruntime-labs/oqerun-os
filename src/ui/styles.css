@@ -18,6 +18,7 @@
   --surface-2:#1b2d5d;
   --text:#eef4ff;
   --muted:#9fb2d8;
+  --border:rgba(255,255,255,.08);
 }
 
 #app.theme-light{
@@ -35,6 +36,7 @@
   --surface-2:#1b2d5d;
   --text:#eef4ff;
   --muted:#9fb2d8;
+  --border:rgba(255,255,255,.08);
 }
 
 /* =========================================================
@@ -105,6 +107,7 @@ body{
 .desktop-area{
   flex:1;
   position:relative;
+  overflow:hidden;
   padding:18px;
 }
 
@@ -188,7 +191,7 @@ body{
   height:52px;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
   padding:0 14px;
   background:var(--surface);
   border-top:1px solid var(--border);
@@ -215,8 +218,45 @@ body{
   color:var(--text);
 }
 
+#taskbar-apps{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:8px;
+  flex:1;
+  overflow-x:auto;
+}
+
+#taskbar-apps::-webkit-scrollbar{
+  display:none;
+}
+
+.taskbar-app{
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  cursor:pointer;
+  transition:.18s;
+  white-space:nowrap;
+}
+
+.taskbar-app:hover{
+  background:rgba(255,255,255,.12);
+}
+
+.taskbar-app.active{
+  background:var(--accent);
+  color:#001018;
+  font-weight:600;
+}
+
+.taskbar-app.minimized{
+  opacity:.6;
+}
+
 #clock{
-  margin-left:auto;
   color:var(--text);
 }
 
@@ -230,7 +270,17 @@ body{
   border:1px solid var(--border);
   border-radius:18px;
   overflow:hidden;
-  box-shadow:0 24px 60px rgba(0,0,0,.35);
+  box-shadow:0 20px 50px rgba(0,0,0,.30);
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease,
+    opacity .15s ease,
+    border-color .15s ease;
+}
+
+.oq-window.active{
+  box-shadow:0 28px 70px rgba(0,0,0,.45);
+  border-color:rgba(0,212,255,.35);
 }
 
 .window-titlebar{
@@ -246,25 +296,44 @@ body{
   user-select:none;
 }
 
+.window-title{
+  font-weight:600;
+}
+
 .window-controls{
   display:flex;
-  gap:8px;
+  gap:6px;
 }
 
 .window-controls button{
-  width:26px;
-  height:26px;
+  width:28px;
+  height:28px;
   border:none;
   border-radius:8px;
   background:rgba(255,255,255,.08);
   color:var(--text);
   cursor:pointer;
-  transition:.18s;
+  transition:.15s;
+  font-size:14px;
 }
 
 .window-controls button:hover{
-  background:#ff5f57;
+  background:rgba(255,255,255,.18);
+}
+
+.win-close:hover{
+  background:#ff5f57 !important;
   color:white;
+}
+
+.win-min:hover{
+  background:#f5c542 !important;
+  color:#111;
+}
+
+.win-max:hover{
+  background:#3ddc84 !important;
+  color:#111;
 }
 
 .window-content{
@@ -281,6 +350,7 @@ body{
   height:100%;
   display:flex;
   flex-direction:column;
+  color:var(--text);
 }
 
 .explorer-toolbar{
@@ -325,9 +395,13 @@ body{
 }
 
 .explorer-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
   padding:10px;
   border-radius:10px;
   cursor:pointer;
+  color:var(--text);
   transition:.18s;
 }
 
