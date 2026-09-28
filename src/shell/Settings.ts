@@ -85,8 +85,13 @@ export class Settings {
               <h2>System</h2>
 
               <div class="storage-card">
-                <h3>Core</h3>
-                <p>All core services are running.</p>
+                <h3>System Status</h3>
+                <p>Core services are running.</p>
+              </div>
+
+              <div class="storage-card">
+                <h3>Filesystem</h3>
+                <p>Oqerun Drive initialized.</p>
               </div>
             </div>
 
@@ -102,9 +107,15 @@ export class Settings {
                 <h3>Edition</h3>
                 <p>Web Edition</p>
               </div>
+
+              <div class="storage-card">
+                <h3>License</h3>
+                <p>Open Source</p>
+              </div>
             </div>
 
           </section>
+
         </div>
       `
     });
@@ -133,8 +144,7 @@ export class Settings {
 
         tab.classList.add("active");
 
-        win
-          .querySelector(`.settings-panel[data-panel="${target}"]`)
+        win.querySelector(`.settings-panel[data-panel="${target}"]`)
           ?.classList.add("active");
       });
     });
@@ -183,34 +193,12 @@ export class Settings {
   }
 
   private applyPreferences(prefs: Preferences): void {
-    const root = document.documentElement;
+    const app = document.getElementById("app");
+    if (!app) return;
 
-    root.style.setProperty("--accent", prefs.accent);
+    app.classList.remove("theme-system", "theme-dark", "theme-light");
+    app.classList.add(`theme-${prefs.theme}`);
 
-    switch (prefs.theme) {
-      case "light":
-        root.style.setProperty("--bg", "#EEF4FF");
-        root.style.setProperty("--surface", "#FFFFFF");
-        root.style.setProperty("--surface-2", "#DFE8F8");
-        root.style.setProperty("--text", "#0A122A");
-        root.style.setProperty("--muted", "#5A6C8F");
-        break;
-
-      case "dark":
-        root.style.setProperty("--bg", "#07112C");
-        root.style.setProperty("--surface", "#13224A");
-        root.style.setProperty("--surface-2", "#1B2D5D");
-        root.style.setProperty("--text", "#EEF4FF");
-        root.style.setProperty("--muted", "#9FB2D8");
-        break;
-
-      case "system":
-        root.style.removeProperty("--bg");
-        root.style.removeProperty("--surface");
-        root.style.removeProperty("--surface-2");
-        root.style.removeProperty("--text");
-        root.style.removeProperty("--muted");
-        break;
-    }
+    document.documentElement.style.setProperty("--accent", prefs.accent);
   }
 }
