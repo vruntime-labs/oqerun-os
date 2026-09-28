@@ -6,7 +6,7 @@ export class Kernel {
   readonly version = "0.2.0";
   readonly codename = "Pulse";
 
-  readonly sys = new Syscalls();
+  public readonly sys = new Syscalls();
 
   async boot(): Promise<void> {
     const app = document.getElementById("app");
@@ -27,14 +27,36 @@ export class Kernel {
       if (status) status.textContent = text;
     });
 
+    await this.initializeSystem();
+
+    new Desktop().render();
+
+    console.log(`Oqerun Core ${this.version} started.`);
+  }
+
+  private async initializeSystem(): Promise<void> {
+    await this.sys.mkdir("/home");
     await this.sys.mkdir("/home/user");
     await this.sys.mkdir("/home/user/Desktop");
     await this.sys.mkdir("/home/user/Documents");
     await this.sys.mkdir("/home/user/Downloads");
     await this.sys.mkdir("/home/user/Pictures");
 
-    new Desktop().render();
+    await this.sys.mkdir("/apps");
+    await this.sys.mkdir("/system");
+    await this.sys.mkdir("/temp");
 
-    console.log(`Oqerun Core ${this.version} started.`);
+    await this.sys.mkdir("/mnt");
+    await this.sys.mkdir("/mnt/computer");
+    await this.sys.mkdir("/mnt/cloud");
+
+    const welcomeFile = "/home/user/Documents/Welcome.oqtxt";
+
+    if (!(await this.sys.exists(welcomeFile))) {
+      await this.sys.write(
+        welcomeFile,
+        "Welcome to Oqerun OS!\n\nYour Oqerun Drive is ready."
+      );
+    }
   }
 }
