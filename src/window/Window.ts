@@ -40,7 +40,14 @@ export class OqWindow {
 
     this.element
       .querySelector(".win-close")
-      ?.addEventListener("click", () => this.close());
+      ?.addEventListener("click", () => {
+        this.element.dispatchEvent(
+          new CustomEvent("window:close", {
+            bubbles: true,
+            detail: { id: this.options.id }
+          })
+        );
+      });
 
     Drag.enable(this.element);
   }
