@@ -8,31 +8,38 @@
   --border:rgba(255,255,255,.08);
 }
 
-/* Oqerun Theme Engine */
+/* =========================================================
+   Oqerun Theme Engine
+========================================================= */
 
 #app.theme-dark{
-  --bg:#07112C;
-  --surface:#13224A;
-  --surface-2:#1B2D5D;
-  --text:#EEF4FF;
-  --muted:#9FB2D8;
+  --bg:#07112c;
+  --surface:#13224a;
+  --surface-2:#1b2d5d;
+  --text:#eef4ff;
+  --muted:#9fb2d8;
 }
 
 #app.theme-light{
-  --bg:#EEF4FF;
-  --surface:#FFFFFF;
-  --surface-2:#DFE8F8;
-  --text:#0A122A;
-  --muted:#5A6C8F;
+  --bg:#eef4ff;
+  --surface:#ffffff;
+  --surface-2:#dfe8f8;
+  --text:#0a122a;
+  --muted:#5a6c8f;
+  --border:rgba(10,18,42,.08);
 }
 
 #app.theme-system{
-  --bg:#07112C;
-  --surface:#13224A;
-  --surface-2:#1B2D5D;
-  --text:#EEF4FF;
-  --muted:#9FB2D8;
+  --bg:#07112c;
+  --surface:#13224a;
+  --surface-2:#1b2d5d;
+  --text:#eef4ff;
+  --muted:#9fb2d8;
 }
+
+/* =========================================================
+   Global
+========================================================= */
 
 *{
   margin:0;
@@ -40,7 +47,9 @@
   box-sizing:border-box;
 }
 
-html,body,#app{
+html,
+body,
+#app{
   width:100%;
   height:100%;
   overflow:hidden;
@@ -50,8 +59,12 @@ html,body,#app{
 body{
   background:var(--bg);
   color:var(--text);
-  transition:.25s;
+  transition:background .25s,color .25s;
 }
+
+/* =========================================================
+   Boot Screen
+========================================================= */
 
 .boot-screen{
   width:100%;
@@ -72,12 +85,21 @@ body{
   color:var(--accent);
 }
 
+/* =========================================================
+   Desktop
+========================================================= */
+
 .desktop{
   width:100%;
   height:100%;
   display:flex;
   flex-direction:column;
-  background:linear-gradient(180deg,var(--bg),#04102a);
+  background:linear-gradient(
+    180deg,
+    var(--bg),
+    color-mix(in srgb,var(--bg) 70%,black)
+  );
+  transition:background .25s;
 }
 
 .desktop-area{
@@ -93,6 +115,12 @@ body{
   align-items:center;
   gap:8px;
   cursor:pointer;
+  user-select:none;
+}
+
+.desktop-icon:hover .icon-box{
+  transform:translateY(-2px);
+  border-color:rgba(255,255,255,.18);
 }
 
 .icon-box{
@@ -102,13 +130,20 @@ body{
   place-items:center;
   border-radius:16px;
   background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.10);
   font-size:26px;
+  transition:.2s;
 }
 
 .desktop-icon span{
   font-size:12px;
+  text-align:center;
+  color:var(--text);
 }
+
+/* =========================================================
+   Start Menu
+========================================================= */
 
 .start-menu{
   position:absolute;
@@ -120,9 +155,14 @@ body{
   flex-direction:column;
   gap:10px;
   border-radius:18px;
-  background:rgba(17,29,61,.96);
+  background:var(--surface);
   backdrop-filter:blur(16px);
   border:1px solid var(--border);
+  box-shadow:0 18px 40px rgba(0,0,0,.25);
+}
+
+.start-menu h3{
+  color:var(--text);
 }
 
 .start-menu button{
@@ -133,11 +173,16 @@ body{
   padding:10px;
   border-radius:10px;
   cursor:pointer;
+  transition:.18s;
 }
 
 .start-menu button:hover{
-  background:rgba(255,255,255,.06);
+  background:color-mix(in srgb,var(--surface-2) 70%,transparent);
 }
+
+/* =========================================================
+   Taskbar
+========================================================= */
 
 .taskbar{
   height:52px;
@@ -145,7 +190,7 @@ body{
   align-items:center;
   gap:12px;
   padding:0 14px;
-  background:rgba(10,21,49,.96);
+  background:var(--surface);
   border-top:1px solid var(--border);
 }
 
@@ -158,15 +203,26 @@ body{
   color:#001018;
   font-weight:700;
   cursor:pointer;
+  transition:.18s;
+}
+
+.start-btn:hover{
+  transform:scale(1.05);
 }
 
 .taskbar-title{
   font-weight:600;
+  color:var(--text);
 }
 
 #clock{
   margin-left:auto;
+  color:var(--text);
 }
+
+/* =========================================================
+   Windows
+========================================================= */
 
 .oq-window{
   position:absolute;
@@ -183,8 +239,11 @@ body{
   align-items:center;
   justify-content:space-between;
   padding:0 14px;
-  background:rgba(255,255,255,.05);
+  background:var(--surface-2);
+  color:var(--text);
+  border-bottom:1px solid var(--border);
   cursor:move;
+  user-select:none;
 }
 
 .window-controls{
@@ -200,10 +259,12 @@ body{
   background:rgba(255,255,255,.08);
   color:var(--text);
   cursor:pointer;
+  transition:.18s;
 }
 
 .window-controls button:hover{
   background:#ff5f57;
+  color:white;
 }
 
 .window-content{
@@ -212,10 +273,14 @@ body{
   padding:16px;
 }
 
+/* =========================================================
+   Explorer
+========================================================= */
+
 .explorer{
+  height:100%;
   display:flex;
   flex-direction:column;
-  height:100%;
 }
 
 .explorer-toolbar{
@@ -236,11 +301,12 @@ body{
 }
 
 .explorer-btn:hover{
-  background:rgba(255,255,255,.08);
+  filter:brightness(1.08);
 }
 
 .explorer-path{
   color:var(--muted);
+  font-size:14px;
 }
 
 .breadcrumb{
@@ -262,16 +328,25 @@ body{
   padding:10px;
   border-radius:10px;
   cursor:pointer;
+  transition:.18s;
 }
 
 .explorer-item:hover{
   background:rgba(255,255,255,.06);
 }
 
+/* =========================================================
+   Computer App
+========================================================= */
+
 .computer-app{
   display:flex;
   flex-direction:column;
   gap:22px;
+}
+
+.computer-header h2{
+  color:var(--text);
 }
 
 .computer-header p{
@@ -290,17 +365,32 @@ body{
   border-radius:18px;
   padding:20px;
   cursor:pointer;
+  transition:.2s;
 }
 
 .computer-card:hover{
   transform:translateY(-4px);
   border-color:rgba(0,212,255,.35);
+  background:rgba(0,212,255,.08);
 }
 
 .computer-icon{
   font-size:36px;
   margin-bottom:14px;
 }
+
+.computer-card h3{
+  margin-bottom:6px;
+  color:var(--text);
+}
+
+.computer-card p{
+  color:var(--muted);
+}
+
+/* =========================================================
+   Terminal
+========================================================= */
 
 .terminal{
   display:flex;
@@ -309,7 +399,7 @@ body{
   background:#08101f;
   border-radius:10px;
   overflow:hidden;
-  font-family:"JetBrains Mono",monospace;
+  font-family:"JetBrains Mono","Cascadia Code",monospace;
 }
 
 .terminal-output{
@@ -317,7 +407,14 @@ body{
   overflow:auto;
   padding:14px;
   color:#d7e8ff;
+  font-size:14px;
   line-height:1.6;
+}
+
+.terminal-output div{
+  margin-bottom:4px;
+  white-space:pre-wrap;
+  word-break:break-word;
 }
 
 .terminal-input-row{
@@ -332,6 +429,7 @@ body{
 #terminal-path{
   color:var(--accent);
   font-weight:600;
+  white-space:nowrap;
 }
 
 #terminal-input{
@@ -339,6 +437,20 @@ body{
   background:transparent;
   border:none;
   outline:none;
-  color:#fff;
+  color:white;
   font-family:inherit;
+  font-size:14px;
+}
+
+#terminal-input::placeholder{
+  color:#7f93b8;
+}
+
+.terminal-output::-webkit-scrollbar{
+  width:8px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.18);
+  border-radius:999px;
 }
