@@ -2,6 +2,7 @@
   display:grid;
   grid-template-columns:180px 1fr;
   height:100%;
+  color:var(--text);
 }
 
 .settings-sidebar{
@@ -10,7 +11,7 @@
   gap:8px;
   padding:14px;
   border-right:1px solid var(--border);
-  background:rgba(255,255,255,.03);
+  background:color-mix(in srgb,var(--surface) 90%,transparent);
 }
 
 .settings-tab{
@@ -25,16 +26,16 @@
 }
 
 .settings-tab:hover{
-  background:rgba(255,255,255,.06);
+  background:color-mix(in srgb,var(--surface-2) 60%,transparent);
 }
 
 .settings-tab.active{
-  background:rgba(0,212,255,.15);
+  background:color-mix(in srgb,var(--accent) 18%,var(--surface));
   color:var(--accent);
 }
 
 .settings-content{
-  padding:20px;
+  padding:22px;
   overflow:auto;
 }
 
@@ -47,17 +48,20 @@
 }
 
 .settings-panel h2{
-  margin-bottom:20px;
+  color:var(--text);
+  font-size:2rem;
+  margin-bottom:24px;
 }
 
 .setting-group{
-  margin-bottom:24px;
+  margin-bottom:28px;
 }
 
 .setting-group label{
   display:block;
   margin-bottom:10px;
   color:var(--muted);
+  font-weight:600;
 }
 
 .theme-buttons{
@@ -73,10 +77,11 @@
   background:var(--surface-2);
   color:var(--text);
   cursor:pointer;
+  transition:.18s;
 }
 
 .theme-buttons button:hover{
-  background:#28437f;
+  filter:brightness(1.08);
 }
 
 .accent-picker{
@@ -92,6 +97,7 @@
   border-radius:50%;
   cursor:pointer;
   box-shadow:0 0 0 2px rgba(255,255,255,.15);
+  transition:.18s;
 }
 
 .accent:hover{
@@ -103,10 +109,11 @@
   margin-bottom:14px;
   border:1px solid var(--border);
   border-radius:16px;
-  background:rgba(255,255,255,.04);
+  background:color-mix(in srgb,var(--surface) 95%,transparent);
 }
 
 .storage-card h3{
+  color:var(--text);
   margin-bottom:6px;
 }
 
