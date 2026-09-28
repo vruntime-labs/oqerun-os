@@ -1,0 +1,70 @@
+/* =========================================================
+   Oqerun Notifications
+========================================================= */
+
+#oq-notifications{
+  position:fixed;
+  top:16px;
+  right:16px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  width:320px;
+  z-index:9999;
+  pointer-events:none;
+}
+
+.oq-toast{
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-left:4px solid var(--accent);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 18px 40px rgba(0,0,0,.25);
+  transform:translateX(120%);
+  opacity:0;
+  transition:transform .22s ease, opacity .22s ease;
+}
+
+.oq-toast.show{
+  transform:translateX(0);
+  opacity:1;
+}
+
+.oq-toast-title{
+  font-weight:700;
+  margin-bottom:4px;
+}
+
+.oq-toast-message{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.4;
+}
+
+/* Types */
+
+.oq-toast.success{
+  border-left-color:#3DDC84;
+}
+
+.oq-toast.warning{
+  border-left-color:#F5C542;
+}
+
+.oq-toast.error{
+  border-left-color:#FF5F57;
+}
+
+.oq-toast.info{
+  border-left-color:var(--accent);
+}
+
+@media (max-width:600px){
+  #oq-notifications{
+    left:12px;
+    right:12px;
+    width:auto;
+  }
+}
