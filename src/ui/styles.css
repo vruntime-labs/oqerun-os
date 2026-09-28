@@ -138,9 +138,7 @@ body{
 
 .taskbar-title{font-weight:600;}
 
-#clock{
-  margin-left:auto;
-}
+#clock{margin-left:auto;}
 
 /* Windows */
 
@@ -248,7 +246,7 @@ body{
   background:rgba(255,255,255,.06);
 }
 
-/* Computer App */
+/* Computer */
 
 .computer-app{
   display:flex;
@@ -298,4 +296,69 @@ body{
 .computer-card p{
   color:var(--muted);
   font-size:14px;
+}
+
+/* Terminal */
+
+.terminal{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  background:#08101f;
+  border-radius:10px;
+  overflow:hidden;
+  font-family:"JetBrains Mono","Cascadia Code",monospace;
+}
+
+.terminal-output{
+  flex:1;
+  overflow:auto;
+  padding:14px;
+  color:#d7e8ff;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.terminal-output div{
+  margin-bottom:4px;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.terminal-input-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-top:1px solid rgba(255,255,255,.08);
+  background:#0c1830;
+}
+
+#terminal-path{
+  color:var(--accent);
+  font-weight:600;
+  white-space:nowrap;
+}
+
+#terminal-input{
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:#fff;
+  font-family:inherit;
+  font-size:14px;
+}
+
+#terminal-input::placeholder{
+  color:#7f93b8;
+}
+
+.terminal-output::-webkit-scrollbar{
+  width:8px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.18);
+  border-radius:999px;
 }
