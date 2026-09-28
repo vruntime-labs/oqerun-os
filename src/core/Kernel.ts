@@ -1,63 +1,77 @@
 import { Boot } from "./Boot";
-import { Syscalls } from "./Syscalls";
 import { Desktop } from "../shell/Desktop";
+import { ProcessManager } from "./ProcessManager";
+import { Syscalls } from "./Syscalls";
+import { NotificationService } from "./NotificationService";
 
 export class Kernel {
-  readonly version = "0.2.0";
-  readonly codename = "Pulse";
+  public readonly version = "0.3.0";
+  public readonly codename = "Pulse";
 
-  public readonly sys = new Syscalls();
+  public readonly processes: ProcessManager;
+  public readonly sys: Syscalls;
+  public readonly notify: NotificationService;
 
-  async boot(): Promise<void> {
-    const app = document.getElementById("app");
-    if (!app) return;
-
-    app.innerHTML = `
-      <main class="boot-screen">
-        <h1>OQERUN OS</h1>
-        <p>Version ${this.version} • "${this.codename}"</p>
-        <p id="boot-status">Starting...</p>
-      </main>
-    `;
-
-    const status = document.getElementById("boot-status");
-    const boot = new Boot();
-
-    await boot.start((text) => {
-      if (status) status.textContent = text;
-    });
-
-    await this.initializeSystem();
-
-    // Launch the desktop with kernel access
-    new Desktop(this).render();
-
-    console.log(`Oqerun Core ${this.version} started.`);
+  constructor() {
+    this.processes = new ProcessManager();
+    this.sys = new Syscalls();
+    this.notify = new NotificationService();
   }
 
-  private async initializeSystem(): Promise<void> {
-    await this.sys.mkdir("/home");
-    await this.sys.mkdir("/home/user");
-    await this.sys.mkdir("/home/user/Desktop");
-    await this.sys.mkdir("/home/user/Documents");
-    await this.sys.mkdir("/home/user/Downloads");
-    await this.sys.mkdir("/home/user/Pictures");
+  async boot(): Promise<void> {
+    const boot = new Boot();
 
-    await this.sys.mkdir("/apps");
-    await this.sys.mkdir("/system");
-    await this.sys.mkdir("/temp");
+    await boot.start();
 
-    await this.sys.mkdir("/mnt");
-    await this.sys.mkdir("/mnt/computer");
-    await this.sys.mkdir("/mnt/cloud");
+    await this.initializeFilesystem();
 
-    const welcomeFile = "/home/user/Documents/Welcome.oqtxt";
+    new Desktop(this).render();
 
-    if (!(await this.sys.exists(welcomeFile))) {
-      await this.sys.write(
-        welcomeFile,
-        "Welcome to Oqerun OS!\n\nYour Oqerun Drive is ready."
-      );
+    this.notify.info(
+      "Oqerun OS",
+      `${this.version} "${this.codename}" started successfully.`
+    );
+  }
+
+  private async initializeFilesystem(): Promise<void> {
+    const folders = [
+      "/system",
+      "/home",
+      "/home/user",
+      "/home/user/Documents",
+      "/home/user/Downloads",
+      "/home/user/Pictures",
+      "/home/user/Desktop"
+    ];
+
+    for (const folder of folders) {
+      try {
+        if (!(await this.sys.exists(folder))) {
+          await this.sys.mkdir(folder);
+        }
+      } catch {
+        // Folder already exists or creation failed.
+      }
+    }
+
+    const prefPath = "/system/preferences.json";
+
+    try {
+      if (!(await this.sys.exists(prefPath))) {
+        await this.sys.write(
+          prefPath,
+          JSON.stringify(
+            {
+              theme: "system",
+              accent: "#00D4FF"
+            },
+            null,
+            2
+          )
+        );
+      }
+    } catch {
+      // Ignore initialization errors for now.
     }
   }
 }
