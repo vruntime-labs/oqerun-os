@@ -8,7 +8,37 @@
   --border:rgba(255,255,255,.08);
 }
 
-*{margin:0;padding:0;box-sizing:border-box;}
+/* Oqerun Theme Engine */
+
+#app.theme-dark{
+  --bg:#07112C;
+  --surface:#13224A;
+  --surface-2:#1B2D5D;
+  --text:#EEF4FF;
+  --muted:#9FB2D8;
+}
+
+#app.theme-light{
+  --bg:#EEF4FF;
+  --surface:#FFFFFF;
+  --surface-2:#DFE8F8;
+  --text:#0A122A;
+  --muted:#5A6C8F;
+}
+
+#app.theme-system{
+  --bg:#07112C;
+  --surface:#13224A;
+  --surface-2:#1B2D5D;
+  --text:#EEF4FF;
+  --muted:#9FB2D8;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
 html,body,#app{
   width:100%;
@@ -18,11 +48,10 @@ html,body,#app{
 }
 
 body{
-  background:linear-gradient(180deg,#07112c,#04102a);
+  background:var(--bg);
   color:var(--text);
+  transition:.25s;
 }
-
-/* Boot */
 
 .boot-screen{
   width:100%;
@@ -39,15 +68,16 @@ body{
   letter-spacing:.15em;
 }
 
-#boot-status{color:var(--accent);}
-
-/* Desktop */
+#boot-status{
+  color:var(--accent);
+}
 
 .desktop{
   width:100%;
   height:100%;
   display:flex;
   flex-direction:column;
+  background:linear-gradient(180deg,var(--bg),#04102a);
 }
 
 .desktop-area{
@@ -63,7 +93,6 @@ body{
   align-items:center;
   gap:8px;
   cursor:pointer;
-  user-select:none;
 }
 
 .icon-box{
@@ -79,10 +108,7 @@ body{
 
 .desktop-icon span{
   font-size:12px;
-  text-align:center;
 }
-
-/* Start Menu */
 
 .start-menu{
   position:absolute;
@@ -113,8 +139,6 @@ body{
   background:rgba(255,255,255,.06);
 }
 
-/* Taskbar */
-
 .taskbar{
   height:52px;
   display:flex;
@@ -136,11 +160,13 @@ body{
   cursor:pointer;
 }
 
-.taskbar-title{font-weight:600;}
+.taskbar-title{
+  font-weight:600;
+}
 
-#clock{margin-left:auto;}
-
-/* Windows */
+#clock{
+  margin-left:auto;
+}
 
 .oq-window{
   position:absolute;
@@ -159,7 +185,6 @@ body{
   padding:0 14px;
   background:rgba(255,255,255,.05);
   cursor:move;
-  user-select:none;
 }
 
 .window-controls{
@@ -173,7 +198,7 @@ body{
   border:none;
   border-radius:8px;
   background:rgba(255,255,255,.08);
-  color:white;
+  color:var(--text);
   cursor:pointer;
 }
 
@@ -187,12 +212,10 @@ body{
   padding:16px;
 }
 
-/* Explorer */
-
 .explorer{
-  height:100%;
   display:flex;
   flex-direction:column;
+  height:100%;
 }
 
 .explorer-toolbar{
@@ -206,19 +229,18 @@ body{
 .explorer-btn{
   background:var(--surface-2);
   border:none;
-  color:white;
+  color:var(--text);
   padding:8px 12px;
   border-radius:8px;
   cursor:pointer;
 }
 
 .explorer-btn:hover{
-  background:#28437f;
+  background:rgba(255,255,255,.08);
 }
 
 .explorer-path{
   color:var(--muted);
-  font-size:14px;
 }
 
 .breadcrumb{
@@ -246,21 +268,14 @@ body{
   background:rgba(255,255,255,.06);
 }
 
-/* Computer */
-
 .computer-app{
   display:flex;
   flex-direction:column;
   gap:22px;
 }
 
-.computer-header h2{
-  font-size:24px;
-}
-
 .computer-header p{
   color:var(--muted);
-  margin-top:4px;
 }
 
 .computer-grid{
@@ -275,30 +290,17 @@ body{
   border-radius:18px;
   padding:20px;
   cursor:pointer;
-  transition:.2s;
 }
 
 .computer-card:hover{
   transform:translateY(-4px);
   border-color:rgba(0,212,255,.35);
-  background:rgba(0,212,255,.08);
 }
 
 .computer-icon{
   font-size:36px;
   margin-bottom:14px;
 }
-
-.computer-card h3{
-  margin-bottom:6px;
-}
-
-.computer-card p{
-  color:var(--muted);
-  font-size:14px;
-}
-
-/* Terminal */
 
 .terminal{
   display:flex;
@@ -307,7 +309,7 @@ body{
   background:#08101f;
   border-radius:10px;
   overflow:hidden;
-  font-family:"JetBrains Mono","Cascadia Code",monospace;
+  font-family:"JetBrains Mono",monospace;
 }
 
 .terminal-output{
@@ -315,14 +317,7 @@ body{
   overflow:auto;
   padding:14px;
   color:#d7e8ff;
-  font-size:14px;
   line-height:1.6;
-}
-
-.terminal-output div{
-  margin-bottom:4px;
-  white-space:pre-wrap;
-  word-break:break-word;
 }
 
 .terminal-input-row{
@@ -337,7 +332,6 @@ body{
 #terminal-path{
   color:var(--accent);
   font-weight:600;
-  white-space:nowrap;
 }
 
 #terminal-input{
@@ -347,18 +341,4 @@ body{
   outline:none;
   color:#fff;
   font-family:inherit;
-  font-size:14px;
-}
-
-#terminal-input::placeholder{
-  color:#7f93b8;
-}
-
-.terminal-output::-webkit-scrollbar{
-  width:8px;
-}
-
-.terminal-output::-webkit-scrollbar-thumb{
-  background:rgba(255,255,255,.18);
-  border-radius:999px;
 }
