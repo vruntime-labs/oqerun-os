@@ -238,3 +238,48 @@
     #c5cfdd
   );
 }
+
+
+/* =========================================================
+   TYPED EXPLORER ENTRIES
+========================================================= */
+
+.explorer-item {
+  position: relative;
+}
+
+.explorer-icon.directory {
+  background: color-mix(
+    in srgb,
+    var(--accent) 15%,
+    var(--surface-2)
+  );
+  color: var(--accent);
+}
+
+.explorer-icon.file {
+  background: color-mix(
+    in srgb,
+    var(--text) 7%,
+    var(--surface-2)
+  );
+  color: var(--muted);
+}
+
+.explorer-type {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 10px;
+  opacity: .72;
+}
+
+#app.theme-light .explorer-item:hover {
+  background: rgba(10, 18, 42, .055);
+}
+
+@media (max-width: 700px) {
+  .explorer-type {
+    display: none;
+  }
+}
