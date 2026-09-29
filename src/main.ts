@@ -1,5 +1,6 @@
 import "./ui/styles.css";
 import "./ui/settings.css";
+import "./ui/explorer.css";
 
 import { Kernel } from "./core/Kernel";
 import { Desktop } from "./shell/Desktop";
@@ -123,34 +124,15 @@ const messageTimer =
 
 window.setTimeout(() => {
 
-  /*
-   * Stop boot message updates.
-   */
-
   window.clearInterval(
     messageTimer
   );
 
-
-  /* =======================================================
-     INITIALIZE KERNEL
-     ======================================================= */
-
   const kernel =
     new Kernel();
 
-
-  /* =======================================================
-     CREATE DESKTOP
-     ======================================================= */
-
   const desktop =
     new Desktop(kernel);
-
-
-  /* =======================================================
-     FADE BOOT SCREEN
-     ======================================================= */
 
   if (bootScreen) {
 
@@ -159,16 +141,10 @@ window.setTimeout(() => {
     );
   }
 
-
-  /* =======================================================
-     SHOW DESKTOP AFTER FADE
-     ======================================================= */
-
   window.setTimeout(() => {
 
     desktop.render();
 
   }, 450);
-
 
 }, 2400);
