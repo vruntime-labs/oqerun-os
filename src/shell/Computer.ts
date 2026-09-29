@@ -1,5 +1,6 @@
 import { Kernel } from "../core/Kernel";
 import { Explorer } from "./Explorer";
+import { LocalExplorer, pickLocalDirectory } from "./LocalExplorer";
 import { WindowManager } from "../window/WindowManager";
 
 export class Computer {
@@ -28,23 +29,23 @@ export class Computer {
 
           <div class="computer-grid">
 
-            <div class="computer-card" data-action="oqdrive">
+            <button class="computer-card" data-action="oqdrive" type="button">
               <div class="computer-icon">🖴</div>
               <h3>Oqerun Drive</h3>
               <p>Local storage</p>
-            </div>
+            </button>
 
-            <div class="computer-card" data-action="real">
+            <button class="computer-card" data-action="real" type="button">
               <div class="computer-icon">💻</div>
               <h3>This Computer</h3>
-              <p>Real folders</p>
-            </div>
+              <p>Browse a folder from your device</p>
+            </button>
 
-            <div class="computer-card" data-action="cloud">
+            <button class="computer-card" data-action="cloud" type="button">
               <div class="computer-icon">☁️</div>
               <h3>Connected Cloud</h3>
               <p>Google Drive, OneDrive & more</p>
-            </div>
+            </button>
 
           </div>
 
@@ -58,21 +59,57 @@ export class Computer {
 
       win.querySelector<HTMLElement>('[data-action="oqdrive"]')
         ?.addEventListener("dblclick", () => {
-          new Explorer(this.kernel, this.wm).open("/home/user");
+          void new Explorer(this.kernel, this.wm).open("/home/user");
         });
 
       win.querySelector<HTMLElement>('[data-action="real"]')
-        ?.addEventListener("dblclick", async () => {
-          try {
-            await (window as any).showDirectoryPicker();
-            alert("Real folder support will be connected next.");
-          } catch {}
+        ?.addEventListener("dblclick", () => {
+          void this.openLocalComputer();
         });
 
       win.querySelector<HTMLElement>('[data-action="cloud"]')
         ?.addEventListener("dblclick", () => {
-          alert("Connected Cloud is coming soon.");
+          this.kernel.notify.info(
+            "Connected Cloud",
+            "Cloud providers will be connected after local file access is stable."
+          );
         });
     });
+  }
+
+  private async openLocalComputer(): Promise<void> {
+    try {
+      const directory =
+        await pickLocalDirectory();
+
+      if (!directory) {
+        const pickerAvailable =
+          "showDirectoryPicker" in window;
+
+        if (!pickerAvailable) {
+          this.kernel.notify.warning(
+            "This Computer",
+            "This browser does not expose the File System Access directory picker."
+          );
+        }
+
+        return;
+      }
+
+      await new LocalExplorer(
+        this.kernel,
+        this.wm
+      ).open(directory);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "The selected folder could not be opened.";
+
+      this.kernel.notify.error(
+        "This Computer",
+        message
+      );
+    }
   }
 }
