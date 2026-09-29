@@ -1,8 +1,11 @@
-import { OPFS } from "./OPFS";
+import { OPFS, VfsEntry } from "./OPFS";
 import { Path } from "./Path";
 
+export { VfsEntry };
+
 export class VFS {
-  private storage = new OPFS();
+  private storage =
+    new OPFS();
 
   async initialize(): Promise<void> {
     const folders = [
@@ -21,27 +24,59 @@ export class VFS {
     ];
 
     for (const folder of folders) {
-      await this.storage.createDirectory(folder);
+      await this.storage.createDirectory(
+        folder
+      );
     }
   }
 
-  async write(path: string, content: string): Promise<void> {
-    await this.storage.writeFile(Path.normalize(path), content);
+  async write(
+    path: string,
+    content: string
+  ): Promise<void> {
+    await this.storage.writeFile(
+      Path.normalize(path),
+      content
+    );
   }
 
-  async read(path: string): Promise<string> {
-    return this.storage.readFile(Path.normalize(path));
+  async read(
+    path: string
+  ): Promise<string> {
+    return this.storage.readFile(
+      Path.normalize(path)
+    );
   }
 
-  async exists(path: string): Promise<boolean> {
-    return this.storage.exists(Path.normalize(path));
+  async exists(
+    path: string
+  ): Promise<boolean> {
+    return this.storage.exists(
+      Path.normalize(path)
+    );
   }
 
-  async mkdir(path: string): Promise<void> {
-    await this.storage.createDirectory(Path.normalize(path));
+  async mkdir(
+    path: string
+  ): Promise<void> {
+    await this.storage.createDirectory(
+      Path.normalize(path)
+    );
   }
 
-  async list(path: string): Promise<string[]> {
-    return this.storage.list(Path.normalize(path));
+  async list(
+    path: string
+  ): Promise<string[]> {
+    return this.storage.list(
+      Path.normalize(path)
+    );
+  }
+
+  async listDetailed(
+    path: string
+  ): Promise<VfsEntry[]> {
+    return this.storage.listDetailed(
+      Path.normalize(path)
+    );
   }
 }
