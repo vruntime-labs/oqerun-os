@@ -110,11 +110,6 @@ export class CloudManager {
         ? "Manage cloud"
         : "Connect cloud";
 
-    const selectionText =
-      this.lastSelectionCount > 0
-        ? `${this.lastSelectionCount} item${this.lastSelectionCount === 1 ? "" : "s"} selected this session.`
-        : "Choose a provider and browse your cloud files.";
-
     return `
       <section
         class="cloud-provider-card cloud-provider-card-unified"
