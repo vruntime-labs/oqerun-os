@@ -995,7 +995,11 @@ img {
     0 14px;
 
   background:
-    rgba(19, 34, 74, 0.76);
+    color-mix(
+      in srgb,
+      var(--surface) 78%,
+      transparent
+    );
 
   backdrop-filter:
     blur(20px);
@@ -1188,6 +1192,125 @@ img {
 
 
 /* =========================================================
+   TASKBAR THEME
+   ========================================================= */
+
+#app.theme-light .taskbar {
+
+  background:
+    rgba(247, 250, 255, 0.82);
+
+  border-color:
+    rgba(10, 18, 42, 0.12);
+
+  box-shadow:
+    0 14px 36px
+    rgba(20, 45, 90, 0.20),
+    0 0 0 1px
+    rgba(255, 255, 255, 0.40);
+}
+
+#app.theme-light .taskbar-app:hover {
+
+  background:
+    rgba(10, 18, 42, 0.07);
+
+  border-color:
+    rgba(10, 18, 42, 0.10);
+}
+
+#app.theme-light .taskbar-app.active {
+
+  background:
+    rgba(0, 170, 210, 0.12);
+
+  border-color:
+    rgba(0, 170, 210, 0.22);
+}
+
+#app.theme-light .taskbar-app::after {
+
+  background:
+    rgba(10, 18, 42, 0.30);
+
+  box-shadow:
+    0 0 5px
+    rgba(10, 18, 42, 0.08);
+}
+
+#app.theme-light .taskbar-app.active::after {
+
+  background:
+    var(--accent);
+
+  box-shadow:
+    0 0 8px
+    color-mix(
+      in srgb,
+      var(--accent) 55%,
+      transparent
+    );
+}
+
+#app.theme-light .taskbar-app.minimized::after {
+
+  background:
+    rgba(10, 18, 42, 0.20);
+
+  box-shadow:
+    none;
+}
+
+#app.theme-light .taskbar-icon {
+
+  filter:
+    drop-shadow(
+      0 2px 5px
+      rgba(20, 45, 90, 0.18)
+    );
+}
+
+#app.theme-light .taskbar-app:hover .taskbar-icon {
+
+  filter:
+    drop-shadow(
+      0 2px 6px
+      rgba(20, 45, 90, 0.22)
+    )
+    drop-shadow(
+      0 0 7px
+      color-mix(
+        in srgb,
+        var(--accent) 20%,
+        transparent
+      )
+    );
+}
+
+#app.theme-light .taskbar-app[title]::before {
+
+  background:
+    rgba(255, 255, 255, 0.96);
+
+  border-color:
+    rgba(10, 18, 42, 0.12);
+
+  color:
+    #0a122a;
+
+  box-shadow:
+    0 8px 20px
+    rgba(20, 45, 90, 0.18);
+}
+
+#app.theme-light #clock {
+
+  color:
+    #243453;
+}
+
+
+/* =========================================================
    TASKBAR APP
    ========================================================= */
 
@@ -1244,10 +1367,18 @@ img {
 .taskbar-app:hover {
 
   background:
-    rgba(255, 255, 255, 0.10);
+    color-mix(
+      in srgb,
+      var(--text) 8%,
+      transparent
+    );
 
   border-color:
-    rgba(255, 255, 255, 0.08);
+    color-mix(
+      in srgb,
+      var(--text) 8%,
+      transparent
+    );
 
   transform:
     translateY(-1px);
@@ -1264,10 +1395,18 @@ img {
 .taskbar-app.active {
 
   background:
-    rgba(0, 212, 255, 0.13);
+    color-mix(
+      in srgb,
+      var(--accent) 13%,
+      transparent
+    );
 
   border-color:
-    rgba(0, 212, 255, 0.18);
+    color-mix(
+      in srgb,
+      var(--accent) 20%,
+      transparent
+    );
 
   color:
     var(--text);
