@@ -6,6 +6,12 @@ import type {
 const CONNECT_WINDOW_NAME =
   "oqerun-google-drive-connect";
 
+export type GoogleConnectionStatus = {
+  connected: boolean;
+  provider?: string;
+  error?: string;
+};
+
 export class GoogleDriveProvider
   implements CloudProvider
 {
@@ -44,28 +50,103 @@ export class GoogleDriveProvider
     popup.focus();
   }
 
+  async getConnectionStatus(): Promise<GoogleConnectionStatus> {
+    const url = this.apiUrl("/api/cloud/google/status");
+
+    if (!url) {
+      return {
+        connected: false,
+        error: "Cloud API is not configured."
+      };
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        "The cloud connection status could not be checked."
+      );
+    }
+
+    return (
+      await response.json()
+    ) as GoogleConnectionStatus;
+  }
+
   async disconnect(): Promise<void> {
-    /*
-     * Provider disconnect/revocation will be handled by
-     * the server-side cloud session once durable storage
-     * is connected.
-     */
+    const url = this.apiUrl(
+      "/api/cloud/google/disconnect"
+    );
+
+    if (!url) {
+      throw new Error(
+        "Cloud API is not configured."
+      );
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        "The Google Drive session could not be disconnected."
+      );
+    }
+  }
+
+  async waitForConnection(
+    timeoutMs = 120_000
+  ): Promise<boolean> {
+    const started = Date.now();
+
+    while (Date.now() - started < timeoutMs) {
+      try {
+        const status =
+          await this.getConnectionStatus();
+
+        if (status.connected) {
+          return true;
+        }
+      } catch {
+        // Keep polling while the OAuth popup is active.
+      }
+
+      await new Promise(resolve =>
+        window.setTimeout(resolve, 1200)
+      );
+    }
+
+    return false;
   }
 
   private get connectUrl(): string {
+    const url = this.apiUrl(
+      "/api/cloud/google/connect"
+    );
+
+    return url ?? "";
+  }
+
+  private apiUrl(path: string): string | null {
     const backend =
       (
         import.meta.env
-          .VITE_OQERUN_CLOUD_API_URL ||
-        ""
+          .VITE_OQERUN_CLOUD_API_URL || ""
       ).trim();
 
     if (!backend) {
-      return "";
+      return null;
     }
 
     return new URL(
-      "/api/cloud/google/connect",
+      path,
       backend.endsWith("/")
         ? backend
         : `${backend}/`
