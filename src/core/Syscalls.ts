@@ -1,8 +1,11 @@
-import { VFS } from "../vfs/VFS";
+import { VFS, VfsEntry } from "../vfs/VFS";
 
 export class Syscalls {
-  private vfs = new VFS();
-  private initialized = false;
+  private vfs =
+    new VFS();
+
+  private initialized =
+    false;
 
   private async ensureReady(): Promise<void> {
     if (!this.initialized) {
@@ -11,27 +14,50 @@ export class Syscalls {
     }
   }
 
-  async read(path: string): Promise<string> {
+  async read(
+    path: string
+  ): Promise<string> {
     await this.ensureReady();
     return this.vfs.read(path);
   }
 
-  async write(path: string, content: string): Promise<void> {
+  async write(
+    path: string,
+    content: string
+  ): Promise<void> {
     await this.ensureReady();
-    await this.vfs.write(path, content);
+    await this.vfs.write(
+      path,
+      content
+    );
   }
 
-  async mkdir(path: string): Promise<void> {
+  async mkdir(
+    path: string
+  ): Promise<void> {
     await this.ensureReady();
     await this.vfs.mkdir(path);
   }
 
-  async list(path: string): Promise<string[]> {
+  async list(
+    path: string
+  ): Promise<string[]> {
     await this.ensureReady();
     return this.vfs.list(path);
   }
 
-  async exists(path: string): Promise<boolean> {
+  async listDetailed(
+    path: string
+  ): Promise<VfsEntry[]> {
+    await this.ensureReady();
+    return this.vfs.listDetailed(
+      path
+    );
+  }
+
+  async exists(
+    path: string
+  ): Promise<boolean> {
     await this.ensureReady();
     return this.vfs.exists(path);
   }
