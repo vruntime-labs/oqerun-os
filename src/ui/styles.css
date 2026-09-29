@@ -62,13 +62,13 @@
 
 #app.theme-light {
 
-  --bg: #eef4ff;
+  --bg: #dfe6f0;
 
-  --surface: #ffffff;
-  --surface-2: #dfe8f8;
+  --surface: #e8edf5;
+  --surface-2: #d2dbe8;
 
-  --text: #0a122a;
-  --muted: #5a6c8f;
+  --text: #101a30;
+  --muted: #53627c;
 
   --border:
     rgba(10, 18, 42, 0.10);
@@ -1202,25 +1202,25 @@ img {
 #app.theme-light .taskbar {
 
   background:
-    rgba(247, 250, 255, 0.82);
+    rgba(218, 226, 238, 0.90);
 
   border-color:
-    rgba(10, 18, 42, 0.12);
+    rgba(10, 18, 42, 0.16);
 
   box-shadow:
     0 14px 36px
-    rgba(20, 45, 90, 0.20),
+    rgba(20, 45, 90, 0.22),
     0 0 0 1px
-    rgba(255, 255, 255, 0.40);
+    rgba(255, 255, 255, 0.22);
 }
 
 #app.theme-light .taskbar-app:hover {
 
   background:
-    rgba(10, 18, 42, 0.07);
+    rgba(10, 18, 42, 0.055);
 
   border-color:
-    rgba(10, 18, 42, 0.10);
+    rgba(10, 18, 42, 0.085);
 }
 
 #app.theme-light .taskbar-app.active {
@@ -1228,15 +1228,15 @@ img {
   background:
     color-mix(
       in srgb,
-      var(--accent) 13%,
-      #ffffff
+      var(--accent) 15%,
+      #d8e0eb
     );
 
   border-color:
     color-mix(
       in srgb,
-      var(--accent) 28%,
-      #ffffff
+      var(--accent) 34%,
+      #c5cfdd
     );
 }
 
