@@ -16,19 +16,20 @@
   />
 
   <meta
-    name="description"
-    content="Oqerun OS — A lightweight browser-based operating system."
-  />
-
-  <meta
     name="application-name"
     content="Oqerun OS"
   />
 
+  <meta
+    name="description"
+    content="Oqerun OS — A lightweight browser-based operating system."
+  />
+
+  <!-- Oqerun OS application icon -->
   <link
     rel="icon"
     type="image/png"
-    href="/oqerun-os/branding/icon-flat-1024.png"
+    href="%BASE_URL%branding/icon-flat-1024.png"
   />
 
   <title>Oqerun OS</title>
@@ -37,8 +38,10 @@
 
 <body>
 
+  <!-- Oqerun OS mounts the desktop here -->
   <div id="app"></div>
 
+  <!-- Vite application entry -->
   <script
     type="module"
     src="/src/main.ts"
