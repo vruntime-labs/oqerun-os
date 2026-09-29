@@ -362,3 +362,33 @@
     margin-left: 0;
   }
 }
+
+
+.cloud-security-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.cloud-security-note strong {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.cloud-security-note span {
+  min-width: 0;
+}
+
+#app.theme-light .cloud-security-note {
+  background: rgba(10, 18, 42, .035);
+  border-color: rgba(10, 18, 42, .10);
+}
