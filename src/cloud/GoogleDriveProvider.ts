@@ -3,33 +3,72 @@ import type {
   CloudProviderStatus
 } from "./CloudProvider";
 
+const CONNECT_WINDOW_NAME =
+  "oqerun-google-drive-connect";
+
 export class GoogleDriveProvider
   implements CloudProvider
 {
   readonly id = "google-drive";
   readonly name = "Google Drive";
   readonly description =
-    "Access files stored in your Google Drive.";
+    "Direct Google Drive connection through Oqerun's secure backend.";
 
   get status(): CloudProviderStatus {
-    return import.meta.env.VITE_GOOGLE_CLIENT_ID
+    return this.connectUrl
       ? "available"
       : "configuration-required";
   }
 
   async connect(): Promise<void> {
-    if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+    const url = this.connectUrl;
+
+    if (!url) {
       throw new Error(
-        "Google Drive needs a web OAuth client ID before it can connect."
+        "Google Drive connection is not configured yet."
       );
     }
 
-    throw new Error(
-      "Google Drive OAuth is not enabled in this build yet."
+    const popup = window.open(
+      url,
+      CONNECT_WINDOW_NAME,
+      "popup,width=980,height=760,resizable=yes,scrollbars=yes"
     );
+
+    if (!popup) {
+      throw new Error(
+        "The secure Google Drive connection window was blocked. Allow pop-ups for Oqerun and try again."
+      );
+    }
+
+    popup.focus();
   }
 
   async disconnect(): Promise<void> {
-    // Provider disconnect will be implemented with the OAuth session.
+    /*
+     * Provider disconnect/revocation will be handled by
+     * the server-side cloud session once durable storage
+     * is connected.
+     */
+  }
+
+  private get connectUrl(): string {
+    const backend =
+      (
+        import.meta.env
+          .VITE_OQERUN_CLOUD_API_URL ||
+        ""
+      ).trim();
+
+    if (!backend) {
+      return "";
+    }
+
+    return new URL(
+      "/api/cloud/google/connect",
+      backend.endsWith("/")
+        ? backend
+        : `${backend}/`
+    ).toString();
   }
 }
