@@ -1193,29 +1193,36 @@ img {
 
 .taskbar-app {
 
-  min-height:
-    34px;
+  position:
+    relative;
+
+  width:
+    42px;
+
+  height:
+    42px;
+
+  flex:
+    0 0 42px;
 
   display:
-    flex;
+    grid;
 
-  align-items:
+  place-items:
     center;
 
-  gap:
-    8px;
-
   padding:
-    6px 12px;
+    0;
 
   border:
-    none;
+    1px solid
+    transparent;
 
   border-radius:
-    9px;
+    11px;
 
   background:
-    rgba(255, 255, 255, 0.08);
+    transparent;
 
   color:
     var(--text);
@@ -1223,32 +1230,127 @@ img {
   cursor:
     pointer;
 
-  white-space:
-    nowrap;
+  overflow:
+    visible;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    opacity 0.16s ease;
 }
 
 
 .taskbar-app:hover {
 
   background:
-    rgba(255, 255, 255, 0.13);
+    rgba(255, 255, 255, 0.10);
+
+  border-color:
+    rgba(255, 255, 255, 0.08);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.taskbar-app:active {
+
+  transform:
+    scale(0.94);
 }
 
 
 .taskbar-app.active {
 
   background:
-    var(--accent);
+    rgba(0, 212, 255, 0.13);
+
+  border-color:
+    rgba(0, 212, 255, 0.18);
 
   color:
-    #001018;
+    var(--text);
+}
+
+
+.taskbar-app::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    50%;
+
+  bottom:
+    -4px;
+
+  width:
+    5px;
+
+  height:
+    5px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius:
+    50%;
+
+  background:
+    rgba(255, 255, 255, 0.35);
+
+  opacity:
+    0;
+
+  transition:
+    opacity 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+
+.taskbar-app.active::after {
+
+  opacity:
+    1;
+
+  background:
+    var(--accent);
+
+  box-shadow:
+    0 0 8px
+    rgba(0, 212, 255, 0.65);
 }
 
 
 .taskbar-app.minimized {
 
   opacity:
-    0.6;
+    0.58;
+}
+
+
+.taskbar-app.minimized::after {
+
+  opacity:
+    1;
+
+  background:
+    rgba(255, 255, 255, 0.30);
+
+  box-shadow:
+    none;
+}
+
+
+.taskbar-app.minimized:hover {
+
+  opacity:
+    0.90;
 }
 
 
@@ -1259,13 +1361,13 @@ img {
 .taskbar-icon {
 
   width:
-    24px;
+    26px;
 
   height:
-    24px;
+    26px;
 
   flex:
-    0 0 24px;
+    0 0 26px;
 
   object-fit:
     contain;
@@ -1279,6 +1381,9 @@ img {
   user-select:
     none;
 
+  pointer-events:
+    none;
+
   filter:
     drop-shadow(
       0 2px 5px
@@ -1290,10 +1395,11 @@ img {
     filter 0.16s ease;
 }
 
+
 .taskbar-app:hover .taskbar-icon {
 
   transform:
-    scale(1.06);
+    scale(1.08);
 
   filter:
     drop-shadow(
@@ -1301,21 +1407,95 @@ img {
       rgba(0, 0, 0, 0.28)
     )
     drop-shadow(
-      0 0 6px
-      rgba(0, 212, 255, 0.18)
+      0 0 7px
+      rgba(0, 212, 255, 0.22)
     );
 }
 
-.taskbar-label {
 
-  min-width:
+/* =========================================================
+   TASKBAR TOOLTIP
+   ========================================================= */
+
+.taskbar-app[title]::before {
+
+  content:
+    attr(title);
+
+  position:
+    absolute;
+
+  left:
+    50%;
+
+  bottom:
+    calc(100% + 10px);
+
+  transform:
+    translateX(-50%)
+    translateY(4px);
+
+  padding:
+    6px 9px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.10);
+
+  border-radius:
+    8px;
+
+  background:
+    rgba(7, 17, 44, 0.94);
+
+  color:
+    var(--text);
+
+  font-size:
+    12px;
+
+  font-weight:
+    500;
+
+  white-space:
+    nowrap;
+
+  box-shadow:
+    0 8px 20px
+    rgba(0, 0, 0, 0.30);
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+  opacity:
     0;
 
-  overflow:
-    hidden;
+  pointer-events:
+    none;
 
-  text-overflow:
-    ellipsis;
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+
+
+.taskbar-app:hover[title]::before {
+
+  opacity:
+    1;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+
+
+.taskbar-label {
+  display:
+    none;
 }
 
 
@@ -2208,12 +2388,6 @@ input:focus-visible,
   text-overflow: ellipsis;
   white-space: nowrap;
   user-select: none;
-}
-
-.taskbar-app {
-  max-width: 190px;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 @media (max-width: 700px) {
