@@ -323,7 +323,9 @@ export class WindowManager {
         };
 
         const iconPath =
-          iconMap[managed.id] ?? "branding/icon-flat-1024.png";
+          managed.id.startsWith("file-viewer-")
+            ? "icons/explorer.png"
+            : iconMap[managed.id] ?? "branding/icon-flat-1024.png";
 
         const icon =
           document.createElement("img");
