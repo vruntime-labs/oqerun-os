@@ -129,8 +129,24 @@ export class Settings {
     const win = document.getElementById(windowId);
     if (!win) return;
 
-    const prefs = await this.loadPreferences();
-    this.applyPreferences(prefs);
+    const storedPrefs = await this.loadPreferences();
+
+    /*
+     * Opening Settings must never silently change the current theme.
+     * The desktop's current theme is the source of truth while the
+     * session is running. Stored preferences are still used on boot
+     * and as the fallback when no theme has been applied yet.
+     */
+    const currentTheme = this.getCurrentTheme();
+    const prefs: Preferences = {
+      ...storedPrefs,
+      theme: currentTheme ?? storedPrefs.theme
+    };
+
+    if (!currentTheme) {
+      this.applyPreferences(prefs);
+    }
+
     this.syncAccentSelection(win, prefs.accent);
 
     const tabs = win.querySelectorAll<HTMLElement>(".settings-tab");
@@ -204,6 +220,17 @@ export class Settings {
         (button.dataset.color || "").toLowerCase() === accent.toLowerCase()
       );
     });
+  }
+
+  private getCurrentTheme(): Preferences["theme"] | null {
+    const app = document.getElementById("app");
+    if (!app) return null;
+
+    if (app.classList.contains("theme-dark")) return "dark";
+    if (app.classList.contains("theme-light")) return "light";
+    if (app.classList.contains("theme-system")) return "system";
+
+    return null;
   }
 
   private applyPreferences(prefs: Preferences): void {
