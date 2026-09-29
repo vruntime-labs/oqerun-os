@@ -170,7 +170,24 @@
   transform: scale(1.10);
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.24),
-    0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+    0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.accent.selected {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 4px 12px rgba(0, 0, 0, 0.20);
+  transform: scale(1.06);
+}
+
+.accent.selected::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.18);
 }
 
 /* =========================================================
@@ -227,7 +244,7 @@
 }
 
 #app.theme-light .settings-tab.active {
-  background: rgba(0, 170, 210, 0.10);
+  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
 }
 
 #app.theme-light .setting-group,
@@ -242,13 +259,17 @@
 }
 
 #app.theme-light .theme-buttons button:hover {
-  background: rgba(0, 170, 210, 0.07);
-  border-color: rgba(0, 170, 210, 0.28);
+  background: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 28%, #ffffff);
 }
 
 #app.theme-light .accent {
   border-color: rgba(10, 18, 42, 0.16);
   box-shadow: 0 3px 10px rgba(20, 45, 90, 0.14);
+}
+
+#app.theme-light .accent.selected {
+  border-color: var(--accent);
 }
 
 /* Keep the Settings window readable when the global light theme
@@ -263,10 +284,10 @@
 }
 
 #app.theme-light .oq-window.active {
-  border-color: rgba(0, 170, 210, 0.34);
+  border-color: color-mix(in srgb, var(--accent) 34%, #dce6f5);
   box-shadow:
     0 28px 70px rgba(20, 45, 90, 0.24),
-    0 0 0 1px rgba(0, 170, 210, 0.08);
+    0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 #app.theme-light .window-titlebar {
