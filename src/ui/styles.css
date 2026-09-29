@@ -1226,10 +1226,18 @@ img {
 #app.theme-light .taskbar-app.active {
 
   background:
-    rgba(0, 170, 210, 0.12);
+    color-mix(
+      in srgb,
+      var(--accent) 13%,
+      #ffffff
+    );
 
   border-color:
-    rgba(0, 170, 210, 0.22);
+    color-mix(
+      in srgb,
+      var(--accent) 28%,
+      #ffffff
+    );
 }
 
 #app.theme-light .taskbar-app::after {
@@ -1478,7 +1486,11 @@ img {
 
   box-shadow:
     0 0 8px
-    rgba(0, 212, 255, 0.65);
+    color-mix(
+      in srgb,
+      var(--accent) 65%,
+      transparent
+    );
 }
 
 
