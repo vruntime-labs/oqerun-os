@@ -1,4 +1,5 @@
-import { OPFS, VfsEntry } from "./OPFS";
+import { OPFS } from "./OPFS";
+import type { VfsEntry } from "./VfsTypes";
 import { Path } from "./Path";
 
 export { VfsEntry };
