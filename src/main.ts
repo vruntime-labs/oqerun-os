@@ -1,25 +1,38 @@
-import "./style.css";
+import "./ui/styles.css";
 
 import { Kernel } from "./core/Kernel";
-import { Desktop } from "./ui/Desktop";
+import { Desktop } from "./shell/Desktop";
+
+
+/* =========================================================
+   OQERUN OS BOOTSTRAP
+   ========================================================= */
 
 const app = document.getElementById("app");
 
 if (!app) {
-  throw new Error("Oqerun OS: #app element not found");
+  throw new Error(
+    "Oqerun OS: #app element was not found."
+  );
 }
 
-/*
- * Start the Oqerun operating environment.
- */
+
+/* =========================================================
+   KERNEL
+   ========================================================= */
+
 const kernel = new Kernel();
 
-/*
- * Create the desktop shell.
- */
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
 const desktop = new Desktop(kernel);
 
-/*
- * Render the desktop.
- */
+
+/* =========================================================
+   START DESKTOP
+   ========================================================= */
+
 desktop.render();
