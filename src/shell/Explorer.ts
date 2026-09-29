@@ -2,6 +2,11 @@ import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
 import { Path } from "../vfs/Path";
 
+type ExplorerEntry = {
+  name: string;
+  kind: "file" | "directory";
+};
+
 export class Explorer {
   private readonly WINDOW_ID = "explorer";
   private currentPath = "/home/user";
@@ -144,19 +149,24 @@ export class Explorer {
 
     try {
       const entries =
-        await this.kernel.sys.list(
+        await this.kernel.sys.listDetailed(
           this.currentPath
         );
 
       const sorted =
-        [...entries].sort(
-          (a, b) =>
-            a.localeCompare(
-              b,
-              undefined,
-              { sensitivity: "base" }
-            )
-        );
+        [...entries].sort((a, b) => {
+          if (a.kind !== b.kind) {
+            return a.kind === "directory"
+              ? -1
+              : 1;
+          }
+
+          return a.name.localeCompare(
+            b.name,
+            undefined,
+            { sensitivity: "base" }
+          );
+        });
 
       if (sorted.length === 0) {
         list.innerHTML = `
@@ -168,29 +178,45 @@ export class Explorer {
       } else {
         list.innerHTML =
           sorted
-            .map((name) => {
+            .map((entry) => {
               const fullPath =
                 Path.join(
                   this.currentPath,
-                  name
+                  entry.name
                 );
+
+              const icon =
+                entry.kind === "directory"
+                  ? "▰"
+                  : "▱";
+
+              const typeLabel =
+                entry.kind === "directory"
+                  ? "Folder"
+                  : "File";
 
               return `
                 <button
-                  class="explorer-item"
+                  class="explorer-item ${entry.kind}"
                   data-path="${this.escapeHtml(fullPath)}"
-                  data-name="${this.escapeHtml(name)}"
+                  data-name="${this.escapeHtml(entry.name)}"
+                  data-kind="${entry.kind}"
                   type="button"
+                  title="${this.escapeHtml(typeLabel)}: ${this.escapeHtml(entry.name)}"
                 >
                   <span
-                    class="explorer-icon"
+                    class="explorer-icon ${entry.kind}"
                     aria-hidden="true"
                   >
-                    ◈
+                    ${icon}
                   </span>
 
                   <span class="explorer-name">
-                    ${this.escapeHtml(name)}
+                    ${this.escapeHtml(entry.name)}
+                  </span>
+
+                  <span class="explorer-type">
+                    ${typeLabel}
                   </span>
                 </button>
               `;
@@ -204,10 +230,17 @@ export class Explorer {
         );
 
       if (status) {
+        const folders =
+          sorted.filter(
+            entry =>
+              entry.kind === "directory"
+          ).length;
+
+        const files =
+          sorted.length - folders;
+
         status.textContent =
-          sorted.length === 1
-            ? "1 item"
-            : `${sorted.length} items`;
+          `${sorted.length} item${sorted.length === 1 ? "" : "s"} · ${folders} folder${folders === 1 ? "" : "s"} · ${files} file${files === 1 ? "" : "s"}`;
       }
     } catch (error) {
       list.innerHTML = `
@@ -306,8 +339,19 @@ export class Explorer {
             const next =
               item.dataset.path;
 
-            if (next) {
+            const kind =
+              item.dataset.kind;
+
+            if (
+              next &&
+              kind === "directory"
+            ) {
               void this.refresh(next);
+            } else if (kind === "file") {
+              this.kernel.notify.info(
+                "Explorer",
+                "Virtual files will open in Text Editor when that app is added."
+              );
             }
           }
         );
@@ -323,9 +367,27 @@ export class Explorer {
         ) {
           event.preventDefault();
 
-          void this.refresh(
-            this.selectedPath
-          );
+          const selected =
+            win.querySelector<HTMLElement>(
+              ".explorer-item.selected"
+            );
+
+          if (
+            selected?.dataset.kind ===
+            "directory"
+          ) {
+            void this.refresh(
+              this.selectedPath
+            );
+          } else if (
+            selected?.dataset.kind ===
+            "file"
+          ) {
+            this.kernel.notify.info(
+              "Explorer",
+              "Virtual files will open in Text Editor when that app is added."
+            );
+          }
         }
       }
     );
@@ -352,10 +414,11 @@ export class Explorer {
     if (!path) return;
 
     const selected =
-      win.querySelector<HTMLElement>(
-        `.explorer-item[data-path="${this.escapeAttribute(
-          path
-        )}"]`
+      [...win.querySelectorAll<HTMLElement>(
+        ".explorer-item[data-path]"
+      )].find(
+        item =>
+          item.dataset.path === path
       );
 
     selected?.classList.add(
@@ -400,12 +463,6 @@ export class Explorer {
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
-  }
-
-  private escapeAttribute(
-    value: string
-  ): string {
-    return this.escapeHtml(value);
   }
 
   private describeError(
