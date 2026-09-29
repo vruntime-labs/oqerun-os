@@ -8,13 +8,9 @@ const SESSION_COOKIE = "oqerun_cloud_session";
 const SESSION_TTL = 60 * 60 * 24 * 30;
 
 type GoogleTokenResponse = {
-  access_token?: string;
   refresh_token?: string;
-  expires_in?: number;
   scope?: string;
-  token_type?: string;
   error?: string;
-  error_description?: string;
 };
 
 function html(message: string, success: boolean): Response {
@@ -24,6 +20,25 @@ function html(message: string, success: boolean): Response {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+
+  const targetOrigin =
+    (process.env.OQERUN_FRONTEND_ORIGIN ?? "").trim();
+
+  const messageScript = targetOrigin
+    ? `
+      try {
+        if (window.opener) {
+          window.opener.postMessage(
+            {
+              source: "oqerun-cloud",
+              type: "${success ? "google-connected" : "google-error"}"
+            },
+            "${targetOrigin.replaceAll('"', "\\\"")}"
+          );
+        }
+      } catch {}
+    `
+    : "";
 
   return new Response(
     `<!doctype html>
@@ -39,17 +54,10 @@ function html(message: string, success: boolean): Response {
     <p style="color:#8fa3c7">You can close this window.</p>
   </main>
   <script>
-    try {
-      if (window.opener) {
-        window.opener.postMessage(
-          { source: "oqerun-cloud", type: "${success ? "google-connected" : "google-error"}" },
-          "*"
-        );
-      }
-      if (${success ? "true" : "false"}) {
-        window.setTimeout(() => window.close(), 900);
-      }
-    } catch {}
+    ${messageScript}
+    if (${success ? "true" : "false"}) {
+      window.setTimeout(() => window.close(), 900);
+    }
   </script>
 </body>
 </html>`,
@@ -68,12 +76,11 @@ export async function GET(request: Request): Promise<Response> {
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
-
   const storedState = readCookie(request, STATE_COOKIE);
 
   if (error) {
     return html(
-      `Google authorization was not completed: ${error}.`,
+      "Google authorization was not completed.",
       false
     );
   }
@@ -85,8 +92,10 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const clientId = (process.env.GOOGLE_CLIENT_ID ?? "").trim();
-  const clientSecret = (process.env.GOOGLE_CLIENT_SECRET ?? "").trim();
+  const clientId =
+    (process.env.GOOGLE_CLIENT_ID ?? "").trim();
+  const clientSecret =
+    (process.env.GOOGLE_CLIENT_SECRET ?? "").trim();
 
   if (!clientId || !clientSecret) {
     return html(
@@ -121,7 +130,8 @@ export async function GET(request: Request): Promise<Response> {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
+          "Content-Type":
+            "application/x-www-form-urlencoded"
         },
         body: tokenRequest.toString()
       }
@@ -130,7 +140,10 @@ export async function GET(request: Request): Promise<Response> {
     const tokenData =
       (await tokenResponse.json()) as GoogleTokenResponse;
 
-    if (!tokenResponse.ok || !tokenData.refresh_token) {
+    if (
+      !tokenResponse.ok ||
+      !tokenData.refresh_token
+    ) {
       console.error(
         "[oqerun-cloud] Google token exchange failed:",
         tokenData.error ?? "unknown error"
@@ -142,59 +155,60 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
-    const sessionId = randomBytes(32).toString("hex");
-    const redis = await getRedis();
+    const sessionId =
+      randomBytes(32).toString("hex");
 
-    const sessionRecord = JSON.stringify({
-      provider: "google-drive",
-      refreshToken: encryptSecret(tokenData.refresh_token),
-      scope: tokenData.scope ?? "",
-      createdAt: new Date().toISOString()
-    });
+    const redis = await getRedis();
 
     await redis.setEx(
       `oqerun:cloud:session:${sessionId}`,
       SESSION_TTL,
-      sessionRecord
+      JSON.stringify({
+        provider: "google-drive",
+        refreshToken: encryptSecret(
+          tokenData.refresh_token
+        ),
+        scope: tokenData.scope ?? "",
+        createdAt: new Date().toISOString()
+      })
     );
 
-    return new Response(
-      html(
-        "Google Drive is now securely connected to Oqerun.",
-        true
-      ).body,
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "no-store",
-          "Set-Cookie": [
-            serializeCookie(
-              SESSION_COOKIE,
-              sessionId,
-              {
-                httpOnly: true,
-                secure: true,
-                sameSite: "Lax",
-                path: "/",
-                maxAge: SESSION_TTL
-              }
-            ),
-            serializeCookie(
-              STATE_COOKIE,
-              "",
-              {
-                httpOnly: true,
-                secure: true,
-                sameSite: "Lax",
-                path: "/",
-                maxAge: 0
-              }
-            )
-          ].join(", ")
-        }
-      }
+    const response = html(
+      "Google Drive is now securely connected to Oqerun.",
+      true
     );
+
+    response.headers.append(
+      "Set-Cookie",
+      serializeCookie(
+        SESSION_COOKIE,
+        sessionId,
+        {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Lax",
+          path: "/",
+          maxAge: SESSION_TTL
+        }
+      )
+    );
+
+    response.headers.append(
+      "Set-Cookie",
+      serializeCookie(
+        STATE_COOKIE,
+        "",
+        {
+          httpOnly: true,
+          secure: true,
+          sameSite: "Lax",
+          path: "/",
+          maxAge: 0
+        }
+      )
+    );
+
+    return response;
   } catch (error) {
     console.error(
       "[oqerun-cloud] Google callback failed:",
