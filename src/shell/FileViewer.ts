@@ -36,7 +36,7 @@ export class FileViewer {
         `file-viewer-${FileViewer.nextInstance++}`;
 
       const title =
-        `${this.titleFor(kind)} — ${file.name}`;
+        this.titleFor(kind);
 
       this.wm.open({
         id: instanceId,
