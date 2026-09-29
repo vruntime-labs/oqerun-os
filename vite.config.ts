@@ -3,7 +3,13 @@ import { defineConfig } from "vite";
 export default defineConfig({
   /*
    * Oqerun OS is deployed as a GitHub Pages
-   * repository site under /oqerun-os/
+   * repository site.
+   *
+   * Repository:
+   * oqerun-os
+   *
+   * Therefore the production base path is:
+   * /oqerun-os/
    */
   base: "/oqerun-os/",
 
