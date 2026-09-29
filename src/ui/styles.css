@@ -1860,3 +1860,28 @@ input:focus-visible,
       auto !important;
   }
 }
+/* =========================================================
+   BOOT FADE OUT
+   ========================================================= */
+
+.boot-fade-out {
+
+  animation:
+    bootFadeOut 0.45s ease forwards;
+}
+
+
+@keyframes bootFadeOut {
+
+  from {
+
+    opacity:
+      1;
+  }
+
+  to {
+
+    opacity:
+      0;
+  }
+}
