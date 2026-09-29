@@ -102,13 +102,15 @@ export class CloudManager {
         available:
           "Ready to connect",
         "configuration-required":
-          "Configuration required"
+          "Not configured"
       };
 
     const actionText =
-      status === "connected"
-        ? "Manage cloud"
-        : "Connect cloud";
+      status === "configuration-required"
+        ? "Set up secure connection"
+        : status === "connected"
+          ? "Manage cloud"
+          : "Connect cloud";
 
     return `
       <section
@@ -141,6 +143,14 @@ export class CloudManager {
             <span>OneDrive</span>
             <span>Dropbox</span>
             <span>More</span>
+          </div>
+
+          <div class="cloud-security-note">
+            <strong>Security</strong>
+            <span>
+              Oqerun never asks you to paste a cloud password, OAuth client secret,
+              refresh token, or bearer token into the OS.
+            </span>
           </div>
 
           <div
