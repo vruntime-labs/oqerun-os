@@ -1109,6 +1109,22 @@ img {
 
   user-select:
     none;
+
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease;
+}
+
+
+.start-btn:hover img {
+  transform:
+    scale(1.08);
+
+  filter:
+    drop-shadow(
+      0 0 8px
+      rgba(0, 212, 255, 0.45)
+    );
 }
 
 
