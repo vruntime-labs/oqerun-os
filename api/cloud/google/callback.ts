@@ -186,7 +186,7 @@ export async function GET(request: Request): Promise<Response> {
         {
           httpOnly: true,
           secure: true,
-          sameSite: "Lax",
+          sameSite: "None",
           path: "/",
           maxAge: SESSION_TTL
         }
@@ -201,7 +201,7 @@ export async function GET(request: Request): Promise<Response> {
         {
           httpOnly: true,
           secure: true,
-          sameSite: "Lax",
+          sameSite: "None",
           path: "/",
           maxAge: 0
         }
