@@ -232,11 +232,11 @@
    ========================================================= */
 
 #app.theme-light .settings-sidebar {
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(225, 231, 240, 0.88);
 }
 
 #app.theme-light .settings-content {
-  background: rgba(247, 250, 255, 0.88);
+  background: rgba(232, 237, 245, 0.90);
 }
 
 #app.theme-light .settings-tab:hover {
@@ -244,23 +244,23 @@
 }
 
 #app.theme-light .settings-tab.active {
-  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
+  background: color-mix(in srgb, var(--accent) 12%, #e1e7f0);
 }
 
 #app.theme-light .setting-group,
 #app.theme-light .storage-card {
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 8px 22px rgba(20, 45, 90, 0.07);
+  background: rgba(241, 244, 249, 0.92);
+  box-shadow: 0 8px 22px rgba(20, 45, 90, 0.09);
 }
 
 #app.theme-light .theme-buttons button {
-  background: #ffffff;
-  border-color: rgba(10, 18, 42, 0.12);
+  background: #e7ecf3;
+  border-color: rgba(10, 18, 42, 0.14);
 }
 
 #app.theme-light .theme-buttons button:hover {
-  background: color-mix(in srgb, var(--accent) 7%, #ffffff);
-  border-color: color-mix(in srgb, var(--accent) 28%, #ffffff);
+  background: color-mix(in srgb, var(--accent) 8%, #e7ecf3);
+  border-color: color-mix(in srgb, var(--accent) 32%, #c9d2df);
 }
 
 #app.theme-light .accent {
@@ -276,23 +276,23 @@
    is active while preserving Oqerun's glass titlebar. */
 
 #app.theme-light .oq-window {
-  background: rgba(248, 251, 255, 0.96);
-  border-color: rgba(10, 18, 42, 0.13);
+  background: rgba(231, 236, 244, 0.97);
+  border-color: rgba(10, 18, 42, 0.16);
   box-shadow:
-    0 24px 60px rgba(20, 45, 90, 0.20),
-    0 0 0 1px rgba(255, 255, 255, 0.65);
+    0 24px 60px rgba(20, 45, 90, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.28);
 }
 
 #app.theme-light .oq-window.active {
-  border-color: color-mix(in srgb, var(--accent) 34%, #dce6f5);
+  border-color: color-mix(in srgb, var(--accent) 36%, #c8d2e0);
   box-shadow:
-    0 28px 70px rgba(20, 45, 90, 0.24),
-    0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+    0 28px 70px rgba(20, 45, 90, 0.27),
+    0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 #app.theme-light .window-titlebar {
-  background: rgba(231, 238, 251, 0.94);
-  border-bottom-color: rgba(10, 18, 42, 0.10);
+  background: rgba(216, 224, 235, 0.96);
+  border-bottom-color: rgba(10, 18, 42, 0.12);
 }
 
 #app.theme-light .window-title {
