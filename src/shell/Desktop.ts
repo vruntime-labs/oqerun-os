@@ -3,11 +3,15 @@ import { Explorer } from "./Explorer";
 import { Computer } from "./Computer";
 import { Terminal } from "./Terminal";
 import { Settings } from "./Settings";
+
 import { WindowManager } from "../window/WindowManager";
 import { Kernel } from "../core/Kernel";
 
+
 export class Desktop {
+
   private startMenu = new StartMenu();
+
   private wm = new WindowManager();
 
   private explorer: Explorer;
@@ -15,106 +19,227 @@ export class Desktop {
   private terminal: Terminal;
   private settings: Settings;
 
+
+  /* =======================================================
+     CONSTRUCTOR
+     ======================================================= */
+
   constructor(private kernel: Kernel) {
-    this.explorer = new Explorer(this.kernel, this.wm);
-    this.computer = new Computer(this.kernel, this.wm);
-    this.terminal = new Terminal(this.kernel, this.wm);
-    this.settings = new Settings(this.kernel, this.wm);
+
+    this.explorer =
+      new Explorer(
+        this.kernel,
+        this.wm
+      );
+
+    this.computer =
+      new Computer(
+        this.kernel,
+        this.wm
+      );
+
+    this.terminal =
+      new Terminal(
+        this.kernel,
+        this.wm
+      );
+
+    this.settings =
+      new Settings(
+        this.kernel,
+        this.wm
+      );
   }
 
-  render(): void {
-    const app = document.getElementById("app");
-    if (!app) return;
 
-    app.classList.add("theme-system");
+  /* =======================================================
+     RENDER DESKTOP
+     ======================================================= */
+
+  render(): void {
+
+    const app =
+      document.getElementById("app");
+
+    if (!app) {
+      console.error(
+        "Oqerun OS: #app element not found."
+      );
+
+      return;
+    }
+
+
+    /*
+     * Vite automatically provides the correct
+     * deployment base path.
+     *
+     * Development:
+     * /
+     *
+     * GitHub Pages:
+     * /oqerun-os/
+     */
+    const base =
+      import.meta.env.BASE_URL;
+
+
+    /*
+     * Apply Oqerun system theme.
+     */
+    app.classList.add(
+      "theme-system"
+    );
+
+
+    /* =====================================================
+       DESKTOP HTML
+       ===================================================== */
 
     app.innerHTML = `
+
       <div class="desktop">
 
-        <!-- =========================
-             Desktop Area
-        ========================== -->
+
+        <!-- ===============================================
+             DESKTOP AREA
+             =============================================== -->
 
         <div class="desktop-area">
 
-          <div class="desktop-icon" id="computer-icon">
+
+          <!-- COMPUTER DESKTOP ICON -->
+
+          <div
+            class="desktop-icon"
+            id="computer-icon"
+            tabindex="0"
+            role="button"
+            aria-label="Computer"
+          >
 
             <img
-              src="/oqerun-os/branding/computer.png"
-              alt="Computer"
               class="desktop-icon-image"
-            >
+              src="${base}icons/computer.png"
+              alt="Computer"
+              draggable="false"
+            />
 
-            <span>Computer</span>
+            <span>
+              Computer
+            </span>
 
           </div>
+
 
         </div>
 
 
-        <!-- =========================
-             Start Menu
-        ========================== -->
+        <!-- ===============================================
+             START MENU
+             =============================================== -->
 
-        <div id="start-menu" class="start-menu" style="display:none;">
+        <div
+          id="start-menu"
+          class="start-menu"
+          style="display:none;"
+        >
+
+
+          <!-- Start Menu Header -->
 
           <div class="start-menu-header">
-            <h3>Oqerun</h3>
-          </div>
 
-          <div class="start-menu-apps">
-
-            <button
-              id="open-terminal"
-              class="start-app"
-              type="button"
-            >
-              <img
-                src="/oqerun-os/branding/terminal.png"
-                alt=""
-                class="start-icon"
-              >
-              <span>Terminal</span>
-            </button>
-
-
-            <button
-              id="open-explorer"
-              class="start-app"
-              type="button"
-            >
-              <img
-                src="/oqerun-os/branding/explorer.png"
-                alt=""
-                class="start-icon"
-              >
-              <span>Explorer</span>
-            </button>
-
-
-            <button
-              id="open-settings"
-              class="start-app"
-              type="button"
-            >
-              <img
-                src="/oqerun-os/branding/settings.png"
-                alt=""
-                class="start-icon"
-              >
-              <span>Settings</span>
-            </button>
+            <h3>
+              Oqerun
+            </h3>
 
           </div>
+
+
+          <!-- ===========================================
+               TERMINAL
+               =========================================== -->
+
+          <button
+            id="open-terminal"
+            class="start-menu-item"
+            type="button"
+          >
+
+            <img
+              class="start-icon"
+              src="${base}icons/terminal.png"
+              alt=""
+              draggable="false"
+            />
+
+            <span>
+              Terminal
+            </span>
+
+          </button>
+
+
+          <!-- ===========================================
+               EXPLORER
+               =========================================== -->
+
+          <button
+            id="open-explorer"
+            class="start-menu-item"
+            type="button"
+          >
+
+            <img
+              class="start-icon"
+              src="${base}icons/explorer.png"
+              alt=""
+              draggable="false"
+            />
+
+            <span>
+              Explorer
+            </span>
+
+          </button>
+
+
+          <!-- ===========================================
+               SETTINGS
+               =========================================== -->
+
+          <button
+            id="open-settings"
+            class="start-menu-item"
+            type="button"
+          >
+
+            <img
+              class="start-icon"
+              src="${base}icons/settings.png"
+              alt=""
+              draggable="false"
+            />
+
+            <span>
+              Settings
+            </span>
+
+          </button>
+
 
         </div>
 
 
-        <!-- =========================
-             Taskbar
-        ========================== -->
+        <!-- ===============================================
+             TASKBAR
+             =============================================== -->
 
         <footer class="taskbar">
+
+
+          <!-- START BUTTON -->
 
           <button
             id="start-btn"
@@ -122,165 +247,262 @@ export class Desktop {
             type="button"
             aria-label="Open Start Menu"
           >
+
             <img
-              src="/oqerun-os/branding/start-orb.png"
+              src="${base}branding/start-orb.png"
               alt="Oqerun"
-              class="start-orb"
-            >
+              draggable="false"
+            />
+
           </button>
 
+
+          <!-- OQERUN OS TITLE -->
 
           <div class="taskbar-title">
             Oqerun OS
           </div>
 
 
-          <div id="taskbar-apps"></div>
+          <!-- RUNNING APPLICATIONS -->
+
+          <div
+            id="taskbar-apps"
+          ></div>
 
 
-          <div id="clock">
+          <!-- CLOCK -->
+
+          <div
+            id="clock"
+          >
             --:--
           </div>
 
+
         </footer>
+
 
       </div>
     `;
 
+
+    /*
+     * Bind desktop controls.
+     */
     this.bindEvents();
+
+
+    /*
+     * Start system clock.
+     */
     this.startClock();
   }
 
 
+  /* =======================================================
+     HIDE START MENU
+     ======================================================= */
+
   private hideStartMenu(): void {
-    const menu = document.getElementById("start-menu");
+
+    const menu =
+      document.getElementById(
+        "start-menu"
+      );
 
     if (menu) {
-      menu.style.display = "none";
+
+      menu.style.display =
+        "none";
     }
   }
 
 
+  /* =======================================================
+     DESKTOP EVENTS
+     ======================================================= */
+
   private bindEvents(): void {
 
-    /* =========================
-       Start Button
-    ========================== */
+
+    /* =====================================================
+       START BUTTON
+       ===================================================== */
 
     document
       .getElementById("start-btn")
-      ?.addEventListener("click", (event) => {
+      ?.addEventListener(
+        "click",
+        (event) => {
 
-        event.stopPropagation();
+          event.stopPropagation();
 
-        this.startMenu.toggle();
+          this.startMenu.toggle();
+        }
+      );
 
-      });
 
-
-    /* =========================
-       Computer
-    ========================== */
+    /* =====================================================
+       COMPUTER
+       ===================================================== */
 
     document
       .getElementById("computer-icon")
-      ?.addEventListener("dblclick", () => {
+      ?.addEventListener(
+        "dblclick",
+        () => {
 
-        this.computer.open();
+          this.computer.open();
+        }
+      );
 
-      });
 
-
-    /* =========================
-       Explorer
-    ========================== */
+    /* =====================================================
+       COMPUTER KEYBOARD
+       ===================================================== */
 
     document
-      .getElementById("open-explorer")
-      ?.addEventListener("click", () => {
+      .getElementById("computer-icon")
+      ?.addEventListener(
+        "keydown",
+        (event) => {
 
-        this.hideStartMenu();
+          if (
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
 
-        this.explorer.open("/home/user");
+            event.preventDefault();
 
-      });
+            this.computer.open();
+          }
+        }
+      );
 
 
-    /* =========================
-       Terminal
-    ========================== */
+    /* =====================================================
+       TERMINAL
+       ===================================================== */
 
     document
       .getElementById("open-terminal")
-      ?.addEventListener("click", () => {
+      ?.addEventListener(
+        "click",
+        () => {
 
-        this.hideStartMenu();
+          this.hideStartMenu();
 
-        this.terminal.open();
+          this.terminal.open();
+        }
+      );
 
-      });
+
+    /* =====================================================
+       EXPLORER
+       ===================================================== */
+
+    document
+      .getElementById("open-explorer")
+      ?.addEventListener(
+        "click",
+        () => {
+
+          this.hideStartMenu();
+
+          this.explorer.open(
+            "/home/user"
+          );
+        }
+      );
 
 
-    /* =========================
-       Settings
-    ========================== */
+    /* =====================================================
+       SETTINGS
+       ===================================================== */
 
     document
       .getElementById("open-settings")
-      ?.addEventListener("click", () => {
+      ?.addEventListener(
+        "click",
+        () => {
 
-        this.hideStartMenu();
+          this.hideStartMenu();
 
-        this.settings.open();
+          this.settings.open();
+        }
+      );
 
-      });
 
+    /* =====================================================
+       OUTSIDE CLICK
+       ===================================================== */
 
-    /* =========================
-       Close Start Menu
-       when clicking outside
-    ========================== */
+    document.addEventListener(
+      "click",
+      (event) => {
 
-    document.addEventListener("click", (event) => {
+        const target =
+          event.target as HTMLElement;
 
-      const target = event.target as HTMLElement;
+        if (
+          !target.closest(
+            "#start-menu"
+          ) &&
+          !target.closest(
+            "#start-btn"
+          )
+        ) {
 
-      if (
-        !target.closest("#start-menu") &&
-        !target.closest("#start-btn")
-      ) {
-        this.hideStartMenu();
+          this.hideStartMenu();
+        }
       }
-
-    });
-
+    );
   }
 
 
-  /* =========================
-     Clock
-  ========================== */
+  /* =======================================================
+     SYSTEM CLOCK
+     ======================================================= */
 
   private startClock(): void {
 
-    const clock = document.getElementById("clock");
+    const clock =
+      document.getElementById(
+        "clock"
+      );
 
-    if (!clock) return;
+    if (!clock) {
+      return;
+    }
 
 
-    const update = () => {
+    const update = (): void => {
 
-      clock.textContent = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-
+      clock.textContent =
+        new Date().toLocaleTimeString(
+          [],
+          {
+            hour: "2-digit",
+            minute: "2-digit"
+          }
+        );
     };
 
 
+    /*
+     * Initial clock update.
+     */
     update();
 
-    setInterval(update, 1000);
 
+    /*
+     * Update every second.
+     */
+    setInterval(
+      update,
+      1000
+    );
   }
+
 }
