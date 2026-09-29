@@ -1,6 +1,7 @@
 import "./ui/styles.css";
 import "./ui/settings.css";
 import "./ui/explorer.css";
+import "./ui/cloud.css";
 
 import { Kernel } from "./core/Kernel";
 import { Desktop } from "./shell/Desktop";
