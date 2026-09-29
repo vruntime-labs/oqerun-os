@@ -1,9 +1,25 @@
-import "./ui/styles.css";
-import "./ui/settings.css";
-import "./ui/explorer.css";
-import "./ui/notifications.css";
+import "./style.css";
 
 import { Kernel } from "./core/Kernel";
+import { Desktop } from "./ui/Desktop";
 
+const app = document.getElementById("app");
+
+if (!app) {
+  throw new Error("Oqerun OS: #app element not found");
+}
+
+/*
+ * Start the Oqerun operating environment.
+ */
 const kernel = new Kernel();
-kernel.boot();
+
+/*
+ * Create the desktop shell.
+ */
+const desktop = new Desktop(kernel);
+
+/*
+ * Render the desktop.
+ */
+desktop.render();
