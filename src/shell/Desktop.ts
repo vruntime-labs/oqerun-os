@@ -87,9 +87,13 @@ export class Desktop {
     /*
      * Apply Oqerun system theme.
      */
-    app.classList.add(
-      "theme-system"
-    );
+    if (
+      !app.classList.contains("theme-system") &&
+      !app.classList.contains("theme-dark") &&
+      !app.classList.contains("theme-light")
+    ) {
+      app.classList.add("theme-system");
+    }
 
 
     /* =====================================================
