@@ -1,41 +1,21 @@
 import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
-import type {
-  CloudProvider,
-  CloudProviderStatus
-} from "./CloudProvider";
-import { UnifiedCloudProvider } from "./UnifiedCloudProvider";
+import type { CloudProviderStatus } from "./CloudProvider";
+import { GoogleDriveProvider } from "./GoogleDriveProvider";
 
 export class CloudManager {
-  private readonly WINDOW_ID =
-    "cloud-manager";
-
-  private readonly provider:
-    CloudProvider;
+  private readonly WINDOW_ID = "cloud-manager";
+  private readonly provider: GoogleDriveProvider;
 
   private connectionMessage =
-    "Choose a provider and browse your cloud files.";
+    "Connect Google Drive through Google's secure authorization page.";
 
   constructor(
     private kernel: Kernel,
     private wm: WindowManager
   ) {
     this.provider =
-      new UnifiedCloudProvider({
-        onConfigurationRequired:
-          () => {
-            this.connectionMessage =
-              "Cloud connection is not configured. Oqerun will never ask you to enter a cloud password, OAuth client secret, or access token here.";
-            this.refreshProviderStatus();
-          },
-
-        onConnectionStarted:
-          () => {
-            this.connectionMessage =
-              "Secure connection opened in a separate window. Review the provider name and requested permissions before approving access.";
-            this.refreshProviderStatus();
-          }
-      });
+      new GoogleDriveProvider();
   }
 
   open(): void {
@@ -43,7 +23,7 @@ export class CloudManager {
       id: this.WINDOW_ID,
       title: "Connected Cloud",
       width: 700,
-      height: 470,
+      height: 500,
       x: 120,
       y: 70,
       content: this.render()
@@ -51,105 +31,93 @@ export class CloudManager {
 
     requestAnimationFrame(() => {
       this.bindEvents();
+      void this.refreshConnectionStatus();
     });
   }
 
   private render(): string {
+    const status =
+      this.provider.status;
+
     return `
       <div class="cloud-manager">
         <div class="cloud-manager-header">
           <div>
             <h2>Connected Cloud</h2>
             <p>
-              Connect multiple cloud storage services through one unified picker.
+              Connect your own cloud storage account directly to Oqerun.
             </p>
           </div>
 
           <span class="cloud-manager-badge">
-            Unified
+            Direct APIs
           </span>
         </div>
 
         <div class="cloud-provider-grid">
-          ${this.renderProvider()}
+          ${this.renderProvider(status)}
         </div>
 
         <div class="cloud-manager-note">
           <strong>
-            One cloud connection layer.
+            Your credentials stay server-side.
           </strong>
 
           <span>
-            Google Drive, OneDrive, Dropbox and other supported file-storage
-            services are opened through the same Oqerun cloud interface.
+            Oqerun sends you to the provider's official authorization page.
+            Passwords, OAuth secrets and refresh tokens are never entered into
+            the OS or exposed to the browser.
           </span>
         </div>
       </div>
     `;
   }
 
-  private renderProvider(): string {
-    const status =
-      this.provider.status;
-
-    const statusText:
-      Record<
-        CloudProviderStatus,
-        string
-      > = {
-        connected:
-          "Connected",
-        available:
-          "Ready to connect",
-        "configuration-required":
-          "Not configured"
-      };
-
-    const actionText =
-      status === "configuration-required"
-        ? "Set up secure connection"
-        : status === "connected"
-          ? "Manage cloud"
-          : "Connect cloud";
+  private renderProvider(
+    status: CloudProviderStatus
+  ): string {
+    const statusText =
+      status === "available"
+        ? "Ready to connect"
+        : "Not configured";
 
     return `
       <section
         class="cloud-provider-card cloud-provider-card-unified"
-        data-provider="unified-cloud"
+        data-provider="google-drive"
       >
         <div class="cloud-provider-icon cloud-unified-icon">
-          ☁
+          G
         </div>
 
         <div class="cloud-provider-body">
           <div class="cloud-provider-title-row">
-            <h3>Unified Cloud</h3>
+            <h3>Google Drive</h3>
 
             <span
               id="cloud-provider-status"
               class="cloud-provider-status status-${status}"
             >
-              ${statusText[status]}
+              ${statusText}
             </span>
           </div>
 
           <p>
-            Google Drive, OneDrive, Dropbox, Box, SharePoint and other
-            supported storage services from one connection flow.
+            Direct Google Drive integration using Google's OAuth 2.0 flow
+            and Oqerun's secure cloud backend.
           </p>
 
           <div class="cloud-provider-services">
-            <span>Google Drive</span>
-            <span>OneDrive</span>
-            <span>Dropbox</span>
-            <span>More</span>
+            <span>Google OAuth</span>
+            <span>Redis sessions</span>
+            <span>Encrypted tokens</span>
           </div>
 
           <div class="cloud-security-note">
             <strong>Security</strong>
             <span>
-              Oqerun never asks you to paste a cloud password, OAuth client secret,
-              refresh token, or bearer token into the OS.
+              Oqerun never asks you to paste a Google password, OAuth client
+              secret, refresh token, or bearer token into the OS.
             </span>
           </div>
 
@@ -157,7 +125,9 @@ export class CloudManager {
             id="cloud-provider-selection"
             class="cloud-provider-selection"
           >
-            ${this.escapeHtml(this.connectionMessage)}
+            ${this.escapeHtml(
+              this.connectionMessage
+            )}
           </div>
 
           <button
@@ -165,22 +135,17 @@ export class CloudManager {
             data-cloud-action="connect"
             type="button"
           >
-            ${actionText}
+            Connect Google Drive
           </button>
 
-          ${
-            status === "connected"
-              ? `
-                <button
-                  class="cloud-provider-action cloud-provider-secondary-action"
-                  data-cloud-action="disconnect"
-                  type="button"
-                >
-                  Disconnect session
-                </button>
-              `
-              : ""
-          }
+          <button
+            class="cloud-provider-action cloud-provider-secondary-action"
+            data-cloud-action="disconnect"
+            type="button"
+            style="display:none;"
+          >
+            Disconnect session
+          </button>
         </div>
       </section>
     `;
@@ -203,71 +168,205 @@ export class CloudManager {
           "click",
           () => {
             void this.handleProviderAction(
-              button.dataset.cloudAction ||
-                ""
+              button.dataset.cloudAction || ""
             );
           }
         );
       });
+
+    window.addEventListener(
+      "message",
+      this.handleCloudMessage
+    );
   }
+
+  private handleCloudMessage = (
+    event: MessageEvent
+  ): void => {
+    if (
+      event.data?.source !==
+      "oqerun-cloud"
+    ) {
+      return;
+    }
+
+    if (
+      event.data?.type ===
+      "google-connected"
+    ) {
+      this.connectionMessage =
+        "Google Drive is securely connected.";
+      void this.refreshConnectionStatus();
+    }
+
+    if (
+      event.data?.type ===
+      "google-error"
+    ) {
+      this.connectionMessage =
+        "Google Drive authorization did not complete.";
+      this.refreshConnectionStatus();
+    }
+  };
 
   private async handleProviderAction(
     action: string
   ): Promise<void> {
     try {
-      if (
-        action ===
-        "disconnect"
-      ) {
+      if (action === "disconnect") {
         await this.provider.disconnect();
 
+        this.connectionMessage =
+          "The Google Drive session has been disconnected.";
+
         this.kernel.notify.info(
-          "Unified Cloud",
+          "Google Drive",
           "The cloud session has been disconnected."
         );
 
-        this.refreshProviderStatus();
-
+        await this.refreshConnectionStatus();
         return;
       }
 
+      if (action !== "connect") {
+        return;
+      }
+
+      this.connectionMessage =
+        "Secure Google authorization opened. Review the requested permissions before approving access.";
+
+      this.refreshProviderMessage();
+
       await this.provider.connect();
+
+      const connected =
+        await this.provider.waitForConnection();
+
+      if (connected) {
+        this.connectionMessage =
+          "Google Drive is securely connected to Oqerun.";
+
+        this.kernel.notify.info(
+          "Google Drive",
+          "Google Drive is now connected."
+        );
+      } else {
+        this.connectionMessage =
+          "The connection window timed out. If you approved access, reopen Cloud to check the session.";
+      }
+
+      await this.refreshConnectionStatus();
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Cloud connection could not be started.";
+          : "Google Drive connection could not be started.";
+
+      this.connectionMessage =
+        message;
 
       this.kernel.notify.info(
-        "Unified Cloud",
+        "Google Drive",
         message
       );
+
+      this.refreshProviderMessage();
     }
   }
 
-  private refreshProviderStatus(): void {
+  private async refreshConnectionStatus(): Promise<void> {
+    try {
+      const status =
+        await this.provider.getConnectionStatus();
+
+      const win =
+        document.getElementById(
+          this.WINDOW_ID
+        );
+
+      if (!win) return;
+
+      const statusElement =
+        win.querySelector<HTMLElement>(
+          "#cloud-provider-status"
+        );
+
+      const disconnectButton =
+        win.querySelector<HTMLButtonElement>(
+          '[data-cloud-action="disconnect"]'
+        );
+
+      const connectButton =
+        win.querySelector<HTMLButtonElement>(
+          '[data-cloud-action="connect"]'
+        );
+
+      if (status.connected) {
+        if (statusElement) {
+          statusElement.textContent =
+            "Connected";
+          statusElement.className =
+            "cloud-provider-status status-connected";
+        }
+
+        if (disconnectButton) {
+          disconnectButton.style.display =
+            "";
+        }
+
+        if (connectButton) {
+          connectButton.textContent =
+            "Reconnect Google Drive";
+        }
+
+        this.connectionMessage =
+          "Google Drive is securely connected to Oqerun.";
+      } else {
+        if (statusElement) {
+          statusElement.textContent =
+            this.provider.status ===
+            "available"
+              ? "Ready to connect"
+              : "Not configured";
+
+          statusElement.className =
+            `cloud-provider-status status-${this.provider.status}`;
+        }
+
+        if (disconnectButton) {
+          disconnectButton.style.display =
+            "none";
+        }
+
+        if (connectButton) {
+          connectButton.textContent =
+            "Connect Google Drive";
+        }
+
+        if (status.error) {
+          this.connectionMessage =
+            status.error;
+        }
+      }
+
+      this.refreshProviderMessage();
+    } catch (error) {
+      this.connectionMessage =
+        error instanceof Error
+          ? error.message
+          : "Cloud connection status is unavailable.";
+
+      this.refreshProviderMessage();
+    }
+  }
+
+  private refreshProviderMessage(): void {
     const win =
       document.getElementById(
         this.WINDOW_ID
       );
 
     if (!win) return;
-
-    const status =
-      this.provider.status;
-
-    const statusElement =
-      win.querySelector<HTMLElement>(
-        "#cloud-provider-status"
-      );
-
-    if (statusElement) {
-      statusElement.textContent =
-        this.statusText(status);
-
-      statusElement.className =
-        `cloud-provider-status status-${status}`;
-    }
 
     const selectionElement =
       win.querySelector<HTMLElement>(
@@ -280,48 +379,14 @@ export class CloudManager {
     }
   }
 
-  private statusText(
-    status: CloudProviderStatus
-  ): string {
-    const labels:
-      Record<
-        CloudProviderStatus,
-        string
-      > = {
-        connected:
-          "Connected",
-        available:
-          "Ready to connect",
-        "configuration-required":
-          "Configuration required"
-      };
-
-    return labels[status];
-  }
-
   private escapeHtml(
     value: string
   ): string {
     return value
-      .replaceAll(
-        "&",
-        "&amp;"
-      )
-      .replaceAll(
-        "<",
-        "&lt;"
-      )
-      .replaceAll(
-        ">",
-        "&gt;"
-      )
-      .replaceAll(
-        '"',
-        "&quot;"
-      )
-      .replaceAll(
-        "'",
-        "&#039;"
-      );
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 }
