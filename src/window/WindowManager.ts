@@ -311,8 +311,36 @@ export class WindowManager {
           );
         }
 
-        button.textContent =
+        const base =
+          import.meta.env.BASE_URL;
+
+        const iconMap: Record<string, string> = {
+          computer: "icons/computer.png",
+          explorer: "icons/explorer.png",
+          terminal: "icons/terminal.png",
+          settings: "icons/settings.png"
+        };
+
+        const iconPath =
+          iconMap[managed.id] ?? "branding/icon-flat-1024.png";
+
+        const icon =
+          document.createElement("img");
+
+        icon.className = "taskbar-icon";
+        icon.src = `${base}${iconPath}`;
+        icon.alt = "";
+        icon.draggable = false;
+
+        const label =
+          document.createElement("span");
+
+        label.className = "taskbar-label";
+        label.textContent =
           managed.instance.getTitle();
+
+        button.appendChild(icon);
+        button.appendChild(label);
 
         button.title =
           managed.instance.getTitle();
