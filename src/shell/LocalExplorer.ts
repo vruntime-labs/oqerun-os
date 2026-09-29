@@ -140,11 +140,33 @@ export class LocalExplorer {
 
     win.querySelectorAll<HTMLButtonElement>(".local-explorer-item")
       .forEach((item) => {
-        item.addEventListener("dblclick", () => {
+        const open = () => {
           void this.openEntry(
             item.dataset.name || "",
             item.dataset.kind || ""
           );
+        };
+
+        /*
+         * Folders open on a normal click as well as double-click.
+         * This makes navigation reliable with mouse, trackpad, and
+         * browser automation while preserving double-click behavior.
+         */
+        item.addEventListener("click", () => {
+          if (item.dataset.kind === "directory") {
+            open();
+          }
+        });
+
+        item.addEventListener("dblclick", () => {
+          open();
+        });
+
+        item.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            open();
+          }
         });
       });
   }
