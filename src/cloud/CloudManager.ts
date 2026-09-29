@@ -157,7 +157,7 @@ export class CloudManager {
             id="cloud-provider-selection"
             class="cloud-provider-selection"
           >
-            ${this.escapeHtml(selectionText)}
+            ${this.escapeHtml(this.connectionMessage)}
           </div>
 
           <button
