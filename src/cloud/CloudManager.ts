@@ -4,11 +4,7 @@ import type {
   CloudProvider,
   CloudProviderStatus
 } from "./CloudProvider";
-import type {
-  KloudlessAccount,
-  KloudlessSelection
-} from "./Kloudless";
-import { KloudlessCloudProvider } from "./KloudlessCloudProvider";
+import { UnifiedCloudProvider } from "./UnifiedCloudProvider";
 
 export class CloudManager {
   private readonly WINDOW_ID =
@@ -17,57 +13,27 @@ export class CloudManager {
   private readonly provider:
     CloudProvider;
 
-  private lastSelectionCount = 0;
+  private connectionMessage =
+    "Choose a provider and browse your cloud files.";
 
   constructor(
     private kernel: Kernel,
     private wm: WindowManager
   ) {
     this.provider =
-      new KloudlessCloudProvider({
-        onAccountConnected:
-          account => {
-            this.kernel.notify.info(
-              "Cloud connected",
-              this.accountLabel(account)
-            );
-
-            this.refreshProviderStatus();
-          },
-
-        onAccountDisconnected:
+      new UnifiedCloudProvider({
+        onConfigurationRequired:
           () => {
-            this.kernel.notify.info(
-              "Cloud disconnected",
-              "The selected cloud account has been disconnected."
-            );
-
+            this.connectionMessage =
+              "Cloud connection is not configured. Oqerun will never ask you to enter a cloud password, OAuth client secret, or access token here.";
             this.refreshProviderStatus();
           },
 
-        onSelection:
-          items => {
-            this.lastSelectionCount =
-              items.length;
-
-            if (items.length === 0) {
-              return;
-            }
-
-            this.kernel.notify.info(
-              "Cloud selection",
-              `${items.length} item${items.length === 1 ? "" : "s"} selected.`
-            );
-
+        onConnectionStarted:
+          () => {
+            this.connectionMessage =
+              "Secure connection opened in a separate window. Review the provider name and requested permissions before approving access.";
             this.refreshProviderStatus();
-          },
-
-        onError:
-          message => {
-            this.kernel.notify.info(
-              "Unified Cloud",
-              message
-            );
           }
       });
   }
@@ -305,9 +271,7 @@ export class CloudManager {
 
     if (selectionElement) {
       selectionElement.textContent =
-        this.lastSelectionCount > 0
-          ? `${this.lastSelectionCount} item${this.lastSelectionCount === 1 ? "" : "s"} selected this session.`
-          : "Choose a provider and browse your cloud files.";
+        this.connectionMessage;
     }
   }
 
@@ -328,21 +292,6 @@ export class CloudManager {
       };
 
     return labels[status];
-  }
-
-  private accountLabel(
-    account: KloudlessAccount
-  ): string {
-    const service =
-      account.service ||
-      "cloud service";
-
-    const name =
-      account.name
-        ? ` (${account.name})`
-        : "";
-
-    return `${service}${name} is now available in Oqerun.`;
   }
 
   private escapeHtml(
