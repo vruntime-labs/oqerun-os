@@ -1,0 +1,263 @@
+/* =========================================================
+   CONNECTED CLOUD
+========================================================= */
+
+.cloud-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100%;
+  min-height: 0;
+  color: var(--text);
+}
+
+.cloud-manager-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cloud-manager-header h2 {
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.cloud-manager-header p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.cloud-manager-badge {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--accent) 24%,
+    var(--border)
+  );
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--accent) 9%,
+    transparent
+  );
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.cloud-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    2,
+    minmax(0, 1fr)
+  );
+  gap: 14px;
+}
+
+.cloud-provider-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(
+    in srgb,
+    var(--surface-2) 58%,
+    transparent
+  );
+  transition:
+    border-color .16s ease,
+    background .16s ease,
+    transform .16s ease;
+}
+
+.cloud-provider-card:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 25%,
+    var(--border)
+  );
+  background: color-mix(
+    in srgb,
+    var(--accent) 5%,
+    var(--surface-2)
+  );
+}
+
+.cloud-provider-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(
+    in srgb,
+    var(--accent) 12%,
+    var(--surface)
+  );
+  border: 1px solid color-mix(
+    in srgb,
+    var(--accent) 20%,
+    var(--border)
+  );
+  color: var(--accent);
+  font-size: 21px;
+}
+
+.cloud-provider-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.cloud-provider-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.cloud-provider-title-row h3 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.cloud-provider-status {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cloud-provider-status.status-connected {
+  color: #43e28a;
+  background: rgba(67, 226, 138, .10);
+}
+
+.cloud-provider-status.status-available {
+  color: var(--accent);
+  background: color-mix(
+    in srgb,
+    var(--accent) 10%,
+    transparent
+  );
+}
+
+.cloud-provider-status.status-configuration-required {
+  color: var(--muted);
+  background: color-mix(
+    in srgb,
+    var(--text) 6%,
+    transparent
+  );
+}
+
+.cloud-provider-body p {
+  margin-top: 7px;
+  min-height: 36px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.cloud-provider-action {
+  margin-top: 12px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--accent) 22%,
+    var(--border)
+  );
+  border-radius: 8px;
+  background: color-mix(
+    in srgb,
+    var(--accent) 8%,
+    transparent
+  );
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  transition:
+    background .16s ease,
+    border-color .16s ease,
+    transform .16s ease;
+}
+
+.cloud-provider-action:hover {
+  background: color-mix(
+    in srgb,
+    var(--accent) 15%,
+    transparent
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 36%,
+    var(--border)
+  );
+}
+
+.cloud-provider-action:active {
+  transform: scale(.97);
+}
+
+.cloud-manager-note {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(
+    in srgb,
+    var(--surface) 70%,
+    transparent
+  );
+}
+
+.cloud-manager-note strong {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.cloud-manager-note span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+#app.theme-light .cloud-provider-card {
+  background: rgba(241, 244, 249, .82);
+}
+
+#app.theme-light .cloud-manager-note {
+  background: rgba(241, 244, 249, .92);
+}
+
+@media (max-width: 700px) {
+  .cloud-provider-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cloud-manager-header {
+    flex-direction: column;
+  }
+}
