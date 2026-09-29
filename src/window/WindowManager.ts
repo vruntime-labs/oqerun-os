@@ -318,7 +318,8 @@ export class WindowManager {
           computer: "icons/computer.png",
           explorer: "icons/explorer.png",
           terminal: "icons/terminal.png",
-          settings: "icons/settings.png"
+          settings: "icons/settings.png",
+          "computer-files": "icons/computer.png"
         };
 
         const iconPath =
