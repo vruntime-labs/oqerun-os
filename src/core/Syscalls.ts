@@ -1,4 +1,5 @@
-import { VFS, VfsEntry } from "../vfs/VFS";
+import { VFS } from "../vfs/VFS";
+import type { VfsEntry } from "../vfs/VfsTypes";
 
 export class Syscalls {
   private vfs =
