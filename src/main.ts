@@ -1,4 +1,5 @@
 import "./ui/styles.css";
+import "./ui/settings.css";
 
 import { Kernel } from "./core/Kernel";
 import { Desktop } from "./shell/Desktop";
