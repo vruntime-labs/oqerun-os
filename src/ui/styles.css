@@ -218,7 +218,9 @@ img {
 }
 
 
-/* Boot logo */
+/* =========================================================
+   BOOT LOGO
+   ========================================================= */
 
 .boot-logo {
 
@@ -234,7 +236,9 @@ img {
 }
 
 
-/* Boot title */
+/* =========================================================
+   BOOT TITLE
+   ========================================================= */
 
 .boot-title {
 
@@ -249,7 +253,9 @@ img {
 }
 
 
-/* Boot version */
+/* =========================================================
+   BOOT VERSION
+   ========================================================= */
 
 .boot-version {
 
@@ -261,7 +267,9 @@ img {
 }
 
 
-/* Boot status */
+/* =========================================================
+   BOOT STATUS
+   ========================================================= */
 
 .boot-status {
 
@@ -276,7 +284,9 @@ img {
 }
 
 
-/* Boot dots */
+/* =========================================================
+   BOOT DOTS
+   ========================================================= */
 
 .boot-dots {
 
@@ -324,7 +334,9 @@ img {
 }
 
 
-/* Boot animation */
+/* =========================================================
+   BOOT ANIMATIONS
+   ========================================================= */
 
 @keyframes pulseGlow {
 
@@ -375,6 +387,33 @@ img {
 
     opacity:
       1;
+  }
+}
+
+
+/* =========================================================
+   BOOT FADE OUT
+   ========================================================= */
+
+.boot-fade-out {
+
+  animation:
+    bootFadeOut 0.45s ease forwards;
+}
+
+
+@keyframes bootFadeOut {
+
+  from {
+
+    opacity:
+      1;
+  }
+
+  to {
+
+    opacity:
+      0;
   }
 }
 
@@ -609,7 +648,7 @@ img {
     1000;
 
   width:
-    250px;
+    270px;
 
   display:
     flex;
@@ -624,7 +663,7 @@ img {
     16px;
 
   background:
-    rgba(19, 34, 74, 0.92);
+    rgba(19, 34, 74, 0.94);
 
   backdrop-filter:
     blur(20px);
@@ -648,12 +687,14 @@ img {
 }
 
 
-/* Start header */
+/* =========================================================
+   START MENU HEADER
+   ========================================================= */
 
 .start-menu-header {
 
   padding:
-    2px 4px 8px;
+    2px 6px 10px;
 }
 
 
@@ -667,11 +708,14 @@ img {
 
   font-weight:
     700;
+
+  line-height:
+    1.2;
 }
 
 
 /* =========================================================
-   START MENU ITEMS
+   START MENU ITEM
    ========================================================= */
 
 .start-menu-item {
@@ -680,7 +724,7 @@ img {
     100%;
 
   min-height:
-    42px;
+    52px;
 
   display:
     flex;
@@ -689,16 +733,16 @@ img {
     center;
 
   gap:
-    12px;
+    14px;
 
   padding:
-    9px 12px;
+    10px 12px;
 
   border:
     none;
 
   border-radius:
-    11px;
+    12px;
 
   background:
     transparent;
@@ -714,14 +758,19 @@ img {
 
   transition:
     background 0.18s ease,
-    transform 0.18s ease;
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
+
+/* =========================================================
+   START MENU ITEM — HOVER
+   ========================================================= */
 
 .start-menu-item:hover {
 
   background:
-    rgba(255, 255, 255, 0.08);
+    rgba(255, 255, 255, 0.075);
 
   transform:
     translateX(2px);
@@ -736,19 +785,19 @@ img {
 
 
 /* =========================================================
-   START MENU ICONS
+   START MENU ICON
    ========================================================= */
 
 .start-icon {
 
   width:
-    22px;
+    30px;
 
   height:
-    22px;
+    30px;
 
   flex:
-    0 0 22px;
+    0 0 30px;
 
   object-fit:
     contain;
@@ -761,10 +810,49 @@ img {
 
   user-select:
     none;
+
+  filter:
+    drop-shadow(
+      0 3px 6px
+      rgba(0, 0, 0, 0.20)
+    );
+
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
 }
 
 
+/* =========================================================
+   START MENU ICON — HOVER
+   ========================================================= */
+
+.start-menu-item:hover
+.start-icon {
+
+  transform:
+    scale(1.08);
+
+  filter:
+    drop-shadow(
+      0 4px 8px
+      rgba(0, 0, 0, 0.28)
+    )
+    drop-shadow(
+      0 0 7px
+      rgba(0, 212, 255, 0.20)
+    );
+}
+
+
+/* =========================================================
+   START MENU LABEL
+   ========================================================= */
+
 .start-menu-item span {
+
+  flex:
+    1;
 
   color:
     var(--text);
@@ -774,10 +862,18 @@ img {
 
   font-weight:
     600;
+
+  line-height:
+    1.2;
+
+  letter-spacing:
+    0.1px;
 }
 
 
-/* Start animation */
+/* =========================================================
+   START MENU ANIMATION
+   ========================================================= */
 
 @keyframes startMenuIn {
 
@@ -928,7 +1024,9 @@ img {
 }
 
 
-/* Start Orb */
+/* =========================================================
+   START ORB
+   ========================================================= */
 
 .start-btn img {
 
@@ -1079,7 +1177,9 @@ img {
 }
 
 
-/* Taskbar icons */
+/* =========================================================
+   TASKBAR ICON
+   ========================================================= */
 
 .taskbar-icon {
 
@@ -1778,6 +1878,42 @@ input:focus-visible,
   }
 
 
+  .start-menu {
+
+    left:
+      10px;
+
+    bottom:
+      68px;
+
+    width:
+      250px;
+  }
+
+
+  .start-menu-item {
+
+    min-height:
+      50px;
+
+    gap:
+      13px;
+  }
+
+
+  .start-icon {
+
+    width:
+      28px;
+
+    height:
+      28px;
+
+    flex-basis:
+      28px;
+  }
+
+
   .taskbar {
 
     left:
@@ -1804,19 +1940,6 @@ input:focus-visible,
 
     display:
       none;
-  }
-
-
-  .start-menu {
-
-    left:
-      10px;
-
-    bottom:
-      68px;
-
-    width:
-      235px;
   }
 
 
@@ -1858,30 +1981,5 @@ input:focus-visible,
 
     scroll-behavior:
       auto !important;
-  }
-}
-/* =========================================================
-   BOOT FADE OUT
-   ========================================================= */
-
-.boot-fade-out {
-
-  animation:
-    bootFadeOut 0.45s ease forwards;
-}
-
-
-@keyframes bootFadeOut {
-
-  from {
-
-    opacity:
-      1;
-  }
-
-  to {
-
-    opacity:
-      0;
   }
 }
