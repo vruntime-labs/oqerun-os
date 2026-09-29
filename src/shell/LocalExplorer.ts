@@ -1,5 +1,6 @@
 import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
+import { FileViewer } from "./FileViewer";
 
 type DirectoryPickerWindow = Window & {
   showDirectoryPicker?: (options?: {
@@ -172,10 +173,20 @@ export class LocalExplorer {
       return;
     }
 
-    this.kernel.notify.info(
-      "File access",
-      `"${name}" is visible here. File Viewer will be connected next.`
-    );
+    try {
+      const fileHandle =
+        await this.currentHandle.getFileHandle(name);
+
+      await new FileViewer(
+        this.kernel,
+        this.wm
+      ).open(fileHandle);
+    } catch (error) {
+      this.kernel.notify.error(
+        "Open file failed",
+        this.describeError(error)
+      );
+    }
   }
 
   private async goUp(): Promise<void> {
