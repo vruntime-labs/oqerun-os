@@ -1,9 +1,5 @@
 import { Path } from "./Path";
-
-export type VfsEntry = {
-  name: string;
-  kind: "file" | "directory";
-};
+import type { VfsEntry } from "./VfsTypes";
 
 export class OPFS {
   private rootPromise =
