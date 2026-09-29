@@ -2565,3 +2565,77 @@ input:focus-visible,
     display: none;
   }
 }
+
+
+/* =========================================================
+   LOCAL FILE EXPLORER
+   ========================================================= */
+
+.computer-card {
+  width: 100%;
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+}
+
+.computer-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.explorer-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.local-explorer-item {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+}
+
+.local-explorer-item:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 18%,
+    transparent
+  );
+}
+
+.explorer-icon.folder {
+  color: var(--accent);
+}
+
+.explorer-icon.file {
+  color: var(--muted);
+}
+
+.explorer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 180px;
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.explorer-empty strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.explorer-empty span {
+  font-size: 12px;
+}
+
+.explorer-empty.error strong {
+  color: var(--accent);
+}
