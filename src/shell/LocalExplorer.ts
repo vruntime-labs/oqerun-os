@@ -2,6 +2,16 @@ import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
 import { FileViewer } from "./FileViewer";
 
+type PermissionCapableHandle = FileSystemHandle & {
+  queryPermission?: (descriptor?: {
+    mode?: "read" | "readwrite";
+  }) => Promise<PermissionState>;
+
+  requestPermission?: (descriptor?: {
+    mode?: "read" | "readwrite";
+  }) => Promise<PermissionState>;
+};
+
 type DirectoryPickerWindow = Window & {
   showDirectoryPicker?: (options?: {
     id?: string;
@@ -19,10 +29,8 @@ export class LocalExplorer {
   /*
    * Keep the exact handles returned by entries().
    *
-   * This is more reliable than rendering a filename and then trying
-   * to resolve that filename again with getDirectoryHandle() or
-   * getFileHandle(). The browser has already given us the live handle,
-   * so navigation and file opening can use that exact object.
+   * The browser has already resolved these entries for us, so
+   * navigation and file opening use the live handles directly.
    */
   private entryHandles = new Map<string, FileSystemHandle>();
 
@@ -31,9 +39,7 @@ export class LocalExplorer {
     private wm: WindowManager
   ) {}
 
-  async open(
-    handle: FileSystemDirectoryHandle
-  ): Promise<void> {
+  async open(handle: FileSystemDirectoryHandle): Promise<void> {
     this.rootHandle = handle;
     this.currentHandle = handle;
     this.pathParts = [
@@ -135,13 +141,13 @@ export class LocalExplorer {
     this.entryHandles.clear();
 
     try {
-      /*
-       * entries() is the authoritative listing for the selected
-       * directory. Store each returned handle directly so opening
-       * an item does not require another filesystem lookup.
-       */
       const entries: FileSystemHandle[] = [];
 
+      /*
+       * entries() is the authoritative directory listing.
+       * A permission/access failure must remain an explicit error;
+       * it must never be presented to the user as an empty folder.
+       */
       for await (
         const [, handle]
         of this.currentHandle.entries()
@@ -180,8 +186,7 @@ export class LocalExplorer {
         list.innerHTML =
           entries
             .map((entry, index) => {
-              const key =
-                String(index);
+              const key = String(index);
 
               this.entryHandles.set(
                 key,
@@ -231,9 +236,7 @@ export class LocalExplorer {
     }
   }
 
-  private attachEvents(
-    win: HTMLElement
-  ): void {
+  private attachEvents(win: HTMLElement): void {
     win.querySelector<HTMLButtonElement>(
       "[data-local-up]"
     )?.addEventListener(
@@ -248,7 +251,12 @@ export class LocalExplorer {
     )?.addEventListener(
       "click",
       () => {
-        void this.refresh();
+        /*
+         * Refresh is a real user activation. If the browser has moved
+         * the handle into a prompt state, this gives us a valid place
+         * to request read permission.
+         */
+        void this.refresh(true);
       }
     );
 
@@ -261,10 +269,6 @@ export class LocalExplorer {
       return;
     }
 
-    /*
-     * Event delegation keeps navigation stable even after the
-     * directory contents are replaced during refresh.
-     */
     list.addEventListener(
       "click",
       (event) => {
@@ -278,11 +282,6 @@ export class LocalExplorer {
           return;
         }
 
-        /*
-         * Folder navigation is intentionally handled on a normal
-         * click. Files use double-click, matching desktop Explorer
-         * behavior while keeping folder navigation dependable.
-         */
         const key =
           target.dataset.entryKey || "";
 
@@ -294,6 +293,10 @@ export class LocalExplorer {
         }
 
         if (handle.kind === "directory") {
+          /*
+           * Folder clicks are direct user activation, so a permission
+           * request is allowed here if the browser reports "prompt".
+           */
           void this.openHandle(handle);
         }
       }
@@ -368,6 +371,13 @@ export class LocalExplorer {
   private async openHandle(
     handle: FileSystemHandle
   ): Promise<void> {
+    const permissionGranted =
+      await this.ensureReadPermission(handle);
+
+    if (!permissionGranted) {
+      return;
+    }
+
     if (handle.kind === "directory") {
       try {
         /*
@@ -404,6 +414,70 @@ export class LocalExplorer {
         "Open file failed",
         this.describeError(error)
       );
+    }
+  }
+
+  private async ensureReadPermission(
+    handle: FileSystemHandle
+  ): Promise<boolean> {
+    const permissionHandle =
+      handle as PermissionCapableHandle;
+
+    /*
+     * Some browsers expose the file handles but do not expose the
+     * permission-query methods. In that case, let the actual read
+     * operation determine access.
+     */
+    if (
+      !permissionHandle.queryPermission
+    ) {
+      return true;
+    }
+
+    try {
+      const state =
+        await permissionHandle.queryPermission({
+          mode: "read"
+        });
+
+      if (state === "granted") {
+        return true;
+      }
+
+      if (
+        state === "prompt" &&
+        permissionHandle.requestPermission
+      ) {
+        const requested =
+          await permissionHandle.requestPermission({
+            mode: "read"
+          });
+
+        if (requested === "granted") {
+          return true;
+        }
+
+        this.kernel.notify.warning(
+          "Permission required",
+          "Oqerun needs read access to open this folder or file."
+        );
+
+        return false;
+      }
+
+      this.kernel.notify.warning(
+        "Permission denied",
+        "The browser did not grant Oqerun read access to this item."
+      );
+
+      return false;
+    } catch (error) {
+      this.kernel.notify.error(
+        "Permission check failed",
+        this.describeError(error)
+      );
+
+      return false;
     }
   }
 
@@ -444,6 +518,15 @@ export class LocalExplorer {
           );
       }
 
+      const permissionGranted =
+        await this.ensureReadPermission(
+          parentHandle
+        );
+
+      if (!permissionGranted) {
+        return;
+      }
+
       this.currentHandle =
         parentHandle;
 
@@ -462,7 +545,23 @@ export class LocalExplorer {
     }
   }
 
-  private async refresh(): Promise<void> {
+  private async refresh(
+    requestPermission = false
+  ): Promise<void> {
+    if (
+      requestPermission &&
+      this.currentHandle
+    ) {
+      const permissionGranted =
+        await this.ensureReadPermission(
+          this.currentHandle
+        );
+
+      if (!permissionGranted) {
+        return;
+      }
+    }
+
     const win =
       document.getElementById(
         this.WINDOW_ID
@@ -515,6 +614,18 @@ export class LocalExplorer {
     if (
       error instanceof DOMException
     ) {
+      if (error.name === "NotAllowedError") {
+        return (
+          "The browser denied read access to this folder."
+        );
+      }
+
+      if (error.name === "NotFoundError") {
+        return (
+          "The selected folder or file could not be found."
+        );
+      }
+
       return (
         error.message ||
         error.name
