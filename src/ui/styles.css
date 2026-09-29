@@ -1127,7 +1127,11 @@ img {
   filter:
     drop-shadow(
       0 0 8px
-      rgba(0, 212, 255, 0.45)
+      color-mix(
+        in srgb,
+        var(--accent) 45%,
+        transparent
+      )
     );
 }
 
@@ -2076,10 +2080,10 @@ img {
 .computer-card:hover {
 
   border-color:
-    rgba(0, 212, 255, 0.35);
+    color-mix(in srgb, var(--accent) 35%, transparent);
 
   background:
-    rgba(0, 212, 255, 0.08);
+    color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 
