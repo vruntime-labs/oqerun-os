@@ -224,15 +224,74 @@ img {
 
 .boot-logo {
 
-  width: 120px;
-  height: 120px;
+  width:
+    150px;
 
-  object-fit: contain;
+  height:
+    150px;
 
-  user-select: none;
+  object-fit:
+    contain;
+
+  display:
+    block;
+
+  background:
+    transparent;
+
+  border:
+    none;
+
+  outline:
+    none;
+
+  user-select:
+    none;
+
+  -webkit-user-drag:
+    none;
+
+  filter:
+    drop-shadow(
+      0 0 14px
+      rgba(0, 212, 255, 0.28)
+    );
 
   animation:
-    pulseGlow 2s ease-in-out infinite;
+    bootLogoPulse 2.2s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   BOOT LOGO ANIMATION
+   ========================================================= */
+
+@keyframes bootLogoPulse {
+
+  0%,
+  100% {
+
+    transform:
+      scale(1);
+
+    filter:
+      drop-shadow(
+        0 0 12px
+        rgba(0, 212, 255, 0.22)
+      );
+  }
+
+  50% {
+
+    transform:
+      scale(1.035);
+
+    filter:
+      drop-shadow(
+        0 0 24px
+        rgba(0, 212, 255, 0.42)
+      );
+  }
 }
 
 
