@@ -1301,13 +1301,16 @@ img {
     50%;
 
   background:
-    rgba(255, 255, 255, 0.35);
+    rgba(255, 255, 255, 0.38);
 
-  opacity:
-    0;
+  box-shadow:
+    0 0 5px
+    rgba(255, 255, 255, 0.12);
 
   transition:
-    opacity 0.16s ease,
+    width 0.16s ease,
+    height 0.16s ease,
+    border-radius 0.16s ease,
     background 0.16s ease,
     box-shadow 0.16s ease;
 }
@@ -1315,8 +1318,17 @@ img {
 
 .taskbar-app.active::after {
 
-  opacity:
-    1;
+  width:
+    18px;
+
+  height:
+    2px;
+
+  bottom:
+    -3px;
+
+  border-radius:
+    999px;
 
   background:
     var(--accent);
@@ -1336,11 +1348,14 @@ img {
 
 .taskbar-app.minimized::after {
 
-  opacity:
-    1;
+  width:
+    5px;
+
+  height:
+    5px;
 
   background:
-    rgba(255, 255, 255, 0.30);
+    rgba(255, 255, 255, 0.24);
 
   box-shadow:
     none;
