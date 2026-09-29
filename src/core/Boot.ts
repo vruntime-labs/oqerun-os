@@ -15,7 +15,7 @@ export class Boot {
 
         <img
           class="boot-logo"
-          src="/oqerun-os/branding/logo.svg"
+          src="${base}branding/logo.svg"
           alt="Oqerun Logo"
         >
 
