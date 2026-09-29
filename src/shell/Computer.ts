@@ -69,7 +69,7 @@ export class Computer {
         });
 
       win.querySelector<HTMLElement>('[data-action="cloud"]')
-        ?.addEventListener("dblclick", () => {
+        ?.addEventListener("click", () => {
           new CloudManager(
             this.kernel,
             this.wm
