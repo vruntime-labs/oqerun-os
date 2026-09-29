@@ -1259,10 +1259,13 @@ img {
 .taskbar-icon {
 
   width:
-    26px;
+    24px;
 
   height:
-    26px;
+    24px;
+
+  flex:
+    0 0 24px;
 
   object-fit:
     contain;
@@ -1272,6 +1275,47 @@ img {
 
   border:
     none;
+
+  user-select:
+    none;
+
+  filter:
+    drop-shadow(
+      0 2px 5px
+      rgba(0, 0, 0, 0.22)
+    );
+
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease;
+}
+
+.taskbar-app:hover .taskbar-icon {
+
+  transform:
+    scale(1.06);
+
+  filter:
+    drop-shadow(
+      0 2px 6px
+      rgba(0, 0, 0, 0.28)
+    )
+    drop-shadow(
+      0 0 6px
+      rgba(0, 212, 255, 0.18)
+    );
+}
+
+.taskbar-label {
+
+  min-width:
+    0;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
 }
 
 
