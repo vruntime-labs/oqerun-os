@@ -1,3 +1,4 @@
+import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
 
 type DirectoryPickerWindow = Window & {
@@ -13,7 +14,10 @@ export class LocalExplorer {
   private currentHandle: FileSystemDirectoryHandle | null = null;
   private pathParts: string[] = [];
 
-  constructor(private wm: WindowManager) {}
+  constructor(
+    private kernel: Kernel,
+    private wm: WindowManager
+  ) {}
 
   async open(handle: FileSystemDirectoryHandle): Promise<void> {
     this.rootHandle = handle;
@@ -136,94 +140,102 @@ export class LocalExplorer {
     win.querySelectorAll<HTMLButtonElement>(".local-explorer-item")
       .forEach((item) => {
         item.addEventListener("dblclick", () => {
-          void this.openEntry(item.dataset.name || "", item.dataset.kind || "");
+          void this.openEntry(
+            item.dataset.name || "",
+            item.dataset.kind || ""
+          );
         });
       });
   }
 
-  private async openEntry(name: string, kind: string): Promise<void> {
+  private async openEntry(
+    name: string,
+    kind: string
+  ): Promise<void> {
     if (!this.currentHandle || !name) return;
 
     if (kind === "directory") {
       try {
-        this.currentHandle = await this.currentHandle.getDirectoryHandle(name);
+        this.currentHandle =
+          await this.currentHandle.getDirectoryHandle(name);
+
         this.pathParts.push(name);
+
         await this.refresh();
       } catch (error) {
-        this.notifyError("Open folder failed", this.describeError(error));
+        this.kernel.notify.error(
+          "Open folder failed",
+          this.describeError(error)
+        );
       }
 
       return;
     }
 
-    this.notifyInfo(
+    this.kernel.notify.info(
       "File access",
       `"${name}" is visible here. File Viewer will be connected next.`
     );
   }
 
   private async goUp(): Promise<void> {
-    if (!this.currentHandle || !this.rootHandle || this.pathParts.length <= 1) {
+    if (
+      !this.currentHandle ||
+      !this.rootHandle ||
+      this.pathParts.length <= 1
+    ) {
       return;
     }
 
-    const targetName = this.pathParts[this.pathParts.length - 2];
-
     try {
-      const parent = await this.rootHandle.resolve(this.currentHandle);
+      const relativePath =
+        await this.rootHandle.resolve(this.currentHandle);
 
-      if (!parent || parent.length < 1) {
-        this.currentHandle = this.rootHandle;
-        this.pathParts = [this.rootHandle.name || "This Computer"];
-        await this.refresh();
+      if (!relativePath || relativePath.length === 0) {
         return;
       }
 
-      const parentParts = parent.slice(0, -1);
+      const parentParts =
+        relativePath.slice(0, -1);
 
-      let handle = this.rootHandle;
+      let parentHandle =
+        this.rootHandle;
 
       for (const part of parentParts) {
-        handle = await handle.getDirectoryHandle(part);
+        parentHandle =
+          await parentHandle.getDirectoryHandle(part);
       }
 
-      this.currentHandle = handle;
-      this.pathParts = this.pathParts.slice(0, -1);
+      this.currentHandle =
+        parentHandle;
 
-      if (this.pathParts[this.pathParts.length - 1] !== targetName) {
-        this.pathParts = this.pathParts.slice(0, -1);
-      }
+      this.pathParts = [
+        this.rootHandle.name || "This Computer",
+        ...parentParts
+      ];
 
       await this.refresh();
     } catch (error) {
-      this.notifyError("Navigation failed", this.describeError(error));
+      this.kernel.notify.error(
+        "Navigation failed",
+        this.describeError(error)
+      );
     }
   }
 
   private async refresh(): Promise<void> {
-    const win = document.getElementById(this.WINDOW_ID);
-    const content = win?.querySelector(".window-content") as HTMLElement | null;
+    const win =
+      document.getElementById(this.WINDOW_ID);
+
+    const content =
+      win?.querySelector(".window-content") as HTMLElement | null;
 
     if (!content) return;
 
-    content.innerHTML = this.render();
+    content.innerHTML =
+      this.render();
+
     await this.attachEvents();
-  }
-
-  private notifyInfo(title: string, message: string): void {
-    window.dispatchEvent(
-      new CustomEvent("oqerun:notification", {
-        detail: { title, message, type: "info" }
-      })
-    );
-  }
-
-  private notifyError(title: string, message: string): void {
-    window.dispatchEvent(
-      new CustomEvent("oqerun:notification", {
-        detail: { title, message, type: "error" }
-      })
-    );
   }
 
   private escapeHtml(value: string): string {
@@ -253,7 +265,9 @@ export class LocalExplorer {
 }
 
 export async function pickLocalDirectory(): Promise<FileSystemDirectoryHandle | null> {
-  const picker = (window as DirectoryPickerWindow).showDirectoryPicker;
+  const picker =
+    (window as DirectoryPickerWindow)
+      .showDirectoryPicker;
 
   if (!picker) {
     return null;
@@ -265,7 +279,10 @@ export async function pickLocalDirectory(): Promise<FileSystemDirectoryHandle | 
       mode: "read"
     });
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
+    if (
+      error instanceof DOMException &&
+      error.name === "AbortError"
+    ) {
       return null;
     }
 
