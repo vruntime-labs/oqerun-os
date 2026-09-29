@@ -1,292 +1,1482 @@
-/* =========================
-   Desktop Icon
-========================= */
+/* =========================================================
+   OQERUN OS — GLOBAL STYLE SYSTEM
+   ========================================================= */
 
-.desktop-icon{
-  width:82px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:8px;
-  cursor:pointer;
-  user-select:none;
+:root {
+  --bg: #07112c;
+  --surface: #13224a;
+  --surface-2: #1b2d5d;
+
+  --text: #eef4ff;
+  --muted: #9fb2d8;
+
+  --accent: #00d4ff;
+  --accent-soft: rgba(0, 212, 255, 0.14);
+
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --shadow: rgba(0, 0, 0, 0.35);
 }
 
-.desktop-icon-image{
-  width:58px;
-  height:58px;
-  object-fit:contain;
 
-  filter:drop-shadow(
-    0 0 10px rgba(0,212,255,.25)
-  );
+/* =========================================================
+   THEME ENGINE
+   ========================================================= */
+
+#app.theme-dark {
+  --bg: #07112c;
+  --surface: #13224a;
+  --surface-2: #1b2d5d;
+
+  --text: #eef4ff;
+  --muted: #9fb2d8;
+
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+}
+
+#app.theme-light {
+  --bg: #eef4ff;
+  --surface: #ffffff;
+  --surface-2: #dfe8f8;
+
+  --text: #0a122a;
+  --muted: #5a6c8f;
+
+  --border: rgba(10, 18, 42, 0.10);
+  --border-strong: rgba(10, 18, 42, 0.16);
+}
+
+#app.theme-system {
+  --bg: #07112c;
+  --surface: #13224a;
+  --surface-2: #1b2d5d;
+
+  --text: #eef4ff;
+  --muted: #9fb2d8;
+
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  color: var(--text);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
 
   transition:
-    transform .18s ease,
-    filter .18s ease;
+    background 0.25s ease,
+    color 0.25s ease;
 }
 
-.desktop-icon:hover .desktop-icon-image{
-  transform:scale(1.06);
-
-  filter:drop-shadow(
-    0 0 16px rgba(0,212,255,.45)
-  );
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-.desktop-icon span{
-  font-size:12px;
-  text-align:center;
-  color:#eef4ff;
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  display: block;
+  max-width: 100%;
 }
 
 
-/* =========================
-   Start Menu
-========================= */
+/* =========================================================
+   BOOT SCREEN
+   ========================================================= */
 
-.start-menu{
-  position:absolute;
+.boot-screen {
+  position: fixed;
+  inset: 0;
 
-  left:18px;
-  bottom:78px;
+  z-index: 99999;
 
-  width:230px;
+  display: flex;
+  flex-direction: column;
 
-  padding:16px;
+  align-items: center;
+  justify-content: center;
 
-  display:flex;
-  flex-direction:column;
-  gap:14px;
+  gap: 16px;
 
-  background:rgba(19,34,74,.88);
+  background:
+    linear-gradient(
+      rgba(7, 17, 44, 0.18),
+      rgba(7, 17, 44, 0.48)
+    ),
+    url("/boot/boot-screen.webp");
 
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 
-  border:1px solid rgba(255,255,255,.09);
-
-  border-radius:20px;
-
-  box-shadow:
-    0 18px 45px rgba(0,0,0,.4);
-
-  z-index:1000;
-
-  animation:startMenuIn .16s ease-out;
+  color: #eef4ff;
 }
 
-@keyframes startMenuIn{
-  from{
-    opacity:0;
-    transform:translateY(8px) scale(.98);
+
+/* Boot logo */
+
+.boot-logo {
+  width: 120px;
+  height: 120px;
+
+  object-fit: contain;
+
+  user-select: none;
+
+  animation: bootLogoPulse 2s ease-in-out infinite;
+}
+
+
+/* Boot title */
+
+.boot-title {
+  font-size: 32px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  letter-spacing: -0.5px;
+
+  color: #eef4ff;
+}
+
+
+/* Version */
+
+.boot-version {
+  color: #9fb2d8;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+
+/* Status */
+
+.boot-status {
+  color: #00d4ff;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* Loading dots */
+
+.boot-dots {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 2px;
+}
+
+.boot-dots span {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #00d4ff;
+
+  animation: bootDot 1.2s infinite ease-in-out;
+}
+
+.boot-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.boot-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+
+/* Boot animations */
+
+@keyframes bootLogoPulse {
+  0%,
+  100% {
+    transform: scale(1);
+
+    filter:
+      drop-shadow(
+        0 0 8px rgba(0, 212, 255, 0.30)
+      );
   }
 
-  to{
-    opacity:1;
-    transform:translateY(0) scale(1);
+  50% {
+    transform: scale(1.04);
+
+    filter:
+      drop-shadow(
+        0 0 22px rgba(0, 212, 255, 0.72)
+      );
+  }
+}
+
+@keyframes bootDot {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
   }
 }
 
 
-/* =========================
-   Start Menu Header
-========================= */
+/* =========================================================
+   DESKTOP
+   ========================================================= */
 
-.start-menu-header{
-  padding:2px 0 4px;
+.desktop {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      rgba(7, 17, 44, 0.18),
+      rgba(7, 17, 44, 0.45)
+    ),
+    url("/wallpapers/pulse-night.webp");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.start-menu-header h3{
-  margin:0;
 
-  color:#eef4ff;
+/* =========================================================
+   DESKTOP AREA
+   ========================================================= */
 
-  font-size:18px;
-  font-weight:700;
+.desktop-area {
+  position: relative;
+
+  flex: 1;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  padding: 18px;
 }
 
 
-/* =========================
-   Start Menu Apps
-========================= */
+/* =========================================================
+   DESKTOP ICON
+   ========================================================= */
 
-.start-menu-apps{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
+.desktop-icon {
+  position: relative;
 
+  width: 82px;
 
-/* =========================
-   Start Menu App Button
-========================= */
+  display: flex;
+  flex-direction: column;
 
-.start-app{
-  width:100%;
+  align-items: center;
 
-  display:flex;
-  align-items:center;
+  gap: 8px;
 
-  gap:12px;
+  padding: 4px;
 
-  padding:10px 8px;
+  cursor: pointer;
 
-  background:transparent;
+  user-select: none;
 
-  border:none;
-  border-radius:10px;
-
-  color:#eef4ff;
-
-  font-family:inherit;
-  font-size:14px;
-  font-weight:500;
-
-  text-align:left;
-
-  cursor:pointer;
+  border-radius: 12px;
 
   transition:
-    background .15s ease,
-    transform .15s ease;
+    background 0.18s ease,
+    transform 0.18s ease;
 }
 
-.start-app:hover{
-  background:rgba(255,255,255,.08);
-
-  transform:translateX(2px);
+.desktop-icon:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.start-app:active{
-  transform:translateX(2px) scale(.98);
-}
-
-
-/* =========================
-   Start Menu Icons
-========================= */
-
-.start-icon{
-  width:26px;
-  height:26px;
-
-  object-fit:contain;
-
-  flex-shrink:0;
-
-  filter:drop-shadow(
-    0 0 6px rgba(0,212,255,.2)
-  );
+.desktop-icon:active {
+  transform: scale(0.96);
 }
 
 
-/* =========================
-   Taskbar Start Button
-========================= */
+/* Actual desktop icon image */
 
-.start-btn{
-  width:34px;
-  height:34px;
+.desktop-icon-image {
+  width: 56px;
+  height: 56px;
 
-  padding:0;
+  object-fit: contain;
 
-  display:grid;
-  place-items:center;
+  background: transparent;
 
-  border:none;
-  border-radius:10px;
+  border: none;
 
-  background:var(--accent);
+  user-select: none;
 
-  cursor:pointer;
-
-  overflow:hidden;
+  filter:
+    drop-shadow(
+      0 6px 12px rgba(0, 0, 0, 0.28)
+    );
 
   transition:
-    transform .15s ease,
-    box-shadow .15s ease;
+    transform 0.18s ease,
+    filter 0.18s ease;
 }
 
-.start-btn:hover{
-  transform:scale(1.05);
+.desktop-icon:hover .desktop-icon-image {
+  transform: scale(1.06);
+
+  filter:
+    drop-shadow(
+      0 8px 16px rgba(0, 0, 0, 0.38)
+    )
+    drop-shadow(
+      0 0 10px rgba(0, 212, 255, 0.20)
+    );
+}
+
+
+/* Desktop icon label */
+
+.desktop-icon span {
+  width: 100%;
+
+  text-align: center;
+
+  color: #eef4ff;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  line-height: 1.2;
+
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.75);
+
+  white-space: nowrap;
+}
+
+
+/* Legacy icon-box support */
+
+.icon-box {
+  width: 54px;
+  height: 54px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  font-size: 28px;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.desktop-icon:hover .icon-box {
+  transform: translateY(-2px);
+
+  border-color:
+    rgba(255, 255, 255, 0.25);
+
+  background:
+    rgba(255, 255, 255, 0.12);
+}
+
+
+/* =========================================================
+   START MENU
+   ========================================================= */
+
+.start-menu {
+  position: absolute;
+
+  left: 18px;
+  bottom: 78px;
+
+  z-index: 1000;
+
+  width: 250px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  padding: 16px;
+
+  background:
+    rgba(19, 34, 74, 0.90);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.10);
+
+  border-radius: 20px;
 
   box-shadow:
-    0 0 14px rgba(0,212,255,.4);
-}
+    0 24px 60px rgba(0, 0, 0, 0.42),
+    0 4px 20px rgba(0, 0, 0, 0.20);
 
-.start-btn:active{
-  transform:scale(.96);
-}
-
-
-/* =========================
-   Start Orb
-========================= */
-
-.start-orb{
-  width:24px;
-  height:24px;
-
-  object-fit:contain;
-
-  display:block;
+  animation:
+    startMenuIn 0.16s ease-out;
 }
 
 
-/* =========================
-   Taskbar
-========================= */
+/* Start menu title */
 
-.taskbar{
-  position:absolute;
+.start-menu h3 {
+  margin: 2px 4px 10px;
 
-  left:14px;
-  right:14px;
-  bottom:12px;
+  color: var(--text);
 
-  height:52px;
+  font-size: 20px;
+  font-weight: 700;
 
-  display:flex;
-  align-items:center;
+  letter-spacing: -0.3px;
+}
 
-  gap:10px;
 
-  padding:0 14px;
+/* Start menu buttons */
 
-  background:rgba(19,34,74,.72);
+.start-menu button {
+  width: 100%;
 
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
+  display: flex;
+  align-items: center;
 
-  border:1px solid rgba(255,255,255,.08);
+  gap: 12px;
 
-  border-radius:18px;
+  padding: 10px 12px;
+
+  background: transparent;
+
+  border: none;
+  border-radius: 11px;
+
+  color: var(--text);
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.start-menu button:hover {
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  transform: translateX(2px);
+}
+
+.start-menu button:active {
+  transform: scale(0.98);
+}
+
+
+/* Start menu icon */
+
+.start-icon {
+  width: 22px;
+  height: 22px;
+
+  flex: 0 0 22px;
+
+  object-fit: contain;
+
+  background: transparent;
+
+  border: none;
+
+  user-select: none;
+}
+
+
+/* Start menu text */
+
+.start-menu button span {
+  font-size: 14px;
+  font-weight: 500;
+
+  color: var(--text);
+}
+
+
+/* Start menu animation */
+
+@keyframes startMenuIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(8px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   TASKBAR
+   ========================================================= */
+
+.taskbar {
+  position: absolute;
+
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+
+  z-index: 900;
+
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 14px;
+
+  background:
+    rgba(19, 34, 74, 0.76);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.10);
+
+  border-radius: 18px;
 
   box-shadow:
-    0 12px 35px rgba(0,0,0,.35);
-
-  z-index:900;
+    0 14px 36px rgba(0, 0, 0, 0.35);
 }
 
-.taskbar-title{
-  font-weight:600;
-  color:#eef4ff;
+
+/* =========================================================
+   START BUTTON
+   ========================================================= */
+
+.start-btn {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #00d4ff;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 12px rgba(0, 212, 255, 0.20);
+
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
-#taskbar-apps{
-  display:flex;
-  gap:8px;
-  flex:1;
-  overflow-x:auto;
+.start-btn:hover {
+  transform: translateY(-1px);
+
+  background: #19dbff;
+
+  box-shadow:
+    0 6px 18px rgba(0, 212, 255, 0.32);
 }
 
-#taskbar-apps::-webkit-scrollbar{
-  display:none;
+.start-btn:active {
+  transform: scale(0.94);
 }
 
-#clock{
-  margin-left:auto;
-  color:#eef4ff;
-  font-size:13px;
+
+/* Start orb image */
+
+.start-btn img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  display: block;
+
+  background: transparent;
+
+  border: none;
+
+  user-select: none;
+}
+
+
+/* =========================================================
+   TASKBAR TITLE
+   ========================================================= */
+
+.taskbar-title {
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  user-select: none;
+}
+
+
+/* =========================================================
+   TASKBAR APPLICATION AREA
+   ========================================================= */
+
+#taskbar-apps {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#taskbar-apps::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* =========================================================
+   TASKBAR APP BUTTON
+   ========================================================= */
+
+.taskbar-app {
+  min-height: 34px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 6px 12px;
+
+  border: none;
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  color: var(--text);
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.taskbar-app:hover {
+  background:
+    rgba(255, 255, 255, 0.13);
+}
+
+.taskbar-app:active {
+  transform: scale(0.97);
+}
+
+.taskbar-app.active {
+  background: var(--accent);
+
+  color: #001018;
+}
+
+.taskbar-app.minimized {
+  opacity: 0.6;
+}
+
+
+/* Taskbar app icon */
+
+.taskbar-icon {
+  width: 24px;
+  height: 24px;
+
+  object-fit: contain;
+
+  background: transparent;
+
+  border: none;
+}
+
+
+/* =========================================================
+   CLOCK
+   ========================================================= */
+
+#clock {
+  margin-left: auto;
+
+  min-width: 68px;
+
+  text-align: right;
+
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  user-select: none;
+}
+
+
+/* =========================================================
+   WINDOWS
+   ========================================================= */
+
+.oq-window {
+  position: absolute;
+
+  z-index: 500;
+
+  min-width: 280px;
+  min-height: 180px;
+
+  background:
+    rgba(19, 34, 74, 0.94);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border:
+    1px solid var(--border);
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.38);
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.oq-window.active {
+  border-color:
+    rgba(0, 212, 255, 0.35);
+
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.48),
+    0 0 30px rgba(0, 212, 255, 0.05);
+}
+
+
+/* =========================================================
+   WINDOW TITLEBAR
+   ========================================================= */
+
+.window-titlebar {
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 0 10px 0 14px;
+
+  background:
+    rgba(27, 45, 93, 0.82);
+
+  border-bottom:
+    1px solid var(--border);
+
+  cursor: move;
+
+  user-select: none;
+}
+
+
+/* Window title */
+
+.window-title {
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   WINDOW CONTROLS
+   ========================================================= */
+
+.window-controls {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+}
+
+.window-controls button {
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  border: none;
+  border-radius: 8px;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.window-controls button:hover {
+  background:
+    rgba(255, 255, 255, 0.14);
+}
+
+.win-close:hover {
+  background: #ff5f57 !important;
+  color: #ffffff !important;
+}
+
+.win-min:hover {
+  background: #f5c542 !important;
+  color: #111111 !important;
+}
+
+.win-max:hover {
+  background: #3ddc84 !important;
+  color: #111111 !important;
+}
+
+
+/* =========================================================
+   WINDOW CONTENT
+   ========================================================= */
+
+.window-content {
+  height: calc(100% - 42px);
+
+  overflow: auto;
+
+  padding: 16px;
+
+  color: var(--text);
+}
+
+
+/* =========================================================
+   EXPLORER
+   ========================================================= */
+
+.explorer {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Explorer toolbar */
+
+.explorer-toolbar {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px;
+}
+
+
+/* Explorer buttons */
+
+.explorer-btn {
+  padding: 8px 12px;
+
+  border: none;
+  border-radius: 9px;
+
+  background:
+    var(--surface-2);
+
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.explorer-btn:hover {
+  background:
+    rgba(0, 212, 255, 0.12);
+}
+
+.explorer-btn:active {
+  transform: scale(0.97);
+}
+
+
+/* Explorer path */
+
+.explorer-path {
+  color: var(--muted);
+
+  font-size: 13px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* Breadcrumb */
+
+.breadcrumb {
+  cursor: pointer;
+
+  transition: color 0.15s ease;
+}
+
+.breadcrumb:hover {
+  color: var(--accent);
+}
+
+
+/* Divider */
+
+.explorer-divider {
+  width: 100%;
+  height: 1px;
+
+  background:
+    var(--border);
+}
+
+
+/* Explorer list */
+
+.explorer-list {
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+
+/* Explorer item */
+
+.explorer-item {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 10px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease;
+}
+
+.explorer-item:hover {
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+
+/* =========================================================
+   COMPUTER
+   ========================================================= */
+
+.computer-app {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 22px;
+}
+
+
+/* Computer heading */
+
+.computer-app h2 {
+  color: var(--text);
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.computer-app p {
+  color: var(--muted);
+
+  font-size: 13px;
+}
+
+
+/* Computer grid */
+
+.computer-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(180px, 1fr)
+    );
+
+  gap: 18px;
+}
+
+
+/* Computer cards */
+
+.computer-card {
+  padding: 20px;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  border:
+    1px solid var(--border);
+
+  border-radius: 18px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.computer-card:hover {
+  background:
+    rgba(0, 212, 255, 0.08);
+
+  border-color:
+    rgba(0, 212, 255, 0.35);
+
+  transform: translateY(-2px);
+}
+
+.computer-card:active {
+  transform: scale(0.98);
+}
+
+
+/* Computer card icon */
+
+.computer-icon {
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 12px;
+
+  font-size: 36px;
+}
+
+
+/* =========================================================
+   TERMINAL
+   ========================================================= */
+
+.terminal {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    #08101f;
+
+  border-radius: 10px;
+
+  overflow: hidden;
+
+  font-family:
+    "JetBrains Mono",
+    "Cascadia Code",
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+}
+
+
+/* Terminal output */
+
+.terminal-output {
+  flex: 1;
+
+  overflow: auto;
+
+  padding: 14px;
+
+  color: #d7e8ff;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+.terminal-output div {
+  margin-bottom: 4px;
+}
+
+
+/* Terminal input */
+
+.terminal-input-row {
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 12px 14px;
+
+  background:
+    #0c1830;
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+/* Terminal path */
+
+#terminal-path {
+  color: var(--accent);
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* Terminal input */
+
+#terminal-input {
+  flex: 1;
+
+  min-width: 0;
+
+  background: transparent;
+
+  border: none;
+
+  outline: none;
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   OFFICIAL OQERUN ICON SYSTEM
+   ========================================================= */
+
+.app-icon {
+  width: 28px;
+  height: 28px;
+
+  object-fit: contain;
+
+  background: transparent;
+
+  border: none;
+
+  user-select: none;
+}
+
+
+/* Desktop application icon */
+
+.desktop-icon-image {
+  width: 56px;
+  height: 56px;
+
+  object-fit: contain;
+
+  background: transparent;
+
+  border: none;
+
+  user-select: none;
+}
+
+
+/* Start menu icon */
+
+.start-icon {
+  width: 22px;
+  height: 22px;
+
+  object-fit: contain;
+
+  background: transparent;
+
+  border: none;
+
+  user-select: none;
+}
+
+
+/* Taskbar icon */
+
+.taskbar-icon {
+  width: 26px;
+  height: 26px;
+
+  object-fit: contain;
+
+  background: transparent;
+
+  border: none;
+
+  user-select: none;
+}
+
+
+/* =========================================================
+   SCROLLBARS
+   ========================================================= */
+
+* {
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    rgba(255, 255, 255, 0.16)
+    transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background:
+    rgba(255, 255, 255, 0.16);
+
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background:
+    rgba(255, 255, 255, 0.25);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .desktop-area {
+    padding: 12px;
+  }
+
+  .desktop-icon {
+    width: 74px;
+  }
+
+  .desktop-icon-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .taskbar {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+
+    height: 50px;
+
+    padding: 0 10px;
+
+    border-radius: 16px;
+  }
+
+  .taskbar-title {
+    display: none;
+  }
+
+  .start-menu {
+    left: 10px;
+    bottom: 68px;
+
+    width: 235px;
+  }
+
+  .oq-window {
+    left: 8px !important;
+    top: 8px !important;
+
+    width:
+      calc(100% - 16px) !important;
+
+    height:
+      calc(100% - 76px) !important;
+  }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+button:focus-visible,
+input:focus-visible,
+.desktop-icon:focus-visible {
+  outline:
+    2px solid var(--accent);
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
