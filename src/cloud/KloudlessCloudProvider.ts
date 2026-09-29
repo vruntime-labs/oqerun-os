@@ -15,6 +15,8 @@ type UnifiedCloudCallbacks = {
   onAccountConnected?: (account: KloudlessAccount) => void;
   onAccountDisconnected?: (accountId: string | number) => void;
   onSelection?: (items: KloudlessSelection[]) => void;
+  onError?: (message: string) => void;
+  onConfigurationRequired?: () => void;
 };
 
 export class KloudlessCloudProvider
@@ -47,8 +49,10 @@ export class KloudlessCloudProvider
 
   async connect(): Promise<void> {
     if (!this.appId) {
+      this.callbacks.onConfigurationRequired?.();
+
       throw new Error(
-        "Unified Cloud needs a Kloudless App ID before it can connect."
+        "Unified Cloud is not configured yet. Add VITE_KLOUDLESS_APP_ID and rebuild Oqerun."
       );
     }
 
@@ -178,7 +182,7 @@ export class KloudlessCloudProvider
         const message =
           this.extractErrorMessage(payload);
 
-        throw new Error(
+        this.callbacks.onError?.(
           message
         );
       }
