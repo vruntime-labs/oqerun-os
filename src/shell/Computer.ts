@@ -2,6 +2,7 @@ import { Kernel } from "../core/Kernel";
 import { Explorer } from "./Explorer";
 import { LocalExplorer, pickLocalDirectory } from "./LocalExplorer";
 import { WindowManager } from "../window/WindowManager";
+import { CloudManager } from "../cloud/CloudManager";
 
 export class Computer {
   constructor(
@@ -69,10 +70,10 @@ export class Computer {
 
       win.querySelector<HTMLElement>('[data-action="cloud"]')
         ?.addEventListener("dblclick", () => {
-          this.kernel.notify.info(
-            "Connected Cloud",
-            "Cloud providers will be connected after local file access is stable."
-          );
+          new CloudManager(
+            this.kernel,
+            this.wm
+          ).open();
         });
     });
   }
