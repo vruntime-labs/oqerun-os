@@ -159,7 +159,9 @@ export class LocalExplorer {
         });
 
         item.addEventListener("dblclick", () => {
-          open();
+          if (item.dataset.kind !== "directory") {
+            open();
+          }
         });
 
         item.addEventListener("keydown", (event) => {
