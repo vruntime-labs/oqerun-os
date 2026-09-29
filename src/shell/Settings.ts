@@ -131,6 +131,7 @@ export class Settings {
 
     const prefs = await this.loadPreferences();
     this.applyPreferences(prefs);
+    this.syncAccentSelection(win, prefs.accent);
 
     const tabs = win.querySelectorAll<HTMLElement>(".settings-tab");
     const panels = win.querySelectorAll<HTMLElement>(".settings-panel");
@@ -161,6 +162,7 @@ export class Settings {
       button.addEventListener("click", async () => {
         prefs.accent = button.dataset.color || "#00D4FF";
         this.applyPreferences(prefs);
+        this.syncAccentSelection(win, prefs.accent);
         await this.savePreferences(prefs);
       });
     });
@@ -190,6 +192,18 @@ export class Settings {
       this.PREF_PATH,
       JSON.stringify(prefs, null, 2)
     );
+  }
+
+  private syncAccentSelection(
+    win: HTMLElement,
+    accent: string
+  ): void {
+    win.querySelectorAll<HTMLElement>(".accent").forEach(button => {
+      button.classList.toggle(
+        "selected",
+        (button.dataset.color || "").toLowerCase() === accent.toLowerCase()
+      );
+    });
   }
 
   private applyPreferences(prefs: Preferences): void {
