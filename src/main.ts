@@ -5,7 +5,8 @@ import { Desktop } from "./shell/Desktop";
 
 
 /* =========================================================
-   OQERUN OS BOOT
+   OQERUN OS
+   SYSTEM BOOT
    ========================================================= */
 
 const app = document.getElementById("app");
@@ -18,7 +19,7 @@ if (!app) {
 
 
 /* =========================================================
-   BASE PATH
+   VITE BASE PATH
    ========================================================= */
 
 const base = import.meta.env.BASE_URL;
@@ -33,7 +34,7 @@ app.innerHTML = `
 
     <img
       class="boot-logo"
-      src="${base}branding/logo.png"
+      src="${base}branding/logo.png.png"
       alt="Oqerun OS"
       draggable="false"
     />
@@ -50,7 +51,7 @@ app.innerHTML = `
       Starting system
     </div>
 
-    <div class="boot-dots">
+    <div class="boot-dots" aria-hidden="true">
       <span></span>
       <span></span>
       <span></span>
@@ -61,7 +62,7 @@ app.innerHTML = `
 
 
 /* =========================================================
-   BOOT SEQUENCE
+   BOOT ELEMENTS
    ========================================================= */
 
 const bootScreen =
@@ -76,24 +77,24 @@ const bootStatus =
   ) as HTMLElement | null;
 
 
-/*
- * Boot messages.
- */
+/* =========================================================
+   BOOT MESSAGES
+   ========================================================= */
 
 const bootMessages = [
   "Starting system",
   "Loading kernel",
   "Initializing filesystem",
-  "Loading desktop",
+  "Loading desktop"
 ];
 
 
 let messageIndex = 0;
 
 
-/*
- * Update boot message.
- */
+/* =========================================================
+   BOOT MESSAGE TIMER
+   ========================================================= */
 
 const messageTimer =
   window.setInterval(() => {
@@ -121,30 +122,34 @@ const messageTimer =
 
 window.setTimeout(() => {
 
+  /*
+   * Stop boot message updates.
+   */
+
   window.clearInterval(
     messageTimer
   );
 
 
-  /* ===============================================
+  /* =======================================================
      INITIALIZE KERNEL
-     =============================================== */
+     ======================================================= */
 
   const kernel =
     new Kernel();
 
 
-  /* ===============================================
+  /* =======================================================
      CREATE DESKTOP
-     =============================================== */
+     ======================================================= */
 
   const desktop =
     new Desktop(kernel);
 
 
-  /* ===============================================
-     FADE OUT BOOT SCREEN
-     =============================================== */
+  /* =======================================================
+     FADE BOOT SCREEN
+     ======================================================= */
 
   if (bootScreen) {
 
@@ -154,9 +159,9 @@ window.setTimeout(() => {
   }
 
 
-  /*
-   * Give the fade-out animation time to finish.
-   */
+  /* =======================================================
+     SHOW DESKTOP AFTER FADE
+     ======================================================= */
 
   window.setTimeout(() => {
 
