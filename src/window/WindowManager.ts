@@ -332,18 +332,15 @@ export class WindowManager {
         icon.alt = "";
         icon.draggable = false;
 
-        const label =
-          document.createElement("span");
-
-        label.className = "taskbar-label";
-        label.textContent =
-          managed.instance.getTitle();
-
         button.appendChild(icon);
-        button.appendChild(label);
 
         button.title =
           managed.instance.getTitle();
+
+        button.setAttribute(
+          "aria-label",
+          managed.instance.getTitle()
+        );
 
         button.addEventListener(
           "click",
