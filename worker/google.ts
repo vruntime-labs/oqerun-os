@@ -660,7 +660,7 @@ export async function disconnect(
     );
   }
 
-  const headers = corsHeaders();
+  const headers = corsHeaders(request);
   headers.set("Cache-Control", "no-store");
   headers.append(
     "Set-Cookie",
