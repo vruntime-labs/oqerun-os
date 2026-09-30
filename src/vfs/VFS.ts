@@ -36,10 +36,7 @@ export class VFS {
   ): Promise<void> {
     const normalized = Path.normalize(path);
 
-    if (
-      this.cloud.handles(normalized) &&
-      await this.cloud.isConnected()
-    ) {
+    if (this.cloud.handles(normalized)) {
       await this.cloud.writeFile(
         normalized,
         content
@@ -58,10 +55,7 @@ export class VFS {
   ): Promise<string> {
     const normalized = Path.normalize(path);
 
-    if (
-      this.cloud.handles(normalized) &&
-      await this.cloud.isConnected()
-    ) {
+    if (this.cloud.handles(normalized)) {
       return this.cloud.readFile(
         normalized
       );
@@ -77,10 +71,7 @@ export class VFS {
   ): Promise<boolean> {
     const normalized = Path.normalize(path);
 
-    if (
-      this.cloud.handles(normalized) &&
-      await this.cloud.isConnected()
-    ) {
+    if (this.cloud.handles(normalized)) {
       return this.cloud.exists(
         normalized
       );
@@ -96,10 +87,7 @@ export class VFS {
   ): Promise<void> {
     const normalized = Path.normalize(path);
 
-    if (
-      this.cloud.handles(normalized) &&
-      await this.cloud.isConnected()
-    ) {
+    if (this.cloud.handles(normalized)) {
       await this.cloud.createDirectory(
         normalized
       );
@@ -116,10 +104,7 @@ export class VFS {
   ): Promise<string[]> {
     const normalized = Path.normalize(path);
 
-    if (
-      this.cloud.handles(normalized) &&
-      await this.cloud.isConnected()
-    ) {
+    if (this.cloud.handles(normalized)) {
       return this.cloud.list(
         normalized
       );
@@ -135,10 +120,7 @@ export class VFS {
   ): Promise<VfsEntry[]> {
     const normalized = Path.normalize(path);
 
-    if (
-      this.cloud.handles(normalized) &&
-      await this.cloud.isConnected()
-    ) {
+    if (this.cloud.handles(normalized)) {
       return this.cloud.listDetailed(
         normalized
       );
