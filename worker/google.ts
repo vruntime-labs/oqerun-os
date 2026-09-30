@@ -35,7 +35,7 @@ function corsHeaders(): Headers {
     "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Vary": "Origin"
   });
 
@@ -219,7 +219,8 @@ function configurationMissing(env: CloudEnv): string[] {
 
 function callbackHtml(
   message: string,
-  success: boolean
+  success: boolean,
+  sessionId?: string
 ): Response {
   const safeMessage = message
     .replaceAll("&", "&amp;")
@@ -234,7 +235,8 @@ function callbackHtml(
         window.opener.postMessage(
           {
             source: "oqerun-cloud",
-            type: "${success ? "google-connected" : "google-error"}"
+            type: "${success ? "google-connected" : "google-error"}",
+            sessionId: ${success && sessionId ? "${sessionId}" : "null"}
           },
           "${FRONTEND_ORIGIN.replaceAll('"', "\\\"")}"
         );
@@ -286,7 +288,16 @@ async function getSession(
   request: Request,
   env: CloudEnv
 ): Promise<{ id: string; record: SessionRecord } | null> {
-  const sessionId = readCookie(request, SESSION_COOKIE);
+  const authorization = request.headers.get("Authorization") ?? "";
+  const bearer = authorization.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length).trim()
+    : null;
+
+  const cookieSessionId = readCookie(request, SESSION_COOKIE);
+  const sessionId = validId(bearer)
+    ? bearer
+    : cookieSessionId;
+
   if (!sessionId) return null;
 
   const raw = await env.OQERUN_KV.get(`oqerun:cloud:session:${sessionId}`);
@@ -519,7 +530,8 @@ export async function callback(
 
     const response = callbackHtml(
       "Google Drive is now securely connected to Oqerun.",
-      true
+      true,
+      sessionId
     );
 
     response.headers.append(
