@@ -16,7 +16,9 @@ const CLOUD_CHANNEL_NAME =
   "oqerun-cloud";
 
 const DEFAULT_CLOUD_API_URL =
-  "https://oqerun-os.vruntimelabs.workers.dev";
+  typeof window !== "undefined"
+    ? window.location.origin
+    : "https://oqerun-os.vruntimelabs.workers.dev";
 
 export type GoogleConnectionStatus = {
   connected: boolean;
@@ -212,7 +214,7 @@ export class GoogleDriveProvider
       path,
       backend.endsWith("/")
         ? backend
-        : `${backend}/`
+        : backend + "/"
     ).toString();
   }
 }
