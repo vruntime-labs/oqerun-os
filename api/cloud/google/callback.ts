@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { randomBytes } from "node:crypto";
 import { getRedis } from "../../lib/redis";
 import { encryptSecret, isTokenEncryptionConfigured } from "../../lib/google-token";
