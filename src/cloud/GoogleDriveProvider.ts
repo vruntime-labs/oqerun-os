@@ -58,6 +58,13 @@ export class GoogleDriveProvider
         this.handleCloudChannelMessage
       );
     }
+
+    // The OAuth callback runs on the Cloudflare Worker origin, so it
+    // returns the session to this window with window.postMessage.
+    window.addEventListener(
+      "message",
+      this.handleWindowMessage
+    );
   }
 
   get status(): CloudProviderStatus {
@@ -183,8 +190,24 @@ export class GoogleDriveProvider
   private handleCloudChannelMessage = (
     event: MessageEvent<CloudChannelMessage>
   ): void => {
-    const data = event.data;
+    this.acceptCloudSession(event.data);
+  };
 
+  private handleWindowMessage = (
+    event: MessageEvent<CloudChannelMessage>
+  ): void => {
+    // Only accept messages delivered to the Oqerun frontend origin.
+    // The session id itself is an unguessable bearer token.
+    if (event.origin !== window.location.origin) {
+      return;
+    }
+
+    this.acceptCloudSession(event.data);
+  };
+
+  private acceptCloudSession(
+    data: CloudChannelMessage | null | undefined
+  ): void {
     if (
       data?.source !== "oqerun-cloud" ||
       data?.type !== "google-connected" ||
@@ -194,7 +217,7 @@ export class GoogleDriveProvider
     }
 
     this.setSessionToken(data.sessionId);
-  };
+  }
 
   private get connectUrl(): string {
     const url = this.apiUrl(
