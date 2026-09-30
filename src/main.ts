@@ -68,7 +68,7 @@ function acceptCloudSession(
     if (window.opener) {
       window.opener.postMessage(
         message,
-        "https://vruntime-labs.github.io"
+        window.location.origin
       );
     }
   } catch {
@@ -152,7 +152,7 @@ window.addEventListener(
   event => {
     if (
       event.origin !==
-      "https://vruntime-labs.github.io"
+      window.location.origin
     ) {
       return;
     }
