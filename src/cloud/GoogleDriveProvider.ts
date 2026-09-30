@@ -7,7 +7,7 @@ const CONNECT_WINDOW_NAME =
   "oqerun-google-drive-connect";
 
 const DEFAULT_CLOUD_API_URL =
-  "https://oqerun-os.vercel.app";
+  "https://oqerun-os.vruntimelabs.workers.dev";
 
 export type GoogleConnectionStatus = {
   connected: boolean;
