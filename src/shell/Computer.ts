@@ -33,19 +33,19 @@ export class Computer {
             <button class="computer-card" data-action="oqdrive" type="button">
               <div class="computer-icon">🖴</div>
               <h3>Oqerun Drive</h3>
-              <p>Local storage</p>
+              <p>Virtual disk backed by your connected cloud. Falls back to local browser storage when offline.</p>
             </button>
 
             <button class="computer-card" data-action="real" type="button">
               <div class="computer-icon">💻</div>
               <h3>This Computer</h3>
-              <p>Browse a folder from your device</p>
+              <p>Browse a folder from your device with explicit permission.</p>
             </button>
 
             <button class="computer-card" data-action="cloud" type="button">
               <div class="computer-icon">☁️</div>
               <h3>Connected Cloud</h3>
-              <p>Google Drive, OneDrive & more</p>
+              <p>Connect Google Drive now; more providers can use the same storage layer later.</p>
             </button>
 
           </div>
