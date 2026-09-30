@@ -34,6 +34,53 @@ export default {
         return health(request, env);
       }
 
+      if (url.pathname === "/api/cloud/onedrive/connect" && request.method === "GET") {
+        return onedrive.connect(request, env);
+      }
+      if (url.pathname === "/api/cloud/onedrive/callback" && request.method === "GET") {
+        return onedrive.callback(request, env);
+      }
+      if (url.pathname === "/api/cloud/onedrive/status" && request.method === "GET") {
+        return onedrive.status(request, env);
+      }
+      if (url.pathname === "/api/cloud/onedrive/disconnect" && (request.method === "GET" || request.method === "POST")) {
+        return onedrive.disconnect(request, env);
+      }
+      if (url.pathname === "/api/cloud/onedrive/files" && request.method === "GET") {
+        return onedrive.files(request, env);
+      }
+      if (url.pathname === "/api/cloud/onedrive/files" && request.method === "POST") {
+        return onedrive.createFolder(request, env);
+      }
+      if (url.pathname === "/api/cloud/onedrive/content" && request.method === "GET") {
+        return onedrive.contentGet(request, env);
+      }
+
+      if (url.pathname === "/api/cloud/dropbox/connect" && request.method === "GET") {
+        return dropbox.connect(request, env);
+      }
+      if (url.pathname === "/api/cloud/dropbox/callback" && request.method === "GET") {
+        return dropbox.callback(request, env);
+      }
+      if (url.pathname === "/api/cloud/dropbox/status" && request.method === "GET") {
+        return dropbox.status(request, env);
+      }
+      if (url.pathname === "/api/cloud/dropbox/disconnect" && (request.method === "GET" || request.method === "POST")) {
+        return dropbox.disconnect(request, env);
+      }
+      if (url.pathname === "/api/cloud/dropbox/files" && request.method === "GET") {
+        return dropbox.files(request, env);
+      }
+      if (url.pathname === "/api/cloud/dropbox/files" && request.method === "POST") {
+        return dropbox.createFolder(request, env);
+      }
+      if (url.pathname === "/api/cloud/dropbox/content" && request.method === "GET") {
+        return dropbox.contentGet(request, env);
+      }
+      if (url.pathname === "/api/cloud/dropbox/content" && request.method === "POST") {
+        return dropbox.contentPost(request, env);
+      }
+
       if (
         url.pathname === "/api/cloud/google/connect" &&
         request.method === "GET"
