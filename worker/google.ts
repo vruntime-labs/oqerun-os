@@ -528,21 +528,11 @@ export async function callback(
       { expirationTtl: SESSION_TTL }
     );
 
-    // Return to the Oqerun web app that started OAuth.
-    // The session id is placed in the URL fragment so it is not sent
-    // to the server and can be consumed by the original Oqerun tab.
-
-    // Keep the bearer session out of the HTTP query string. The fragment is
-    // never sent to the server and is consumed immediately by the popup.
-    const frontendCallback =
-      new URL("/", "https://oqerun-os.vercel.app");
-
-    frontendCallback.hash =
-      "oqerun-cloud-session=" +
-      encodeURIComponent(sessionId);
+    // The OAuth popup stays on the Worker callback page.
+    // It sends the short-lived session id to the original Oqerun
+    // window with postMessage, then closes itself.
 
     const responseHeaders = new Headers({
-      Location: frontendCallback.toString(),
       "Cache-Control": "no-store"
     });
 
@@ -557,10 +547,25 @@ export async function callback(
       })
     );
 
-    return new Response(null, {
-      status: 302,
-      headers: responseHeaders
-    });
+    const response = callbackHtml(
+      "Google Drive is connected securely. You can close this window.",
+      true,
+      sessionId,
+      "https://oqerun-os.vercel.app"
+    );
+
+    response.headers.append(
+      "Set-Cookie",
+      serializeCookie(SESSION_COOKIE, sessionId, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        path: "/",
+        maxAge: SESSION_TTL
+      })
+    );
+
+    return response;
   } catch (error) {
     console.error(
       "[oqerun-cloud] Google callback failed:",
