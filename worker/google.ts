@@ -600,7 +600,19 @@ export async function disconnect(
   request: Request,
   env: CloudEnv
 ): Promise<Response> {
-  const sessionId = readCookie(request, SESSION_COOKIE);
+  const authorization = request.headers.get("Authorization") ?? "";
+  const bearer = authorization.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length).trim()
+    : null;
+
+  const cookieSessionId = readCookie(
+    request,
+    SESSION_COOKIE
+  );
+
+  const sessionId = validId(bearer)
+    ? bearer
+    : cookieSessionId;
 
   if (sessionId) {
     await env.OQERUN_KV.delete(
