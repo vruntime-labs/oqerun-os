@@ -6,6 +6,9 @@ import type {
 const CONNECT_WINDOW_NAME =
   "oqerun-google-drive-connect";
 
+const DEFAULT_CLOUD_API_URL =
+  "https://oqerun-os.vercel.app";
+
 export type GoogleConnectionStatus = {
   connected: boolean;
   provider?: string;
@@ -135,15 +138,14 @@ export class GoogleDriveProvider
   }
 
   private apiUrl(path: string): string | null {
-    const backend =
+    const configured =
       (
         import.meta.env
           .VITE_OQERUN_CLOUD_API_URL || ""
       ).trim();
 
-    if (!backend) {
-      return null;
-    }
+    const backend =
+      configured || DEFAULT_CLOUD_API_URL;
 
     return new URL(
       path,
