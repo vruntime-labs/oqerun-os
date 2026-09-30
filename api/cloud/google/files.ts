@@ -5,6 +5,7 @@ import { corsHeaders, handleCorsOptions } from "../../lib/cors";
 
 const SESSION_COOKIE = "oqerun_cloud_session";
 const SESSION_TTL = 60 * 60 * 24 * 30;
+const FOLDER_MIME = "application/vnd.google-apps.folder";
 
 type SessionRecord = {
   provider: "google-drive";
@@ -15,9 +16,6 @@ type SessionRecord = {
 
 type GoogleRefreshResponse = {
   access_token?: string;
-  expires_in?: number;
-  token_type?: string;
-  scope?: string;
   error?: string;
 };
 
@@ -41,10 +39,7 @@ type DriveListResponse = {
 
 async function getAccessToken(
   request: Request
-): Promise<{
-  token: string;
-  redisKey: string;
-} | null> {
+): Promise<string | null> {
   const sessionId = readCookie(
     request,
     SESSION_COOKIE
@@ -127,10 +122,14 @@ async function getAccessToken(
     SESSION_TTL
   );
 
-  return {
-    token: data.access_token,
-    redisKey
-  };
+  return data.access_token;
+}
+
+function validId(
+  value: string | null
+): value is string {
+  return !!value &&
+    /^[A-Za-z0-9_-]+$/.test(value);
 }
 
 export function OPTIONS(): Response {
@@ -141,17 +140,21 @@ export async function GET(
   request: Request
 ): Promise<Response> {
   const headers = corsHeaders();
-  headers.set("Cache-Control", "no-store");
+  headers.set(
+    "Cache-Control",
+    "no-store"
+  );
 
   try {
-    const session =
+    const token =
       await getAccessToken(request);
 
-    if (!session) {
+    if (!token) {
       return Response.json(
         {
           ok: false,
-          error: "Google Drive is not connected."
+          error:
+            "Google Drive is not connected."
         },
         {
           status: 401,
@@ -171,9 +174,7 @@ export async function GET(
 
     const parentId =
       requestedParent &&
-      /^[A-Za-z0-9_-]+$/.test(
-        requestedParent
-      )
+      validId(requestedParent)
         ? requestedParent
         : "root";
 
@@ -222,7 +223,7 @@ export async function GET(
       {
         headers: {
           Authorization:
-            `Bearer ${session.token}`
+            `Bearer ${token}`
         }
       }
     );
@@ -244,9 +245,10 @@ export async function GET(
             "Google Drive could not return this folder."
         },
         {
-          status: response.status === 401
-            ? 401
-            : 502,
+          status:
+            response.status === 401
+              ? 401
+              : 502,
           headers
         }
       );
@@ -275,6 +277,152 @@ export async function GET(
           error instanceof Error
             ? error.message
             : "Google Drive is unavailable."
+      },
+      {
+        status: 503,
+        headers
+      }
+    );
+  }
+}
+
+export async function POST(
+  request: Request
+): Promise<Response> {
+  const headers = corsHeaders();
+  headers.set(
+    "Cache-Control",
+    "no-store"
+  );
+
+  try {
+    const token =
+      await getAccessToken(request);
+
+    if (!token) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Google Drive is not connected."
+        },
+        {
+          status: 401,
+          headers
+        }
+      );
+    }
+
+    const body =
+      await request.json() as {
+        name?: string;
+        parentId?: string;
+        mimeType?: string;
+      };
+
+    const name =
+      (body.name ?? "").trim();
+    const parentId =
+      (body.parentId ?? "root").trim();
+    const mimeType =
+      (body.mimeType ?? FOLDER_MIME).trim();
+
+    if (
+      !name ||
+      name.length > 255
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "A valid folder name is required."
+        },
+        {
+          status: 400,
+          headers
+        }
+      );
+    }
+
+    if (
+      !validId(parentId) ||
+      mimeType !== FOLDER_MIME
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Only Google Drive folders can be created by this endpoint."
+        },
+        {
+          status: 400,
+          headers
+        }
+      );
+    }
+
+    const response =
+      await fetch(
+        "https://www.googleapis.com/drive/v3/files?fields=id,name,mimeType,parents,modifiedTime",
+        {
+          method: "POST",
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            name,
+            parents: [parentId],
+            mimeType: FOLDER_MIME
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "[oqerun-cloud] Drive folder create failed:",
+        data
+      );
+
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Google Drive could not create the folder."
+        },
+        {
+          status: 502,
+          headers
+        }
+      );
+    }
+
+    return Response.json(
+      {
+        ok: true,
+        provider: "google-drive",
+        file: data
+      },
+      { headers }
+    );
+  } catch (error) {
+    console.error(
+      "[oqerun-cloud] Drive folder create endpoint failed:",
+      error
+    );
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Google Drive folder creation failed."
       },
       {
         status: 503,
