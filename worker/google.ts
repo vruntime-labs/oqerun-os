@@ -31,7 +31,7 @@ type DriveFile = {
 
 function corsHeaders(): Headers {
   const headers = new Headers({
-    "Access-Control-Allow-Origin": "https://vruntime-labs.github.io",
+    "Access-Control-Allow-Origin": "https://oqerun-os.vercel.app",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
@@ -220,7 +220,7 @@ function callbackHtml(
   message: string,
   success: boolean,
   sessionId?: string,
-  targetOrigin = "https://vruntime-labs.github.io"
+  targetOrigin = "https://oqerun-os.vercel.app"
 ): Response {
   const safeMessage = message
     .replaceAll("&", "&amp;")
@@ -528,12 +528,15 @@ export async function callback(
       { expirationTtl: SESSION_TTL }
     );
 
-    // Return to the exact Worker origin that started OAuth. This keeps the
-    // Oqerun UI, OAuth callback, API, and session on one origin.
-    const frontendCallback = new URL("/", request.url);
+    // Return to the Oqerun web app that started OAuth.
+    // The session id is placed in the URL fragment so it is not sent
+    // to the server and can be consumed by the original Oqerun tab.
 
     // Keep the bearer session out of the HTTP query string. The fragment is
     // never sent to the server and is consumed immediately by the popup.
+    const frontendCallback =
+      new URL("/", "https://oqerun-os.vercel.app");
+
     frontendCallback.hash =
       "oqerun-cloud-session=" +
       encodeURIComponent(sessionId);
