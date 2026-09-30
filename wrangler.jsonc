@@ -1,7 +1,12 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "oqerun-os",
+  "main": "./worker/index.ts",
   "compatibility_date": "2026-09-30",
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
   "kv_namespaces": [
     {
       "binding": "OQERUN_KV",
