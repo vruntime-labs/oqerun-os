@@ -29,9 +29,19 @@ type DriveFile = {
   webViewLink?: string;
 };
 
-function corsHeaders(): Headers {
+const ALLOWED_CORS_ORIGINS = new Set([
+  "https://oqerun-os.vercel.app",
+  "https://vruntime-labs.github.io"
+]);
+
+function corsHeaders(request?: Request): Headers {
+  const requestOrigin = request?.headers.get("Origin") ?? "";
+  const origin = ALLOWED_CORS_ORIGINS.has(requestOrigin)
+    ? requestOrigin
+    : "https://vruntime-labs.github.io";
+
   const headers = new Headers({
-    "Access-Control-Allow-Origin": "https://oqerun-os.vercel.app",
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
@@ -41,19 +51,20 @@ function corsHeaders(): Headers {
   return headers;
 }
 
-export function optionsResponse(): Response {
+export function optionsResponse(request: Request): Response {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders()
+    headers: corsHeaders(request)
   });
 }
 
 function json(
   data: unknown,
   status = 200,
-  extra?: HeadersInit
+  extra?: HeadersInit,
+  request?: Request
 ): Response {
-  const headers = corsHeaders();
+  const headers = corsHeaders(request);
   headers.set("Content-Type", "application/json; charset=utf-8");
   headers.set("Cache-Control", "no-store");
 
@@ -561,7 +572,7 @@ export async function callback(
       "Google Drive is connected securely. You can close this window.",
       true,
       sessionId,
-      "https://oqerun-os.vercel.app"
+      "https://vruntime-labs.github.io"
     );
 
     response.headers.append(
@@ -852,7 +863,7 @@ export async function contentGet(
   request: Request,
   env: CloudEnv
 ): Promise<Response> {
-  const responseHeaders = corsHeaders();
+  const responseHeaders = corsHeaders(request);
   responseHeaders.set("Cache-Control", "no-store");
 
   try {
