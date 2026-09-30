@@ -409,15 +409,12 @@ export async function connect(
     "Cache-Control": "no-store"
   });
 
-  headers.append(
-    "Set-Cookie",
-    serializeCookie(STATE_COOKIE, state, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Lax",
-      path: "/",
-      maxAge: STATE_TTL
-    })
+  await env.OQERUN_KV.put(
+    `oqerun:cloud:oauth-state:${state}`,
+    JSON.stringify({
+      createdAt: new Date().toISOString()
+    }),
+    { expirationTtl: STATE_TTL }
   );
 
   return new Response(null, {
@@ -434,7 +431,11 @@ export async function callback(
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
-  const storedState = readCookie(request, STATE_COOKIE);
+  const storedState = state
+    ? await env.OQERUN_KV.get(
+        `oqerun:cloud:oauth-state:${state}`
+      )
+    : null;
 
   if (error) {
     return callbackHtml(
@@ -443,12 +444,16 @@ export async function callback(
     );
   }
 
-  if (!code || !state || !storedState || state !== storedState) {
+  if (!code || !state || !storedState) {
     return callbackHtml(
       "The Google connection could not be verified. Please start the connection again.",
       false
     );
   }
+
+  await env.OQERUN_KV.delete(
+    `oqerun:cloud:oauth-state:${state}`
+  );
 
   const missing = configurationMissing(env);
   if (missing.length > 0) {
