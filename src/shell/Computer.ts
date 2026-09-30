@@ -33,7 +33,13 @@ export class Computer {
             <button class="computer-card" data-action="oqdrive" type="button">
               <div class="computer-icon">🖴</div>
               <h3>Oqerun Drive</h3>
-              <p>Virtual disk backed by your connected cloud. Falls back to local browser storage when offline.</p>
+              <p>Open Oqerun's local virtual drive.</p>
+            </button>
+
+            <button class="computer-card" data-action="google-drive" type="button">
+              <div class="computer-icon">☁️</div>
+              <h3>Google Drive</h3>
+              <p>Browse the files and folders in your connected Google Drive.</p>
             </button>
 
             <button class="computer-card" data-action="real" type="button">
@@ -61,6 +67,20 @@ export class Computer {
       win.querySelector<HTMLElement>('[data-action="oqdrive"]')
         ?.addEventListener("dblclick", () => {
           void new Explorer(this.kernel, this.wm).open("/home/user");
+        });
+
+      win.querySelector<HTMLElement>('[data-action="google-drive"]')
+        ?.addEventListener("dblclick", () => {
+          void new Explorer(this.kernel, this.wm).open(
+            "/mnt/cloud/google-drive"
+          );
+        });
+
+      win.querySelector<HTMLElement>('[data-action="google-drive"]')
+        ?.addEventListener("click", () => {
+          void new Explorer(this.kernel, this.wm).open(
+            "/mnt/cloud/google-drive"
+          );
         });
 
       win.querySelector<HTMLElement>('[data-action="real"]')
