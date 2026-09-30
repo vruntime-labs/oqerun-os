@@ -34,7 +34,7 @@ const ALLOWED_CORS_ORIGINS = new Set([
   "https://vruntime-labs.github.io"
 ]);
 
-function corsHeaders(request?: Request): Headers {
+export function corsHeaders(request?: Request): Headers {
   const requestOrigin = request?.headers.get("Origin") ?? "";
   const origin = ALLOWED_CORS_ORIGINS.has(requestOrigin)
     ? requestOrigin
@@ -58,7 +58,7 @@ export function optionsResponse(request: Request): Response {
   });
 }
 
-function json(
+export function json(
   request: Request,
   data: unknown,
   status = 200,
@@ -77,7 +77,7 @@ function json(
   return Response.json(data, { status, headers });
 }
 
-function readCookie(request: Request, name: string): string | null {
+export function readCookie(request: Request, name: string): string | null {
   const header = request.headers.get("cookie") ?? "";
 
   for (const part of header.split(";")) {
@@ -90,7 +90,7 @@ function readCookie(request: Request, name: string): string | null {
   return null;
 }
 
-function serializeCookie(
+export function serializeCookie(
   name: string,
   value: string,
   options: {
@@ -112,7 +112,7 @@ function serializeCookie(
   return parts.join("; ");
 }
 
-function randomHex(bytes = 32): string {
+export function randomHex(bytes = 32): string {
   const values = new Uint8Array(bytes);
   crypto.getRandomValues(values);
   return Array.from(values, value => value.toString(16).padStart(2, "0")).join("");
@@ -143,7 +143,7 @@ function base64UrlToBytes(value: string): Uint8Array {
   return bytes;
 }
 
-function encryptionKeyBytes(value: string): Uint8Array {
+export function encryptionKeyBytes(value: string): Uint8Array {
   const encoded = value.trim();
 
   if (!encoded) {
@@ -190,7 +190,7 @@ async function getEncryptionKey(env: CloudEnv): Promise<CryptoKey> {
   );
 }
 
-async function encryptSecret(
+async export function encryptSecret(
   value: string,
   env: CloudEnv
 ): Promise<string> {
@@ -210,7 +210,7 @@ async function encryptSecret(
   ].join(".");
 }
 
-async function decryptSecret(
+async export function decryptSecret(
   payload: string,
   env: CloudEnv
 ): Promise<string> {
@@ -233,7 +233,7 @@ async function decryptSecret(
   return new TextDecoder().decode(decrypted);
 }
 
-function validId(value: string | null): value is string {
+export function validId(value: string | null): value is string {
   return !!value && /^[A-Za-z0-9_-]+$/.test(value);
 }
 
