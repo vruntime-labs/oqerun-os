@@ -1,4 +1,5 @@
 import type { VfsEntry } from "./VfsTypes";
+import { cloudAuthHeaders } from "../cloud/CloudSession";
 
 type DriveFile = {
   id?: string;
@@ -44,6 +45,20 @@ export class CloudVFS {
     ).toString();
   }
 
+  private authRequestInit(
+    init: RequestInit = {}
+  ): RequestInit {
+    return {
+      ...init,
+      credentials: "include",
+      headers: {
+        ...cloudAuthHeaders(),
+        ...(init.headers ?? {})
+      },
+      cache: init.cache ?? "no-store"
+    };
+  }
+
   handles(path: string): boolean {
     return path === CLOUD_ROOT || path.startsWith(`${CLOUD_ROOT}/`);
   }
@@ -59,10 +74,10 @@ export class CloudVFS {
       const url = this.apiUrl("/api/cloud/google/status");
       if (!url) return false;
 
-      const response = await fetch(url, {
-        credentials: "include",
-        cache: "no-store"
-      });
+      const response = await fetch(
+        url,
+        this.authRequestInit()
+      );
 
       if (!response.ok) {
         this.connectionCache = {
@@ -144,10 +159,10 @@ export class CloudVFS {
       throw new Error("Oqerun Cloud API is not configured.");
     }
 
-    const response = await fetch(url, {
-      credentials: "include",
-      cache: "no-store"
-    });
+    const response = await fetch(
+      url,
+      this.authRequestInit()
+    );
 
     if (!response.ok) {
       const message = await this.readError(response);
@@ -189,18 +204,20 @@ export class CloudVFS {
       throw new Error("Oqerun Cloud API is not configured.");
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name,
-        parentId,
-        mimeType: FOLDER_MIME
+    const response = await fetch(
+      url,
+      this.authRequestInit({
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          parentId,
+          mimeType: FOLDER_MIME
+        })
       })
-    });
+    );
 
     if (!response.ok) {
       throw new Error(await this.readError(response));
@@ -246,11 +263,13 @@ export class CloudVFS {
       form.append("fileId", fileId);
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      credentials: "include",
-      body: form
-    });
+    const response = await fetch(
+      url,
+      this.authRequestInit({
+        method: "POST",
+        body: form
+      })
+    );
 
     if (!response.ok) {
       throw new Error(await this.readError(response));
@@ -344,10 +363,10 @@ export class CloudVFS {
       throw new Error("Oqerun Cloud API is not configured.");
     }
 
-    const response = await fetch(url, {
-      credentials: "include",
-      cache: "no-store"
-    });
+    const response = await fetch(
+      url,
+      this.authRequestInit()
+    );
 
     if (!response.ok) {
       throw new Error(await this.readError(response));
