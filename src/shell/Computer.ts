@@ -42,6 +42,18 @@ export class Computer {
               <p>Browse the files and folders in your connected Google Drive.</p>
             </button>
 
+            <button class="computer-card" data-action="onedrive" type="button">
+              <div class="computer-icon">☁️</div>
+              <h3>OneDrive</h3>
+              <p>Connect and browse Microsoft OneDrive.</p>
+            </button>
+
+            <button class="computer-card" data-action="dropbox" type="button">
+              <div class="computer-icon">☁️</div>
+              <h3>Dropbox</h3>
+              <p>Connect and browse Dropbox.</p>
+            </button>
+
             <button class="computer-card" data-action="real" type="button">
               <div class="computer-icon">💻</div>
               <h3>This Computer</h3>
@@ -81,6 +93,16 @@ export class Computer {
           void new Explorer(this.kernel, this.wm).open(
             "/mnt/cloud/google-drive"
           );
+        });
+
+      win.querySelector<HTMLElement>('[data-action="onedrive"]')
+        ?.addEventListener("click", () => {
+          new CloudManager(this.kernel, this.wm).open();
+        });
+
+      win.querySelector<HTMLElement>('[data-action="dropbox"]')
+        ?.addEventListener("click", () => {
+          new CloudManager(this.kernel, this.wm).open();
         });
 
       win.querySelector<HTMLElement>('[data-action="real"]')
