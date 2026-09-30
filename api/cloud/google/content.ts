@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { getRedis } from "../../lib/redis";
 import { decryptSecret } from "../../lib/google-token";
 import { readCookie } from "../../lib/cookies";
