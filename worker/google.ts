@@ -739,10 +739,15 @@ export async function files(
         data.error?.message ?? "unknown error"
       );
 
-      return json(request, 
+      const googleMessage =
+        data.error?.message?.trim() ||
+        "Google Drive rejected the folder request.";
+
+      return json(
+        request,
         {
           ok: false,
-          error: "Google Drive could not return this folder."
+          error: `Google Drive request failed (${response.status}): ${googleMessage.slice(0, 240)}`
         },
         response.status === 401 ? 401 : 502
       );
