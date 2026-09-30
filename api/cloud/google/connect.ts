@@ -52,13 +52,13 @@ export async function GET(request: Request): Promise<Response> {
   );
 
   /*
-   * Start deliberately with a narrow read-only metadata scope.
-   * We can add file-content access later through incremental
-   * authorization when the Explorer actually needs it.
+   * Oqerun Drive is a real virtual disk backed by the user's
+   * Google Drive account. The server keeps the OAuth refresh
+   * token private; the browser only receives the session cookie.
    */
   url.searchParams.set(
     "scope",
-    "https://www.googleapis.com/auth/drive.metadata.readonly"
+    "https://www.googleapis.com/auth/drive"
   );
 
   url.searchParams.set(
