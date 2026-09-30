@@ -1,3 +1,4 @@
+import { CloudVFS } from "./CloudVFS";
 import { OPFS } from "./OPFS";
 import type { VfsEntry } from "./VfsTypes";
 import { Path } from "./Path";
@@ -5,8 +6,8 @@ import { Path } from "./Path";
 export { VfsEntry };
 
 export class VFS {
-  private storage =
-    new OPFS();
+  private readonly storage = new OPFS();
+  private readonly cloud = new CloudVFS();
 
   async initialize(): Promise<void> {
     const folders = [
@@ -25,9 +26,7 @@ export class VFS {
     ];
 
     for (const folder of folders) {
-      await this.storage.createDirectory(
-        folder
-      );
+      await this.storage.createDirectory(folder);
     }
   }
 
@@ -35,8 +34,21 @@ export class VFS {
     path: string,
     content: string
   ): Promise<void> {
+    const normalized = Path.normalize(path);
+
+    if (
+      this.cloud.handles(normalized) &&
+      await this.cloud.isConnected()
+    ) {
+      await this.cloud.writeFile(
+        normalized,
+        content
+      );
+      return;
+    }
+
     await this.storage.writeFile(
-      Path.normalize(path),
+      normalized,
       content
     );
   }
@@ -44,40 +56,96 @@ export class VFS {
   async read(
     path: string
   ): Promise<string> {
+    const normalized = Path.normalize(path);
+
+    if (
+      this.cloud.handles(normalized) &&
+      await this.cloud.isConnected()
+    ) {
+      return this.cloud.readFile(
+        normalized
+      );
+    }
+
     return this.storage.readFile(
-      Path.normalize(path)
+      normalized
     );
   }
 
   async exists(
     path: string
   ): Promise<boolean> {
+    const normalized = Path.normalize(path);
+
+    if (
+      this.cloud.handles(normalized) &&
+      await this.cloud.isConnected()
+    ) {
+      return this.cloud.exists(
+        normalized
+      );
+    }
+
     return this.storage.exists(
-      Path.normalize(path)
+      normalized
     );
   }
 
   async mkdir(
     path: string
   ): Promise<void> {
+    const normalized = Path.normalize(path);
+
+    if (
+      this.cloud.handles(normalized) &&
+      await this.cloud.isConnected()
+    ) {
+      await this.cloud.createDirectory(
+        normalized
+      );
+      return;
+    }
+
     await this.storage.createDirectory(
-      Path.normalize(path)
+      normalized
     );
   }
 
   async list(
     path: string
   ): Promise<string[]> {
+    const normalized = Path.normalize(path);
+
+    if (
+      this.cloud.handles(normalized) &&
+      await this.cloud.isConnected()
+    ) {
+      return this.cloud.list(
+        normalized
+      );
+    }
+
     return this.storage.list(
-      Path.normalize(path)
+      normalized
     );
   }
 
   async listDetailed(
     path: string
   ): Promise<VfsEntry[]> {
+    const normalized = Path.normalize(path);
+
+    if (
+      this.cloud.handles(normalized) &&
+      await this.cloud.isConnected()
+    ) {
+      return this.cloud.listDetailed(
+        normalized
+      );
+    }
+
     return this.storage.listDetailed(
-      Path.normalize(path)
+      normalized
     );
   }
 }
