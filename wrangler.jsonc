@@ -13,5 +13,12 @@
       "binding": "OQERUN_KV",
       "id": "3fbb686fd7cd4063a6dac32c7ecb94cb"
     }
-  ]
+  ],
+  "secrets": {
+    "required": [
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "OQERUN_TOKEN_ENCRYPTION_KEY"
+    ]
+  }
 }
