@@ -16,8 +16,7 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "@types/node": "^24.10.1",
-    "redis": "^6.2.1"
+    "@types/node": "^24.10.1"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.0.0",
