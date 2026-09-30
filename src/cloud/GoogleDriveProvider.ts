@@ -15,10 +15,14 @@ const CONNECT_WINDOW_NAME =
 const CLOUD_CHANNEL_NAME =
   "oqerun-cloud";
 
+/*
+ * Cloud OAuth and Drive API always run through the Oqerun
+ * Cloudflare Worker. Never default to the web app origin
+ * (GitHub Pages/Vercel), because that origin does not expose
+ * the /api/cloud/google/* routes.
+ */
 const DEFAULT_CLOUD_API_URL =
-  typeof window !== "undefined"
-    ? window.location.origin
-    : "https://oqerun-os.vruntimelabs.workers.dev";
+  "https://oqerun-os.vruntimelabs.workers.dev";
 
 export type GoogleConnectionStatus = {
   connected: boolean;
