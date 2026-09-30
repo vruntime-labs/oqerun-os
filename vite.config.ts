@@ -1,16 +1,9 @@
 import { defineConfig } from "vite";
+import { cloudflare } from "@cloudflare/vite-plugin";
 
 export default defineConfig({
-  /*
-   * Oqerun OS is deployed as a GitHub Pages
-   * repository site.
-   *
-   * Repository:
-   * oqerun-os
-   *
-   * Therefore the production base path is:
-   * /oqerun-os/
-   */
+  plugins: [cloudflare()],
+
   base: "/oqerun-os/",
 
   build: {
