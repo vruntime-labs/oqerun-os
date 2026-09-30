@@ -95,6 +95,18 @@ export class GoogleDriveProvider
     }
 
     popup.focus();
+
+    // Do not depend solely on window.postMessage. OAuth providers and
+    // browser COOP policies can sever the popup opener relationship.
+    // The Worker also sets an HttpOnly session cookie, so poll the Worker
+    // directly until that server-side session becomes visible here.
+    const connected = await this.waitForConnection();
+
+    if (!connected) {
+      throw new Error(
+        "Google Drive authorization finished, but Oqerun could not confirm the cloud session."
+      );
+    }
   }
 
   async getConnectionStatus(): Promise<GoogleConnectionStatus> {
