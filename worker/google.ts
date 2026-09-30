@@ -236,7 +236,7 @@ function callbackHtml(
           {
             source: "oqerun-cloud",
             type: "${success ? "google-connected" : "google-error"}",
-            sessionId: ${success && sessionId ? "${sessionId}" : "null"}
+            sessionId: ${success && sessionId ? JSON.stringify(sessionId) : "null"}
           },
           "${FRONTEND_ORIGIN.replaceAll('"', "\\\"")}"
         );
