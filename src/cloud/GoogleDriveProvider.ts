@@ -12,6 +12,9 @@ import {
 const CONNECT_WINDOW_NAME =
   "oqerun-google-drive-connect";
 
+const CLOUD_CHANNEL_NAME =
+  "oqerun-cloud";
+
 const DEFAULT_CLOUD_API_URL =
   "https://oqerun-os.vruntimelabs.workers.dev";
 
@@ -21,6 +24,12 @@ export type GoogleConnectionStatus = {
   error?: string;
 };
 
+type CloudChannelMessage = {
+  source?: string;
+  type?: string;
+  sessionId?: string;
+};
+
 export class GoogleDriveProvider
   implements CloudProvider
 {
@@ -28,6 +37,22 @@ export class GoogleDriveProvider
   readonly name = "Google Drive";
   readonly description =
     "Direct Google Drive connection through Oqerun's secure backend.";
+
+  private readonly cloudChannel: BroadcastChannel | null;
+
+  constructor() {
+    this.cloudChannel =
+      typeof BroadcastChannel !== "undefined"
+        ? new BroadcastChannel(CLOUD_CHANNEL_NAME)
+        : null;
+
+    if (this.cloudChannel) {
+      this.cloudChannel.addEventListener(
+        "message",
+        this.handleCloudChannelMessage
+      );
+    }
+  }
 
   get status(): CloudProviderStatus {
     return this.connectUrl
@@ -148,6 +173,22 @@ export class GoogleDriveProvider
 
     return false;
   }
+
+  private handleCloudChannelMessage = (
+    event: MessageEvent<CloudChannelMessage>
+  ): void => {
+    const data = event.data;
+
+    if (
+      data?.source !== "oqerun-cloud" ||
+      data?.type !== "google-connected" ||
+      typeof data?.sessionId !== "string"
+    ) {
+      return;
+    }
+
+    this.setSessionToken(data.sessionId);
+  };
 
   private get connectUrl(): string {
     const url = this.apiUrl(
