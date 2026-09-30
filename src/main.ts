@@ -5,6 +5,7 @@ import "./ui/cloud.css";
 
 import { Kernel } from "./core/Kernel";
 import { Desktop } from "./shell/Desktop";
+import { setCloudSessionToken } from "./cloud/CloudSession";
 
 
 /* =========================================================
@@ -27,30 +28,31 @@ if (!app) {
 
 const base = import.meta.env.BASE_URL;
 
-function handleCloudOAuthHandoff(): void {
-  const prefix =
-    "#oqerun-cloud-session=";
 
+/* =========================================================
+   CLOUD OAUTH HANDOFF
+   ========================================================= */
+
+function acceptCloudSession(
+  sessionId: unknown
+): void {
   if (
-    !window.location.hash.startsWith(prefix)
+    typeof sessionId !== "string" ||
+    !/^[A-Za-z0-9_-]+$/.test(sessionId)
   ) {
     return;
   }
 
-  const sessionId =
-    decodeURIComponent(
-      window.location.hash.slice(
-        prefix.length
-      )
-    );
-
-  if (
-    !/^[A-Za-z0-9_-]+$/.test(
-      sessionId
-    )
-  ) {
-    return;
-  }
+  /*
+   * Store the session in THIS browser tab immediately.
+   *
+   * The OAuth popup is a separate browsing context, so its
+   * sessionStorage is not shared with the original Oqerun tab.
+   * Doing this in main.ts guarantees that the original tab
+   * receives the cloud session before CloudManager creates
+   * GoogleDriveProvider.
+   */
+  setCloudSessionToken(sessionId);
 
   const message = {
     source: "oqerun-cloud",
@@ -59,10 +61,22 @@ function handleCloudOAuthHandoff(): void {
   };
 
   /*
-   * The popup and the main Oqerun tab are on the
-   * same GitHub Pages origin after the Worker redirects
-   * back here. BroadcastChannel works even if the browser
-   * removes window.opener during the OAuth navigation.
+   * Keep the existing cross-window handoff for any component
+   * that is already listening.
+   */
+  try {
+    if (window.opener) {
+      window.opener.postMessage(
+        message,
+        "https://vruntime-labs.github.io"
+      );
+    }
+  } catch {
+    // The direct session-storage handoff above is sufficient.
+  }
+
+  /*
+   * BroadcastChannel is also useful for other Oqerun tabs.
    */
   try {
     if (
@@ -83,20 +97,34 @@ function handleCloudOAuthHandoff(): void {
       }, 1000);
     }
   } catch {
-    // postMessage below remains the fallback.
+    // Ignore unsupported BroadcastChannel implementations.
+  }
+}
+
+
+function handleCloudOAuthHandoff(): void {
+  const prefix =
+    "#oqerun-cloud-session=";
+
+  if (
+    !window.location.hash.startsWith(prefix)
+  ) {
+    return;
   }
 
-  try {
-    if (window.opener) {
-      window.opener.postMessage(
-        message,
-        "https://vruntime-labs.github.io"
-      );
-    }
-  } catch {
-    // BroadcastChannel already handled the primary handoff.
-  }
+  const sessionId =
+    decodeURIComponent(
+      window.location.hash.slice(
+        prefix.length
+      )
+    );
 
+  acceptCloudSession(sessionId);
+
+  /*
+   * Remove the session identifier from the visible URL
+   * immediately after consuming it.
+   */
   window.history.replaceState(
     null,
     document.title,
@@ -104,10 +132,46 @@ function handleCloudOAuthHandoff(): void {
       window.location.search
   );
 
+  /*
+   * This page was opened as the OAuth callback popup.
+   * Give the original tab a moment to receive the message,
+   * then close the popup automatically.
+   */
   window.setTimeout(() => {
     window.close();
   }, 250);
 }
+
+
+/*
+ * Also support the callback's postMessage path. This is useful
+ * when a browser preserves window.opener during OAuth navigation.
+ */
+window.addEventListener(
+  "message",
+  event => {
+    if (
+      event.origin !==
+      "https://vruntime-labs.github.io"
+    ) {
+      return;
+    }
+
+    if (
+      event.data?.source !==
+        "oqerun-cloud" ||
+      event.data?.type !==
+        "google-connected"
+    ) {
+      return;
+    }
+
+    acceptCloudSession(
+      event.data.sessionId
+    );
+  }
+);
+
 
 handleCloudOAuthHandoff();
 
