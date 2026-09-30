@@ -1,6 +1,6 @@
-import { createClient, type RedisClientType } from "redis";
+import { createClient } from "redis";
 
-type RedisClient = RedisClientType;
+type RedisClient = ReturnType<typeof createClient>;
 
 let client: RedisClient | null = null;
 let connectionPromise: Promise<RedisClient> | null = null;
@@ -30,7 +30,7 @@ export async function getRedis(): Promise<RedisClient> {
 
   const nextClient = createClient({ url });
 
-  nextClient.on("error", (error) => {
+  nextClient.on("error", (error: Error) => {
     console.error("[oqerun-cloud] Redis error:", error);
   });
 
@@ -40,7 +40,7 @@ export async function getRedis(): Promise<RedisClient> {
       client = nextClient;
       return nextClient;
     })
-    .catch((error) => {
+    .catch((error: unknown) => {
       connectionPromise = null;
       client = null;
       try {
