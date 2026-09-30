@@ -14,7 +14,7 @@ type DriveListResponse = {
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const CLOUD_ROOT = "/home/user";
-const DEFAULT_CLOUD_API_URL = "https://oqerun-os.vercel.app";
+const DEFAULT_CLOUD_API_URL = "https://oqerun-os.vruntimelabs.workers.dev";
 
 export class CloudVFS {
   private readonly apiBase =
