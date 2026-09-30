@@ -532,21 +532,6 @@ export async function callback(
     // It sends the short-lived session id to the original Oqerun
     // window with postMessage, then closes itself.
 
-    const responseHeaders = new Headers({
-      "Cache-Control": "no-store"
-    });
-
-    responseHeaders.append(
-      "Set-Cookie",
-      serializeCookie(SESSION_COOKIE, sessionId, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None",
-        path: "/",
-        maxAge: SESSION_TTL
-      })
-    );
-
     const response = callbackHtml(
       "Google Drive is connected securely. You can close this window.",
       true,
