@@ -84,6 +84,15 @@ export class Explorer {
 
           <button
             class="explorer-btn explorer-nav-btn"
+            data-cloud
+            type="button"
+            title="Open connected Google Drive"
+          >
+            Cloud
+          </button>
+
+          <button
+            class="explorer-btn explorer-nav-btn"
             data-up
             type="button"
             ${isRoot ? "disabled" : ""}
@@ -271,6 +280,15 @@ export class Explorer {
         void this.refresh(
           "/home/user"
         );
+      }
+    );
+
+    win.querySelector<HTMLButtonElement>(
+      "[data-cloud]"
+    )?.addEventListener(
+      "click",
+      () => {
+        void this.refresh("/mnt/cloud/google-drive");
       }
     );
 
