@@ -2,6 +2,12 @@ import type {
   CloudProvider,
   CloudProviderStatus
 } from "./CloudProvider";
+import {
+  clearCloudSessionToken,
+  cloudAuthHeaders,
+  getCloudSessionToken,
+  setCloudSessionToken
+} from "./CloudSession";
 
 const CONNECT_WINDOW_NAME =
   "oqerun-google-drive-connect";
@@ -66,6 +72,7 @@ export class GoogleDriveProvider
     const response = await fetch(url, {
       method: "GET",
       credentials: "include",
+      headers: cloudAuthHeaders(),
       cache: "no-store"
     });
 
@@ -78,6 +85,18 @@ export class GoogleDriveProvider
     return (
       await response.json()
     ) as GoogleConnectionStatus;
+  }
+
+  setSessionToken(token: string): void {
+    setCloudSessionToken(token);
+  }
+
+  clearSessionToken(): void {
+    clearCloudSessionToken();
+  }
+
+  hasSessionToken(): boolean {
+    return !!getCloudSessionToken();
   }
 
   async disconnect(): Promise<void> {
@@ -94,6 +113,7 @@ export class GoogleDriveProvider
     const response = await fetch(url, {
       method: "GET",
       credentials: "include",
+      headers: cloudAuthHeaders(),
       cache: "no-store"
     });
 
