@@ -1,4 +1,5 @@
 import type { VfsEntry } from "./VfsTypes";
+import { Path } from "./Path";
 import { cloudAuthHeaders } from "../cloud/CloudSession";
 
 type DriveFile = {
@@ -14,7 +15,7 @@ type DriveListResponse = {
 };
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
-const CLOUD_ROOT = "/home/user";
+const CLOUD_ROOT = "/mnt/cloud/google-drive";
 const DEFAULT_CLOUD_API_URL = "https://oqerun-os.vruntimelabs.workers.dev";
 
 export class CloudVFS {
@@ -60,7 +61,8 @@ export class CloudVFS {
   }
 
   handles(path: string): boolean {
-    return path === CLOUD_ROOT || path.startsWith(`${CLOUD_ROOT}/`);
+    const normalized = Path.normalize(path);
+    return normalized === CLOUD_ROOT || normalized.startsWith(`${CLOUD_ROOT}/`);
   }
 
   async isConnected(): Promise<boolean> {
@@ -107,6 +109,7 @@ export class CloudVFS {
   }
 
   async listDetailed(path: string): Promise<VfsEntry[]> {
+    await this.requireConnection();
     const parentId = await this.resolveDirectoryId(path);
     const files: DriveFile[] = [];
     let pageToken: string | null = null;
@@ -142,7 +145,9 @@ export class CloudVFS {
   }
 
   async exists(path: string): Promise<boolean> {
-    if (path === CLOUD_ROOT) return true;
+    const normalized = Path.normalize(path);
+    if (normalized === CLOUD_ROOT) return this.isConnected();
+    if (!(await this.isConnected())) return false;
 
     try {
       await this.resolveDirectoryId(path);
@@ -166,6 +171,7 @@ export class CloudVFS {
   }
 
   async readFile(path: string): Promise<string> {
+    await this.requireConnection();
     const file = await this.resolveFile(path);
     const url = this.apiUrl(
       `/api/cloud/google/content?fileId=${encodeURIComponent(file.id!)}`
@@ -189,6 +195,7 @@ export class CloudVFS {
   }
 
   async writeFile(path: string, content: string): Promise<void> {
+    await this.requireConnection();
     const parentPath = this.dirname(path);
     const name = this.basename(path);
     const parentId = await this.resolveDirectoryId(parentPath);
@@ -207,6 +214,9 @@ export class CloudVFS {
   }
 
   async createDirectory(path: string): Promise<void> {
+    await this.requireConnection();
+    const normalized = Path.normalize(path);
+    if (normalized === CLOUD_ROOT) return;
     const parentPath = this.dirname(path);
     const name = this.basename(path);
     const parentId = await this.resolveDirectoryId(parentPath);
@@ -293,11 +303,11 @@ export class CloudVFS {
   }
 
   private async resolveDirectoryId(path: string): Promise<string> {
-    if (!this.handles(path)) {
-      throw new Error("Cloud paths must live under /home/user.");
-    }
+    const normalized = Path.normalize(path);
 
-    const normalized = this.normalize(path);
+    if (!this.handles(normalized)) {
+      throw new Error("Cloud paths must live under /mnt/cloud/google-drive.");
+    }
     const cached = this.directoryIds.get(normalized);
 
     if (cached) return cached;
@@ -401,6 +411,16 @@ export class CloudVFS {
     }
 
     return (await response.json()) as DriveListResponse;
+  }
+
+  private async requireConnection(): Promise<void> {
+    const connected = await this.isConnected();
+
+    if (!connected) {
+      throw new Error(
+        "Google Drive is not connected. Connect it from Computer → Connected Cloud."
+      );
+    }
   }
 
   private async readError(response: Response): Promise<string> {
