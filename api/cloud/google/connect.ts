@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { randomBytes } from "node:crypto";
 
 const STATE_COOKIE = "oqerun_oauth_state";
