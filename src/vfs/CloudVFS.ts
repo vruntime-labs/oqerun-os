@@ -14,10 +14,14 @@ type DriveListResponse = {
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const CLOUD_ROOT = "/home/user";
+const DEFAULT_CLOUD_API_URL = "https://oqerun-os.vercel.app";
 
 export class CloudVFS {
   private readonly apiBase =
-    (import.meta.env.VITE_OQERUN_CLOUD_API_URL || "").trim();
+    (
+      import.meta.env.VITE_OQERUN_CLOUD_API_URL ||
+      DEFAULT_CLOUD_API_URL
+    ).trim();
 
   private readonly directoryIds = new Map<string, string>([
     [CLOUD_ROOT, "root"]
