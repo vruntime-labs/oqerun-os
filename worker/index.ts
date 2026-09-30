@@ -29,7 +29,7 @@ export default {
 
     try {
       if (url.pathname === "/api/health" && request.method === "GET") {
-        return health(env);
+        return health(request, env);
       }
 
       if (
