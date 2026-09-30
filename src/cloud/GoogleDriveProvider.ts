@@ -196,9 +196,14 @@ export class GoogleDriveProvider
   private handleWindowMessage = (
     event: MessageEvent<CloudChannelMessage>
   ): void => {
-    // Only accept messages delivered to the Oqerun frontend origin.
-    // The session id itself is an unguessable bearer token.
-    if (event.origin !== window.location.origin) {
+    // The message is sent by the Cloudflare Worker callback page, so
+    // event.origin is the Worker origin, not the Vercel frontend origin.
+    // The targetOrigin in postMessage protects delivery to Oqerun, while
+    // this check protects Oqerun from accepting messages from other origins.
+    const expectedOrigin =
+      new URL(DEFAULT_CLOUD_API_URL).origin;
+
+    if (event.origin !== expectedOrigin) {
       return;
     }
 
