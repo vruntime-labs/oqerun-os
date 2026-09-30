@@ -109,7 +109,7 @@ export class CloudManager {
 
           <div class="cloud-provider-services">
             <span>Google OAuth</span>
-            <span>Redis sessions</span>
+            <span>Cloudflare KV sessions</span>
             <span>Encrypted tokens</span>
           </div>
 
