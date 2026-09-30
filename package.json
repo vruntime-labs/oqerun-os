@@ -6,6 +6,9 @@
   "description": "The Web, Reimagined as an Operating System.",
   "author": "VRuntime Labs",
   "license": "MIT",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
