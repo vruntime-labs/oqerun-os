@@ -1,0 +1,30 @@
+name: Deploy Oqerun Cloudflare Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "worker/**"
+      - "wrangler.jsonc"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/worker.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-worker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
