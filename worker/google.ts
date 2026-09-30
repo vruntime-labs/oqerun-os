@@ -528,13 +528,23 @@ export async function callback(
       { expirationTtl: SESSION_TTL }
     );
 
-    const response = callbackHtml(
-      "Google Drive is now securely connected to Oqerun.",
-      true,
-      sessionId
+    const frontendCallback = new URL(
+      "/oqerun-os/",
+      FRONTEND_ORIGIN
     );
 
-    response.headers.append(
+    // Keep the bearer session out of the HTTP query string. The fragment is
+    // never sent to the server and is consumed immediately by the popup.
+    frontendCallback.hash =
+      "oqerun-cloud-session=" +
+      encodeURIComponent(sessionId);
+
+    const responseHeaders = new Headers({
+      Location: frontendCallback.toString(),
+      "Cache-Control": "no-store"
+    });
+
+    responseHeaders.append(
       "Set-Cookie",
       serializeCookie(SESSION_COOKIE, sessionId, {
         httpOnly: true,
@@ -545,7 +555,10 @@ export async function callback(
       })
     );
 
-    return response;
+    return new Response(null, {
+      status: 302,
+      headers: responseHeaders
+    });
   } catch (error) {
     console.error(
       "[oqerun-cloud] Google callback failed:",
