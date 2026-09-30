@@ -11,8 +11,10 @@ import {
   status,
   type CloudEnv
 } from "./google";
+import * as onedrive from "./onedrive";
+import * as dropbox from "./dropbox";
 
-interface Env extends CloudEnv {
+interface Env extends CloudEnv, onedrive.OneDriveEnv, dropbox.DropboxEnv {
   ASSETS: Fetcher;
 }
 
