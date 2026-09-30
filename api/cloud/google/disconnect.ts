@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { getRedis } from "../../lib/redis";
 import { readCookie, serializeCookie } from "../../lib/cookies";
 import { corsHeaders, handleCorsOptions } from "../../lib/cors";
