@@ -194,6 +194,12 @@ export class CloudManager {
       event.data?.type ===
       "google-connected"
     ) {
+      if (typeof event.data?.sessionId === "string") {
+        this.provider.setSessionToken(
+          event.data.sessionId
+        );
+      }
+
       this.connectionMessage =
         "Google Drive is securely connected.";
       void this.refreshConnectionStatus();
@@ -215,6 +221,7 @@ export class CloudManager {
     try {
       if (action === "disconnect") {
         await this.provider.disconnect();
+        this.provider.clearSessionToken();
 
         this.connectionMessage =
           "The Google Drive session has been disconnected.";
