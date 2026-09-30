@@ -108,9 +108,25 @@ export class CloudVFS {
 
   async listDetailed(path: string): Promise<VfsEntry[]> {
     const parentId = await this.resolveDirectoryId(path);
-    const response = await this.listByParent(parentId);
+    const files: DriveFile[] = [];
+    let pageToken: string | null = null;
 
-    return (response.files ?? [])
+    do {
+      const response =
+        await this.listByParent(
+          parentId,
+          pageToken
+        );
+
+      files.push(
+        ...(response.files ?? [])
+      );
+
+      pageToken =
+        response.nextPageToken ?? null;
+    } while (pageToken);
+
+    return files
       .filter(file => !!file.name)
       .map(file => ({
         name: file.name as string,
@@ -353,10 +369,22 @@ export class CloudVFS {
   }
 
   private async listByParent(
-    parentId: string
+    parentId: string,
+    pageToken?: string | null
   ): Promise<DriveListResponse> {
+    const params = new URLSearchParams({
+      parentId
+    });
+
+    if (pageToken) {
+      params.set(
+        "pageToken",
+        pageToken
+      );
+    }
+
     const url = this.apiUrl(
-      `/api/cloud/google/files?parentId=${encodeURIComponent(parentId)}`
+      `/api/cloud/google/files?${params.toString()}`
     );
 
     if (!url) {
