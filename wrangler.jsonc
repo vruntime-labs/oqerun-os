@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "oqerun-os",
+  "compatibility_date": "2026-09-30",
+  "kv_namespaces": [
+    {
+      "binding": "OQERUN_KV",
+      "id": "3fbb686fd7cd4063a6dac32c7ecb94cb"
+    }
+  ]
+}
