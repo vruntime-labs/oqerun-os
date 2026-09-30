@@ -27,6 +27,51 @@ if (!app) {
 
 const base = import.meta.env.BASE_URL;
 
+function handleCloudOAuthHandoff(): void {
+  const prefix = "#oqerun-cloud-session=";
+
+  if (
+    !window.location.hash.startsWith(prefix) ||
+    !window.opener
+  ) {
+    return;
+  }
+
+  const sessionId = decodeURIComponent(
+    window.location.hash.slice(prefix.length)
+  );
+
+  if (!/^[A-Za-z0-9_-]+$/.test(sessionId)) {
+    return;
+  }
+
+  try {
+    window.opener.postMessage(
+      {
+        source: "oqerun-cloud",
+        type: "google-connected",
+        sessionId
+      },
+      "https://vruntime-labs.github.io"
+    );
+  } catch {
+    return;
+  }
+
+  window.history.replaceState(
+    null,
+    document.title,
+    window.location.pathname +
+      window.location.search
+  );
+
+  window.setTimeout(() => {
+    window.close();
+  }, 150);
+}
+
+handleCloudOAuthHandoff();
+
 
 /* =========================================================
    BOOT SCREEN
