@@ -6,10 +6,16 @@ on:
       - main
     paths:
       - "worker/**"
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "vite.config.ts"
+      - "tsconfig.json"
       - "wrangler.jsonc"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/worker.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,10 +23,23 @@ permissions:
 jobs:
   deploy-worker:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Oqerun
+        run: npm run build
 
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v4
