@@ -4,7 +4,6 @@ const SESSION_TTL = 60 * 60 * 24 * 30;
 const STATE_TTL = 600;
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 const FOLDER_MIME = "application/vnd.google-apps.folder";
-const FRONTEND_ORIGIN = "https://vruntime-labs.github.io";
 
 export interface CloudEnv {
   OQERUN_KV: KVNamespace;
@@ -32,7 +31,7 @@ type DriveFile = {
 
 function corsHeaders(): Headers {
   const headers = new Headers({
-    "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
+    "Access-Control-Allow-Origin": "https://vruntime-labs.github.io",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
@@ -220,7 +219,8 @@ function configurationMissing(env: CloudEnv): string[] {
 function callbackHtml(
   message: string,
   success: boolean,
-  sessionId?: string
+  sessionId?: string,
+  targetOrigin = "https://vruntime-labs.github.io"
 ): Response {
   const safeMessage = message
     .replaceAll("&", "&amp;")
@@ -238,7 +238,7 @@ function callbackHtml(
             type: "${success ? "google-connected" : "google-error"}",
             sessionId: ${success && sessionId ? JSON.stringify(sessionId) : "null"}
           },
-          "${FRONTEND_ORIGIN.replaceAll('"', "\\\"")}"
+          "${targetOrigin.replaceAll('"', "\\\"")}"
         );
       }
     } catch {}
@@ -528,10 +528,9 @@ export async function callback(
       { expirationTtl: SESSION_TTL }
     );
 
-    const frontendCallback = new URL(
-      "/oqerun-os/",
-      FRONTEND_ORIGIN
-    );
+    // Return to the exact Worker origin that started OAuth. This keeps the
+    // Oqerun UI, OAuth callback, API, and session on one origin.
+    const frontendCallback = new URL("/", request.url);
 
     // Keep the bearer session out of the HTTP query string. The fragment is
     // never sent to the server and is consumed immediately by the popup.
