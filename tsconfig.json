@@ -5,7 +5,8 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "outDir": "dist",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["src", "api"]
 }
