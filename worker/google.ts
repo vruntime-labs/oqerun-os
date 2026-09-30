@@ -4,7 +4,7 @@ const SESSION_TTL = 60 * 60 * 24 * 30;
 const STATE_TTL = 600;
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 const FOLDER_MIME = "application/vnd.google-apps.folder";
-const FRONTEND_ORIGIN = "https://vruntime-labs.github.io/oqerun-os";
+const FRONTEND_ORIGIN = "https://vruntime-labs.github.io";
 
 export interface CloudEnv {
   OQERUN_KV: KVNamespace;
