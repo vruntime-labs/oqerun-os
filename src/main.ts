@@ -28,34 +28,73 @@ if (!app) {
 const base = import.meta.env.BASE_URL;
 
 function handleCloudOAuthHandoff(): void {
-  const prefix = "#oqerun-cloud-session=";
+  const prefix =
+    "#oqerun-cloud-session=";
 
   if (
-    !window.location.hash.startsWith(prefix) ||
-    !window.opener
+    !window.location.hash.startsWith(prefix)
   ) {
     return;
   }
 
-  const sessionId = decodeURIComponent(
-    window.location.hash.slice(prefix.length)
-  );
+  const sessionId =
+    decodeURIComponent(
+      window.location.hash.slice(
+        prefix.length
+      )
+    );
 
-  if (!/^[A-Za-z0-9_-]+$/.test(sessionId)) {
+  if (
+    !/^[A-Za-z0-9_-]+$/.test(
+      sessionId
+    )
+  ) {
     return;
   }
 
+  const message = {
+    source: "oqerun-cloud",
+    type: "google-connected",
+    sessionId
+  };
+
+  /*
+   * The popup and the main Oqerun tab are on the
+   * same GitHub Pages origin after the Worker redirects
+   * back here. BroadcastChannel works even if the browser
+   * removes window.opener during the OAuth navigation.
+   */
   try {
-    window.opener.postMessage(
-      {
-        source: "oqerun-cloud",
-        type: "google-connected",
-        sessionId
-      },
-      "https://vruntime-labs.github.io"
-    );
+    if (
+      typeof BroadcastChannel !==
+      "undefined"
+    ) {
+      const channel =
+        new BroadcastChannel(
+          "oqerun-cloud"
+        );
+
+      channel.postMessage(
+        message
+      );
+
+      window.setTimeout(() => {
+        channel.close();
+      }, 1000);
+    }
   } catch {
-    return;
+    // postMessage below remains the fallback.
+  }
+
+  try {
+    if (window.opener) {
+      window.opener.postMessage(
+        message,
+        "https://vruntime-labs.github.io"
+      );
+    }
+  } catch {
+    // BroadcastChannel already handled the primary handoff.
   }
 
   window.history.replaceState(
@@ -67,7 +106,7 @@ function handleCloudOAuthHandoff(): void {
 
   window.setTimeout(() => {
     window.close();
-  }, 150);
+  }, 250);
 }
 
 handleCloudOAuthHandoff();
