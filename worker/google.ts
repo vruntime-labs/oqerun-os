@@ -59,10 +59,10 @@ export function optionsResponse(request: Request): Response {
 }
 
 function json(
+  request: Request,
   data: unknown,
   status = 200,
-  extra?: HeadersInit,
-  request?: Request
+  extra?: HeadersInit
 ): Response {
   const headers = corsHeaders(request);
   headers.set("Content-Type", "application/json; charset=utf-8");
@@ -403,6 +403,7 @@ async function getAccessToken(
 }
 
 export async function health(
+  request: Request,
   env: CloudEnv
 ): Promise<Response> {
   const key = "system:health";
@@ -414,7 +415,7 @@ export async function health(
 
   const stored = await env.OQERUN_KV.get(key);
 
-  return json({
+  return json(request, {
     ok: true,
     service: "oqerun-os",
     runtime: "cloudflare-workers",
@@ -429,7 +430,7 @@ export async function connect(
   const missing = configurationMissing(env);
 
   if (missing.length > 0) {
-    return json(
+    return json(request, 
       {
         ok: false,
         error: "Google Drive is not configured on the Cloudflare Worker.",
@@ -618,14 +619,14 @@ export async function status(
   try {
     const session = await getSession(request, env);
 
-    return json(
+    return json(request, 
       session
         ? { connected: true, provider: "google-drive" }
         : { connected: false }
     );
   } catch (error) {
     console.error("[oqerun-cloud] Google status failed:", error);
-    return json(
+    return json(request, 
       {
         connected: false,
         error: "Cloud session unavailable."
@@ -686,7 +687,7 @@ export async function files(
     const token = await getAccessToken(request, env);
 
     if (!token) {
-      return json(
+      return json(request, 
         { ok: false, error: "Google Drive is not connected." },
         401
       );
@@ -738,7 +739,7 @@ export async function files(
         data.error?.message ?? "unknown error"
       );
 
-      return json(
+      return json(request, 
         {
           ok: false,
           error: "Google Drive could not return this folder."
@@ -747,7 +748,7 @@ export async function files(
       );
     }
 
-    return json({
+    return json(request, {
       ok: true,
       provider: "google-drive",
       files: data.files ?? [],
@@ -756,7 +757,7 @@ export async function files(
   } catch (error) {
     console.error("[oqerun-cloud] Drive files failed:", error);
 
-    return json(
+    return json(request, 
       {
         ok: false,
         error: error instanceof Error
@@ -776,7 +777,7 @@ export async function createFolder(
     const token = await getAccessToken(request, env);
 
     if (!token) {
-      return json(
+      return json(request, 
         { ok: false, error: "Google Drive is not connected." },
         401
       );
@@ -793,14 +794,14 @@ export async function createFolder(
     const mimeType = (body.mimeType ?? FOLDER_MIME).trim();
 
     if (!name || name.length > 255) {
-      return json(
+      return json(request, 
         { ok: false, error: "A valid folder name is required." },
         400
       );
     }
 
     if (!validId(parentId) || mimeType !== FOLDER_MIME) {
-      return json(
+      return json(request, 
         {
           ok: false,
           error: "Only Google Drive folders can be created by this endpoint."
@@ -830,7 +831,7 @@ export async function createFolder(
     if (!response.ok) {
       console.error("[oqerun-cloud] Drive folder create failed:", data);
 
-      return json(
+      return json(request, 
         {
           ok: false,
           error: "Google Drive could not create the folder."
@@ -839,7 +840,7 @@ export async function createFolder(
       );
     }
 
-    return json({
+    return json(request, {
       ok: true,
       provider: "google-drive",
       file: data
@@ -847,7 +848,7 @@ export async function createFolder(
   } catch (error) {
     console.error("[oqerun-cloud] Drive folder create failed:", error);
 
-    return json(
+    return json(request, 
       {
         ok: false,
         error: error instanceof Error
@@ -991,7 +992,7 @@ export async function contentPost(
     const token = await getAccessToken(request, env);
 
     if (!token) {
-      return json(
+      return json(request, 
         { ok: false, error: "Google Drive is not connected." },
         401
       );
@@ -1004,21 +1005,21 @@ export async function contentPost(
     const fileId = String(form.get("fileId") ?? "").trim();
 
     if (!(file instanceof File) || !name) {
-      return json(
+      return json(request, 
         { ok: false, error: "A file and file name are required." },
         400
       );
     }
 
     if (!validId(parentId) || (fileId && !validId(fileId))) {
-      return json(
+      return json(request, 
         { ok: false, error: "Invalid Google Drive identifier." },
         400
       );
     }
 
     if (file.size > MAX_FILE_BYTES) {
-      return json(
+      return json(request, 
         {
           ok: false,
           error: "This build limits cloud uploads to 4 MB. Larger resumable transfers will be added separately."
@@ -1053,7 +1054,7 @@ export async function contentPost(
           await createResponse.text()
         );
 
-        return json(
+        return json(request, 
           { ok: false, error: "Google Drive could not create the file." },
           502
         );
@@ -1085,7 +1086,7 @@ export async function contentPost(
         await uploadResponse.text()
       );
 
-      return json(
+      return json(request, 
         {
           ok: false,
           error: "Google Drive could not store the file content."
@@ -1096,7 +1097,7 @@ export async function contentPost(
 
     const metadata = await uploadResponse.json();
 
-    return json({
+    return json(request, {
       ok: true,
       provider: "google-drive",
       file: metadata
@@ -1104,7 +1105,7 @@ export async function contentPost(
   } catch (error) {
     console.error("[oqerun-cloud] Google content POST failed:", error);
 
-    return json(
+    return json(request, 
       {
         ok: false,
         error: error instanceof Error
