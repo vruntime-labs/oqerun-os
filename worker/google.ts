@@ -132,18 +132,43 @@ function base64UrlToBytes(value: string): Uint8Array {
   return bytes;
 }
 
-async function getEncryptionKey(env: CloudEnv): Promise<CryptoKey> {
-  const encoded = (env.OQERUN_TOKEN_ENCRYPTION_KEY ?? "").trim();
+function encryptionKeyBytes(value: string): Uint8Array {
+  const encoded = value.trim();
 
   if (!encoded) {
     throw new Error("OQERUN_TOKEN_ENCRYPTION_KEY is not configured.");
   }
 
+  // Accept the two common 32-byte formats used for Cloudflare secrets:
+  // 64-character hexadecimal or base64/base64url.
+  if (/^[0-9a-fA-F]{64}$/.test(encoded)) {
+    const bytes = new Uint8Array(32);
+
+    for (let index = 0; index < 32; index += 1) {
+      bytes[index] = Number.parseInt(
+        encoded.slice(index * 2, index * 2 + 2),
+        16
+      );
+    }
+
+    return bytes;
+  }
+
   const bytes = base64UrlToBytes(encoded);
 
   if (bytes.length !== 32) {
-    throw new Error("OQERUN_TOKEN_ENCRYPTION_KEY must be a base64-encoded 32-byte key.");
+    throw new Error(
+      "OQERUN_TOKEN_ENCRYPTION_KEY must decode to exactly 32 bytes. Use a 64-character hex key or a 32-byte base64 key."
+    );
   }
+
+  return bytes;
+}
+
+async function getEncryptionKey(env: CloudEnv): Promise<CryptoKey> {
+  const bytes = encryptionKeyBytes(
+    env.OQERUN_TOKEN_ENCRYPTION_KEY ?? ""
+  );
 
   return crypto.subtle.importKey(
     "raw",
@@ -557,8 +582,19 @@ export async function callback(
       error
     );
 
+    const detail = error instanceof Error
+      ? error.message
+      : "unknown backend error";
+
+    // Keep secrets and OAuth tokens out of the response, but expose the
+    // configuration/processing stage so a failed connection is diagnosable.
+    const safeDetail = detail
+      .replaceAll("GOOGLE_CLIENT_SECRET", "Google client configuration")
+      .replaceAll("OQERUN_TOKEN_ENCRYPTION_KEY", "cloud encryption key")
+      .slice(0, 180);
+
     return callbackHtml(
-      "The secure Google Drive connection could not be completed. Please try again.",
+      `The secure Google Drive connection could not be completed. Backend detail: ${safeDetail}`,
       false
     );
   }
