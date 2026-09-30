@@ -24,7 +24,7 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
-      return optionsResponse();
+      return optionsResponse(request);
     }
 
     try {
