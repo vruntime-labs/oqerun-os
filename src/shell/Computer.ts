@@ -59,11 +59,6 @@ export class Computer {
       if (!win) return;
 
       win.querySelector<HTMLElement>('[data-action="oqdrive"]')
-        ?.addEventListener("dblclick", () => {
-          void new Explorer(this.kernel, this.wm).open("/home/user");
-        });
-
-      win.querySelector<HTMLElement>('[data-action="oqdrive"]')
         ?.addEventListener("click", () => {
           void new Explorer(this.kernel, this.wm).open("/home/user");
         });
@@ -71,11 +66,6 @@ export class Computer {
       win.querySelector<HTMLElement>('[data-action="cloud"]')
         ?.addEventListener("click", () => {
           new CloudManager(this.kernel, this.wm).open();
-        });
-
-      win.querySelector<HTMLElement>('[data-action="real"]')
-        ?.addEventListener("dblclick", () => {
-          void this.openLocalComputer();
         });
 
       win.querySelector<HTMLElement>('[data-action="real"]')
