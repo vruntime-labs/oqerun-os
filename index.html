@@ -1,52 +1,67 @@
 <!doctype html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8">
 
-  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <meta name="theme-color" content="#07112c">
+  <meta name="application-name" content="Oqerun OS">
+  <meta name="author" content="VRuntime Labs">
+  <meta name="description" content="Oqerun OS is an open-source, browser-native operating system built with TypeScript, HTML, CSS, WebAssembly, and Vite.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 
-  <meta
-    name="theme-color"
-    content="#07112c"
-  />
+  <link rel="canonical" href="https://vruntime-labs.github.io/oqerun-os/">
 
-  <meta
-    name="application-name"
-    content="Oqerun OS"
-  />
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Oqerun OS">
+  <meta property="og:title" content="Oqerun OS — The Web, Reimagined as an Operating System">
+  <meta property="og:description" content="An open-source, browser-native operating system built with TypeScript, HTML, CSS, WebAssembly, and Vite.">
+  <meta property="og:url" content="https://vruntime-labs.github.io/oqerun-os/">
+  <meta property="og:image" content="https://vruntime-labs.github.io/oqerun-os/branding/icon-flat-1024.png">
 
-  <meta
-    name="description"
-    content="Oqerun OS — A lightweight browser-based operating system."
-  />
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Oqerun OS — The Web, Reimagined as an Operating System">
+  <meta name="twitter:description" content="An open-source, browser-native operating system built with TypeScript, HTML, CSS, WebAssembly, and Vite.">
+  <meta name="twitter:image" content="https://vruntime-labs.github.io/oqerun-os/branding/icon-flat-1024.png">
 
-  <!-- Oqerun OS application icon -->
-  <link
-    rel="icon"
-    type="image/png"
-    href="%BASE_URL%branding/icon-flat-1024.png"
-  />
+  <link rel="icon" type="image/png" href="%BASE_URL%branding/icon-flat-1024.png">
+  <link rel="manifest" href="%BASE_URL%manifest.json">
 
-  <title>Oqerun OS</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Oqerun OS",
+    "applicationCategory": "OperatingSystem",
+    "operatingSystem": "Web Browser",
+    "description": "An open-source, browser-native operating system built with TypeScript, HTML, CSS, WebAssembly, and Vite.",
+    "url": "https://vruntime-labs.github.io/oqerun-os/",
+    "codeRepository": "https://github.com/vruntime-labs/oqerun-os",
+    "license": "https://opensource.org/license/mit/",
+    "author": {
+      "@type": "Organization",
+      "name": "VRuntime Labs",
+      "url": "https://github.com/vruntime-labs"
+    }
+  }
+  </script>
 
+  <title>Oqerun OS — The Web, Reimagined as an Operating System</title>
 </head>
 
 <body>
-
-  <!-- Oqerun OS mounts the desktop here -->
   <div id="app"></div>
 
-  <!-- Vite application entry -->
-  <script
-    type="module"
-    src="/src/main.ts"
-  ></script>
+  <noscript>
+    <main>
+      <h1>Oqerun OS</h1>
+      <p>The Web, Reimagined as an Operating System.</p>
+      <p>Oqerun OS is an open-source, browser-native operating system built with TypeScript, HTML, CSS, WebAssembly, and Vite.</p>
+      <p><a href="https://github.com/vruntime-labs/oqerun-os">View Oqerun OS on GitHub</a></p>
+    </main>
+  </noscript>
 
+  <script type="module" src="/src/main.ts"></script>
 </body>
-
 </html>
