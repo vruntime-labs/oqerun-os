@@ -12,6 +12,7 @@ type DriveListResponse = {
   ok?: boolean;
   files?: DriveFile[];
   error?: string;
+  nextPageToken?: string | null;
 };
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
