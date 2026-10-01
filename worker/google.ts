@@ -190,7 +190,7 @@ async function getEncryptionKey(env: CloudEnv): Promise<CryptoKey> {
   );
 }
 
-async export function encryptSecret(
+export async function encryptSecret(
   value: string,
   env: CloudEnv
 ): Promise<string> {
@@ -210,7 +210,7 @@ async export function encryptSecret(
   ].join(".");
 }
 
-async export function decryptSecret(
+export async function decryptSecret(
   payload: string,
   env: CloudEnv
 ): Promise<string> {
