@@ -36,34 +36,16 @@ export class Computer {
               <p>Open Oqerun's local virtual drive.</p>
             </button>
 
-            <button class="computer-card" data-action="google-drive" type="button">
+            <button class="computer-card computer-cloud-card" data-action="cloud" type="button">
               <div class="computer-icon">☁️</div>
-              <h3>Google Drive</h3>
-              <p>Browse the files and folders in your connected Google Drive.</p>
-            </button>
-
-            <button class="computer-card" data-action="onedrive" type="button">
-              <div class="computer-icon">☁️</div>
-              <h3>OneDrive</h3>
-              <p>Connect and browse Microsoft OneDrive.</p>
-            </button>
-
-            <button class="computer-card" data-action="dropbox" type="button">
-              <div class="computer-icon">☁️</div>
-              <h3>Dropbox</h3>
-              <p>Connect and browse Dropbox.</p>
+              <h3>Cloud Storage</h3>
+              <p>Your Virtual SSD</p>
             </button>
 
             <button class="computer-card" data-action="real" type="button">
               <div class="computer-icon">💻</div>
               <h3>This Computer</h3>
               <p>Browse a folder from your device with explicit permission.</p>
-            </button>
-
-            <button class="computer-card" data-action="cloud" type="button">
-              <div class="computer-icon">☁️</div>
-              <h3>Connected Cloud</h3>
-              <p>Connect Google Drive now; more providers can use the same storage layer later.</p>
             </button>
 
           </div>
@@ -81,26 +63,12 @@ export class Computer {
           void new Explorer(this.kernel, this.wm).open("/home/user");
         });
 
-      win.querySelector<HTMLElement>('[data-action="google-drive"]')
-        ?.addEventListener("dblclick", () => {
-          void new Explorer(this.kernel, this.wm).open(
-            "/mnt/cloud/google-drive"
-          );
-        });
-
-      win.querySelector<HTMLElement>('[data-action="google-drive"]')
+      win.querySelector<HTMLElement>('[data-action="oqdrive"]')
         ?.addEventListener("click", () => {
-          void new Explorer(this.kernel, this.wm).open(
-            "/mnt/cloud/google-drive"
-          );
+          void new Explorer(this.kernel, this.wm).open("/home/user");
         });
 
-      win.querySelector<HTMLElement>('[data-action="onedrive"]')
-        ?.addEventListener("click", () => {
-          new CloudManager(this.kernel, this.wm).open();
-        });
-
-      win.querySelector<HTMLElement>('[data-action="dropbox"]')
+      win.querySelector<HTMLElement>('[data-action="cloud"]')
         ?.addEventListener("click", () => {
           new CloudManager(this.kernel, this.wm).open();
         });
@@ -110,12 +78,9 @@ export class Computer {
           void this.openLocalComputer();
         });
 
-      win.querySelector<HTMLElement>('[data-action="cloud"]')
+      win.querySelector<HTMLElement>('[data-action="real"]')
         ?.addEventListener("click", () => {
-          new CloudManager(
-            this.kernel,
-            this.wm
-          ).open();
+          void this.openLocalComputer();
         });
     });
   }
