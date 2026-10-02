@@ -46,6 +46,7 @@ export class Window {
   private resizeStartHeight = 0;
 
   private isMaximized = false;
+  private snapMode: "left" | "right" | null = null;
 
   private previous = {
     x: 0,
@@ -220,6 +221,10 @@ export class Window {
         }
 
         this.config.onFocus?.();
+
+        if (this.snapMode) {
+          this.restore();
+        }
 
         const rect =
           this.element.getBoundingClientRect();
@@ -398,6 +403,7 @@ export class Window {
   };
 
   private stopDrag = (): void => {
+    if (!this.isDragging) return;
 
     this.isDragging = false;
 
@@ -410,7 +416,79 @@ export class Window {
       "mouseup",
       this.stopDrag
     );
+
+    this.applyEdgeSnap();
   };
+
+  private applyEdgeSnap(): void {
+    const desktop =
+      document.querySelector(
+        ".desktop-area"
+      ) as HTMLElement | null;
+
+    if (!desktop || this.isMaximized) return;
+
+    const rect = this.element.getBoundingClientRect();
+    const desktopRect = desktop.getBoundingClientRect();
+    const edge = 18;
+
+    const relativeLeft = rect.left - desktopRect.left;
+    const relativeTop = rect.top - desktopRect.top;
+    const nearLeft = relativeLeft <= edge;
+    const nearRight =
+      desktopRect.right - rect.right <= edge;
+    const nearTop = relativeTop <= edge;
+
+    if (nearTop && !nearLeft && !nearRight) {
+      this.maximize();
+      return;
+    }
+
+    if (nearLeft) {
+      this.snap("left");
+      return;
+    }
+
+    if (nearRight) {
+      this.snap("right");
+    }
+  }
+
+  snap(
+    mode: "left" | "right"
+  ): void {
+    if (this.isMaximized) {
+      this.restore();
+    }
+
+    if (!this.snapMode) {
+      this.previous = {
+        x: this.element.offsetLeft,
+        y: this.element.offsetTop,
+        width: this.element.offsetWidth,
+        height: this.element.offsetHeight
+      };
+    }
+
+    this.snapMode = mode;
+
+    const desktop =
+      document.querySelector(
+        ".desktop-area"
+      ) as HTMLElement | null;
+
+    if (!desktop) return;
+
+    const width = desktop.clientWidth / 2;
+
+    this.element.style.top = "0px";
+    this.element.style.height = "100%";
+    this.element.style.width = `${width}px`;
+    this.element.style.left =
+      mode === "left"
+        ? "0px"
+        : `${width}px`;
+  }
 
   private startResize(
     direction: ResizeDirection,
@@ -698,7 +776,7 @@ export class Window {
 
   restore(): void {
 
-    if (!this.isMaximized) return;
+    if (!this.isMaximized && !this.snapMode) return;
 
     this.element.style.left =
       `${this.previous.x}px`;
@@ -713,6 +791,7 @@ export class Window {
       `${this.previous.height}px`;
 
     this.isMaximized = false;
+    this.snapMode = null;
 
     const button =
       this.element.querySelector(
@@ -722,6 +801,10 @@ export class Window {
     if (button) {
       button.textContent = "□";
     }
+  }
+
+  isMaximizedWindow(): boolean {
+    return this.isMaximized;
   }
 
   setActive(
