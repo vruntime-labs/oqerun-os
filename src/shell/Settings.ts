@@ -354,11 +354,11 @@ export class Settings {
       const file = importFile.files?.[0];
       if (!file) return;
       try {
-        const imported = JSON.parse(await file.text()) as Partial<Preferences> & { desktopPositions?: string };
+        const imported = JSON.parse(await file.text()) as Partial<Preferences> & { preferences?: Partial<Preferences>; desktopPositions?: string };
         const next: Preferences = {
-          theme: imported.theme === "dark" || imported.theme === "light" ? imported.theme : "system",
-          accent: typeof imported.accent === "string" ? imported.accent : "#00D4FF",
-          reduceMotion: imported.reduceMotion === true
+          theme: imported.preferences?.theme === "dark" || imported.preferences?.theme === "light" ? imported.preferences.theme : (imported.theme === "dark" || imported.theme === "light" ? imported.theme : "system"),
+          accent: typeof imported.preferences?.accent === "string" ? imported.preferences.accent : (typeof imported.accent === "string" ? imported.accent : "#00D4FF"),
+          reduceMotion: imported.preferences?.reduceMotion === true || imported.reduceMotion === true
         };
         await this.savePreferences(next);
         this.applyPreferences(next);
