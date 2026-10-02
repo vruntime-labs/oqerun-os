@@ -4048,3 +4048,329 @@ input:focus-visible,
 #app.theme-light .oqerun-context-menu button:hover{
   background:rgba(10,18,42,.06);
 }
+
+
+/* =========================================================
+   OQERUN ESSENTIAL TASKBAR + START MENU
+   ========================================================= */
+
+.start-menu-quick-row{
+  display:grid;
+  grid-template-columns:1.15fr 1fr;
+  gap:12px;
+  margin-bottom:4px;
+}
+
+.start-menu-quick-section{
+  min-width:0;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  background:rgba(0,0,0,.10);
+}
+
+.start-menu-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+  color:var(--text);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.start-menu-section-head span:last-child{
+  color:var(--muted);
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+.start-menu-pinned,
+.start-menu-recent{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  overflow:hidden;
+}
+
+.start-quick-empty{
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.35;
+}
+
+.start-quick-app,
+.start-recent-app{
+  flex:0 0 auto;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:transparent;
+  cursor:pointer;
+  color:var(--text);
+}
+
+.start-quick-app{
+  width:46px;
+  height:46px;
+  padding:5px;
+}
+
+.start-quick-app img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+.start-recent-app{
+  min-width:78px;
+  max-width:105px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 7px;
+  text-align:left;
+}
+
+.start-recent-app img{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  object-fit:contain;
+}
+
+.start-recent-app span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:9px;
+  font-weight:700;
+}
+
+.start-quick-app:hover,
+.start-recent-app:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.08);
+}
+
+.start-quick-app[hidden],
+.start-recent-app[hidden]{
+  display:none;
+}
+
+.start-menu-footer{
+  min-height:42px;
+  padding:9px 3px 0;
+}
+
+.start-footer-action,
+.start-footer-icon{
+  border:0;
+  background:transparent;
+  color:var(--text);
+  cursor:pointer;
+}
+
+.start-footer-action{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:4px 7px 4px 3px;
+  border-radius:10px;
+  font-size:10px;
+  font-weight:700;
+}
+
+.start-footer-action:hover,
+.start-footer-icon:hover{
+  background:rgba(255,255,255,.08);
+}
+
+.start-footer-avatar{
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:linear-gradient(145deg,#36b9ff,#1774ed);
+  color:white;
+  font-size:10px;
+  font-weight:800;
+}
+
+.start-footer-actions{
+  display:flex;
+  gap:3px;
+}
+
+.start-footer-icon{
+  width:32px;
+  height:32px;
+  border-radius:9px;
+  font-size:15px;
+}
+
+.taskbar-tool,
+.taskbar-tray-button{
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--text);
+  cursor:pointer;
+  transition:background .16s ease, transform .16s ease, border-color .16s ease;
+}
+
+.taskbar-tool{
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  border-radius:13px;
+  font-size:20px;
+}
+
+.taskbar-tray-button{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  border-radius:9px;
+  font-size:15px;
+  opacity:.9;
+}
+
+.taskbar-tool:hover,
+.taskbar-tray-button:hover{
+  background:rgba(255,255,255,.09);
+  border-color:rgba(255,255,255,.08);
+  transform:translateY(-2px);
+}
+
+.taskbar-date{
+  color:var(--muted);
+  font-size:10px;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.desktop.taskbar-top .taskbar{
+  top:10px;
+  bottom:auto;
+}
+
+.desktop.taskbar-top .start-menu{
+  top:82px;
+  bottom:auto;
+}
+
+.desktop.taskbar-auto-hide .taskbar{
+  transform:translateY(calc(100% + 12px));
+  opacity:.25;
+  transition:transform .2s ease, opacity .2s ease;
+}
+
+.desktop.taskbar-auto-hide .taskbar:hover,
+.desktop.taskbar-auto-hide .taskbar:focus-within{
+  transform:translateY(0);
+  opacity:1;
+}
+
+.desktop.taskbar-top.taskbar-auto-hide .taskbar{
+  transform:translateY(calc(-100% - 12px));
+}
+
+.desktop.taskbar-top.taskbar-auto-hide .taskbar:hover,
+.desktop.taskbar-top.taskbar-auto-hide .taskbar:focus-within{
+  transform:translateY(0);
+}
+
+.desktop.taskbar-compact .taskbar{
+  height:52px;
+  padding:4px 7px;
+}
+
+.desktop.taskbar-compact .taskbar-dock-app,
+.desktop.taskbar-compact .taskbar-app{
+  width:38px;
+  height:38px;
+  flex-basis:38px;
+}
+
+.desktop.taskbar-compact .taskbar-dock-app img,
+.desktop.taskbar-compact .taskbar-icon{
+  width:29px;
+  height:29px;
+}
+
+.desktop.taskbar-compact .start-btn{
+  width:40px;
+  height:40px;
+  flex-basis:40px;
+}
+
+.oqerun-sleep::after,
+.oqerun-locked::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:20000;
+  display:grid;
+  place-items:center;
+  background:rgba(3,8,20,.86);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+}
+
+.oqerun-sleep::before,
+.oqerun-locked::before{
+  position:absolute;
+  z-index:20001;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  color:#eef4ff;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:.02em;
+  pointer-events:none;
+}
+
+.oqerun-sleep::before{
+  content:"Oqerun is sleeping";
+}
+
+.oqerun-locked::before{
+  content:"Session locked • Reload Oqerun to unlock";
+}
+
+#app.theme-light .taskbar-tool:hover,
+#app.theme-light .taskbar-tray-button:hover,
+#app.theme-light .start-footer-action:hover,
+#app.theme-light .start-footer-icon:hover{
+  background:rgba(10,18,42,.06);
+}
+
+@media (max-width:700px){
+  .start-menu-quick-row{
+    grid-template-columns:1fr;
+  }
+
+  .start-menu-recent-section{
+    display:none;
+  }
+
+  .taskbar-tool{
+    width:36px;
+    height:36px;
+    flex-basis:36px;
+  }
+
+  .taskbar-date,
+  .taskbar-tray-button{
+    display:none;
+  }
+}
