@@ -89,63 +89,7 @@ export class Desktop {
             <h3>Oqerun</h3>
           </div>
 
-          <button
-            id="open-store"
-            class="start-menu-item"
-            type="button"
-          >
-            <img
-              class="start-icon"
-              src="${base}icons/oqerun-store.svg"
-              alt=""
-              draggable="false"
-            />
-            <span>Oqerun Store</span>
-          </button>
-
-          <button
-            id="open-terminal"
-            class="start-menu-item"
-            type="button"
-          >
-            <img
-              class="start-icon"
-              src="${base}icons/terminal.png"
-              alt=""
-              draggable="false"
-            />
-            <span>Terminal</span>
-          </button>
-
-          <button
-            id="open-explorer"
-            class="start-menu-item"
-            type="button"
-          >
-            <img
-              class="start-icon"
-              src="${base}icons/explorer.png"
-              alt=""
-              draggable="false"
-            />
-            <span>Explorer</span>
-          </button>
-
-          <div id="installed-apps"></div>
-
-          <button
-            id="open-settings"
-            class="start-menu-item"
-            type="button"
-          >
-            <img
-              class="start-icon"
-              src="${base}icons/settings.png"
-              alt=""
-              draggable="false"
-            />
-            <span>Settings</span>
-          </button>
+          <div id="app-list"></div>
         </div>
 
         <footer class="taskbar">
@@ -177,18 +121,13 @@ export class Desktop {
 
     this.bindEvents();
 
-    // Populate the Start menu from the persistent application registry.
-    void this.renderInstalledApps();
+    void this.renderAppList();
 
     this.startClock();
   }
 
   private hideStartMenu(): void {
-    const menu = document.getElementById("start-menu");
-
-    if (menu) {
-      menu.style.display = "none";
-    }
+    this.startMenu.close();
   }
 
   private bindEvents(): void {
@@ -215,13 +154,6 @@ export class Desktop {
       });
 
     document
-      .getElementById("open-store")
-      ?.addEventListener("click", () => {
-        this.hideStartMenu();
-        this.store.open();
-      });
-
-    document
       .getElementById("store-icon")
       ?.addEventListener("dblclick", () => {
         this.store.open();
@@ -236,30 +168,8 @@ export class Desktop {
         }
       });
 
-    document
-      .getElementById("open-terminal")
-      ?.addEventListener("click", () => {
-        this.hideStartMenu();
-        this.terminal.open();
-      });
-
-    document
-      .getElementById("open-explorer")
-      ?.addEventListener("click", () => {
-        this.hideStartMenu();
-        this.explorer.open("/home/user");
-      });
-
-    document
-      .getElementById("open-settings")
-      ?.addEventListener("click", () => {
-        this.hideStartMenu();
-        this.settings.open();
-      });
-
-    // Refresh the Start menu immediately after the Store installs an app.
     window.addEventListener("oqerun-app-installed", () => {
-      void this.renderInstalledApps();
+      void this.renderAppList();
     });
 
     document.addEventListener("click", (event) => {
@@ -274,18 +184,85 @@ export class Desktop {
     });
   }
 
-  private async renderInstalledApps(): Promise<void> {
-    const container = document.getElementById("installed-apps");
+  private async renderAppList(): Promise<void> {
+    const container = document.getElementById("app-list");
     if (!container) return;
 
-    const apps = await this.kernel.applications.list();
-    container.innerHTML = "";
+    const installed = await this.kernel.applications.list();
 
-    if (apps.length === 0) return;
+    type StartApp = {
+      id: string;
+      name: string;
+      icon: string;
+      iconUrl?: string;
+      open: () => void;
+    };
+
+    const apps: StartApp[] = [
+      {
+        id: "computer",
+        name: "Computer",
+        icon: "🖥️",
+        iconUrl: `${import.meta.env.BASE_URL}icons/computer.png`,
+        open: () => this.computer.open()
+      },
+      {
+        id: "explorer",
+        name: "Explorer",
+        icon: "📁",
+        iconUrl: `${import.meta.env.BASE_URL}icons/explorer.png`,
+        open: () => this.explorer.open("/home/user")
+      },
+      {
+        id: "oqerun-store",
+        name: "Oqerun Store",
+        icon: "▣",
+        iconUrl: `${import.meta.env.BASE_URL}icons/oqerun-store.svg`,
+        open: () => this.store.open()
+      },
+      {
+        id: "settings",
+        name: "Settings",
+        icon: "⚙",
+        iconUrl: `${import.meta.env.BASE_URL}icons/settings.png`,
+        open: () => this.settings.open()
+      },
+      {
+        id: "terminal",
+        name: "Terminal",
+        icon: ">_",
+        iconUrl: `${import.meta.env.BASE_URL}icons/terminal.png`,
+        open: () => this.terminal.open()
+      }
+    ];
+
+    for (const app of installed) {
+      const windowId =
+        "installed-app-" +
+        app.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+
+      apps.push({
+        id: app.id,
+        name: app.name,
+        icon: "▣",
+        iconUrl: app.iconUrl,
+        open: () => this.openInstalledApp(app, windowId)
+      });
+    }
+
+    apps.sort((a, b) =>
+      a.name.localeCompare(
+        b.name,
+        undefined,
+        { sensitivity: "base" }
+      )
+    );
+
+    container.innerHTML = "";
 
     const label = document.createElement("div");
     label.className = "start-menu-section-label";
-    label.textContent = "Installed Apps";
+    label.textContent = "All Apps";
     container.appendChild(label);
 
     for (const app of apps) {
@@ -294,53 +271,77 @@ export class Desktop {
       button.className = "start-menu-item";
       button.title = app.name;
 
-      const icon = document.createElement("span");
-      icon.className = "start-icon";
-      icon.textContent = "▣";
+      if (app.iconUrl) {
+        const icon = document.createElement("img");
+        icon.className = "start-icon";
+        icon.src = app.iconUrl;
+        icon.alt = "";
+        icon.draggable = false;
+        icon.onerror = () => {
+          icon.remove();
+          const fallback = document.createElement("span");
+          fallback.className = "start-icon start-icon-fallback";
+          fallback.textContent = app.icon;
+          button.prepend(fallback);
+        };
+        button.appendChild(icon);
+      } else {
+        const icon = document.createElement("span");
+        icon.className = "start-icon start-icon-fallback";
+        icon.textContent = app.icon;
+        button.appendChild(icon);
+      }
 
       const name = document.createElement("span");
       name.textContent = app.name;
-
-      button.append(icon, name);
+      button.appendChild(name);
 
       button.addEventListener("click", () => {
         this.hideStartMenu();
-
-        if (!app.sourceUrl) {
-          this.kernel.notify.info(
-            app.name,
-            "This application does not have a launch URL yet."
-          );
-          return;
-        }
-
-        const windowId =
-          "installed-app-" +
-          app.id.replace(/[^a-zA-Z0-9_-]/g, "-");
-
-        this.wm.open({
-          id: windowId,
-          title: app.name,
-          width: 980,
-          height: 640,
-          x: 60,
-          y: 35,
-          content: `
-            <div class="installed-app-shell">
-              <iframe
-                class="installed-app-frame"
-                src="${this.escapeAttribute(app.sourceUrl)}"
-                title="${this.escapeAttribute(app.name)}"
-                loading="eager"
-                referrerpolicy="strict-origin-when-cross-origin"
-              ></iframe>
-            </div>
-          `
-        });
+        app.open();
       });
 
       container.appendChild(button);
     }
+  }
+
+  private openInstalledApp(
+    app: {
+      id: string;
+      name: string;
+      sourceUrl?: string;
+      iconUrl?: string;
+    },
+    windowId: string
+  ): void {
+    if (!app.sourceUrl) {
+      this.kernel.notify.info(
+        app.name,
+        "This application does not have a launch URL yet."
+      );
+      return;
+    }
+
+    this.wm.open({
+      id: windowId,
+      title: app.name,
+      iconUrl: app.iconUrl,
+      width: 980,
+      height: 640,
+      x: 60,
+      y: 35,
+      content: `
+        <div class="installed-app-shell">
+          <iframe
+            class="installed-app-frame"
+            src="${this.escapeAttribute(app.sourceUrl)}"
+            title="${this.escapeAttribute(app.name)}"
+            loading="eager"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+      `
+    });
   }
 
   private escapeAttribute(value: string): string {
