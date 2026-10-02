@@ -3,6 +3,7 @@ import { Explorer } from "./Explorer";
 import { Computer } from "./Computer";
 import { Terminal } from "./Terminal";
 import { Settings } from "./Settings";
+import { Store } from "./Store";
 
 import { WindowManager } from "../window/WindowManager";
 import { Kernel } from "../core/Kernel";
@@ -18,6 +19,7 @@ export class Desktop {
   private computer: Computer;
   private terminal: Terminal;
   private settings: Settings;
+  private store: Store;
 
 
   /* =======================================================
@@ -46,6 +48,12 @@ export class Desktop {
 
     this.settings =
       new Settings(
+        this.kernel,
+        this.wm
+      );
+
+    this.store =
+      new Store(
         this.kernel,
         this.wm
       );
@@ -112,6 +120,22 @@ export class Desktop {
         <div class="desktop-area">
 
 
+          <div
+            class="desktop-icon"
+            id="store-icon"
+            tabindex="0"
+            role="button"
+            aria-label="Oqerun Store"
+          >
+            <img
+              class="desktop-icon-image"
+              src="${base}icons/oqerun-store.svg"
+              alt="Oqerun Store"
+              draggable="false"
+            />
+            <span>Oqerun Store</span>
+          </div>
+
           <!-- COMPUTER DESKTOP ICON -->
 
           <div
@@ -160,6 +184,20 @@ export class Desktop {
 
           </div>
 
+
+          <button
+            id="open-store"
+            class="start-menu-item"
+            type="button"
+          >
+            <img
+              class="start-icon"
+              src="${base}icons/oqerun-store.svg"
+              alt=""
+              draggable="false"
+            />
+            <span>Oqerun Store</span>
+          </button>
 
           <!-- ===========================================
                TERMINAL
@@ -380,6 +418,42 @@ export class Desktop {
             event.preventDefault();
 
             this.computer.open();
+          }
+        }
+      );
+
+
+    /* =====================================================
+       OQERUN STORE
+       ===================================================== */
+
+    document
+      .getElementById("open-store")
+      ?.addEventListener(
+        "click",
+        () => {
+          this.hideStartMenu();
+          this.store.open();
+        }
+      );
+
+    document
+      .getElementById("store-icon")
+      ?.addEventListener(
+        "dblclick",
+        () => {
+          this.store.open();
+        }
+      );
+
+    document
+      .getElementById("store-icon")
+      ?.addEventListener(
+        "keydown",
+        (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            this.store.open();
           }
         }
       );
