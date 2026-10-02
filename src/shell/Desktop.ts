@@ -18,6 +18,9 @@ export class Desktop {
   private settings: Settings;
   private store: Store;
 
+  private readonly pinnedStorageKey = "oqerun.pinnedApps";
+  private readonly homeStorageKey = "oqerun.homeApps";
+
   constructor(private kernel: Kernel) {
     this.explorer = new Explorer(this.kernel, this.wm);
     this.computer = new Computer(this.kernel, this.wm);
@@ -140,7 +143,7 @@ export class Desktop {
             />
           </button>
 
-          <div class="taskbar-left">
+          <div class="taskbar-left" id="taskbar-pinned">
             <button
               id="taskbar-computer"
               class="taskbar-dock-app pinned"
@@ -189,6 +192,8 @@ export class Desktop {
     this.bindEvents();
 
     void this.renderAppList();
+    this.renderPersonalization();
+    this.bindContextMenus();
 
     this.startClock();
   }
@@ -461,6 +466,276 @@ export class Desktop {
       .replaceAll("\"", "&quot;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;");
+  }
+
+
+  private getStoredIds(key: string): string[] {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) ?? "[]");
+      return Array.isArray(value)
+        ? value.filter((item): item is string => typeof item === "string")
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private setStoredIds(key: string, ids: string[]): void {
+    localStorage.setItem(key, JSON.stringify([...new Set(ids)]));
+  }
+
+  private isPinned(id: string): boolean {
+    return this.getStoredIds(this.pinnedStorageKey).includes(id);
+  }
+
+  private isOnHome(id: string): boolean {
+    return this.getStoredIds(this.homeStorageKey).includes(id);
+  }
+
+  private togglePinned(id: string): void {
+    const ids = this.getStoredIds(this.pinnedStorageKey);
+    const next = ids.includes(id)
+      ? ids.filter((item) => item !== id)
+      : [...ids, id];
+
+    this.setStoredIds(this.pinnedStorageKey, next);
+    this.renderPersonalization();
+  }
+
+  private toggleHome(id: string): void {
+    const ids = this.getStoredIds(this.homeStorageKey);
+    const next = ids.includes(id)
+      ? ids.filter((item) => item !== id)
+      : [...ids, id];
+
+    this.setStoredIds(this.homeStorageKey, next);
+    void this.renderAppList();
+    this.renderPersonalization();
+  }
+
+  private appDefinitions(): Array<{
+    id: string;
+    name: string;
+    iconUrl?: string;
+    open: () => void;
+  }> {
+    return [
+      {
+        id: "computer",
+        name: "Computer",
+        iconUrl: `${import.meta.env.BASE_URL}icons/computer.png`,
+        open: () => this.computer.open()
+      },
+      {
+        id: "explorer",
+        name: "Explorer",
+        iconUrl: `${import.meta.env.BASE_URL}icons/explorer.png`,
+        open: () => this.explorer.open("/home/user")
+      },
+      {
+        id: "oqerun-store",
+        name: "Oqerun Store",
+        iconUrl: `${import.meta.env.BASE_URL}icons/oqerun-store.svg`,
+        open: () => this.store.open()
+      },
+      {
+        id: "settings",
+        name: "Settings",
+        iconUrl: `${import.meta.env.BASE_URL}icons/settings.png`,
+        open: () => this.settings.open()
+      },
+      {
+        id: "terminal",
+        name: "Terminal",
+        iconUrl: `${import.meta.env.BASE_URL}icons/terminal.png`,
+        open: () => this.terminal.open()
+      }
+    ];
+  }
+
+  private renderPersonalization(): void {
+    const desktop = document.getElementById("desktop-area");
+    const pinned = document.getElementById("taskbar-pinned");
+
+    if (desktop) {
+      desktop.querySelectorAll(".user-desktop-icon").forEach((node) => node.remove());
+      const homeIds = new Set(this.getStoredIds(this.homeStorageKey));
+
+      for (const app of this.appDefinitions()) {
+        if (!homeIds.has(app.id)) continue;
+        this.appendDesktopShortcut(desktop, app);
+      }
+    }
+
+    if (pinned) {
+      pinned.querySelectorAll(".user-pinned-app").forEach((node) => node.remove());
+      const pinnedIds = this.getStoredIds(this.pinnedStorageKey);
+      const definitions = this.appDefinitions();
+
+      for (const id of pinnedIds) {
+        const app = definitions.find((item) => item.id === id);
+        if (!app) continue;
+        this.appendPinnedShortcut(pinned, app);
+      }
+    }
+  }
+
+  private appendDesktopShortcut(
+    desktop: HTMLElement,
+    app: { id: string; name: string; iconUrl?: string; open: () => void }
+  ): void {
+    const icon = document.createElement("div");
+    icon.className = "desktop-icon user-desktop-icon";
+    icon.tabIndex = 0;
+    icon.role = "button";
+    icon.setAttribute("aria-label", app.name);
+
+    const image = document.createElement("img");
+    image.className = "desktop-icon-image";
+    image.src = app.iconUrl ?? `${import.meta.env.BASE_URL}branding/icon-flat-1024.png`;
+    image.alt = app.name;
+    image.draggable = false;
+
+    const label = document.createElement("span");
+    label.textContent = app.name;
+
+    icon.append(image, label);
+    icon.addEventListener("dblclick", app.open);
+    icon.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        app.open();
+      }
+    });
+    icon.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      this.showAppContextMenu(event.clientX, event.clientY, app.id, app.name);
+    });
+
+    desktop.appendChild(icon);
+  }
+
+  private appendPinnedShortcut(
+    container: HTMLElement,
+    app: { id: string; name: string; iconUrl?: string; open: () => void }
+  ): void {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "taskbar-dock-app user-pinned-app";
+    button.title = app.name;
+    button.setAttribute("aria-label", app.name);
+
+    const image = document.createElement("img");
+    image.src = app.iconUrl ?? `${import.meta.env.BASE_URL}branding/icon-flat-1024.png`;
+    image.alt = "";
+    image.draggable = false;
+
+    button.appendChild(image);
+    button.addEventListener("click", app.open);
+    button.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      this.showAppContextMenu(event.clientX, event.clientY, app.id, app.name);
+    });
+
+    container.appendChild(button);
+  }
+
+  private bindContextMenus(): void {
+    for (const id of ["store-icon", "computer-icon"]) {
+      document.getElementById(id)?.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+
+        const name = id === "store-icon" ? "Oqerun Store" : "Computer";
+        const appId = id === "store-icon" ? "oqerun-store" : "computer";
+        this.showAppContextMenu(event.clientX, event.clientY, appId, name);
+      });
+    }
+
+    document.addEventListener("contextmenu", (event) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest(".desktop-icon") ||
+        target.closest(".taskbar") ||
+        target.closest(".start-menu") ||
+        target.closest(".window")
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      this.showDesktopContextMenu(event.clientX, event.clientY);
+    });
+  }
+
+  private showAppContextMenu(
+    x: number,
+    y: number,
+    id: string,
+    name: string
+  ): void {
+    this.removeContextMenu();
+
+    const menu = document.createElement("div");
+    menu.className = "oqerun-context-menu";
+    menu.style.left = `${Math.min(x, window.innerWidth - 240)'}px`;
+    menu.style.top = `${Math.min(y, window.innerHeight - 230)'}px`;
+
+    const add = (label: string, action: () => void, disabled = false) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.disabled = disabled;
+      button.addEventListener("click", () => {
+        this.removeContextMenu();
+        action();
+      });
+      menu.appendChild(button);
+    };
+
+    add(this.isPinned(id) ? "Unpin from Taskbar" : "Pin to Taskbar", () => this.togglePinned(id));
+    add(this.isOnHome(id) ? "Remove from Home Screen" : "Add to Home Screen", () => this.toggleHome(id));
+    add("Open", () => {
+      const app = this.appDefinitions().find((item) => item.id === id);
+      app?.open();
+    });
+    add("Properties", () => {
+      this.kernel.notify.info(name, "Application shortcuts and installation settings are managed by Oqerun OS.");
+    });
+
+    document.body.appendChild(menu);
+  }
+
+  private showDesktopContextMenu(x: number, y: number): void {
+    this.removeContextMenu();
+
+    const menu = document.createElement("div");
+    menu.className = "oqerun-context-menu";
+    menu.style.left = `${Math.min(x, window.innerWidth - 220)'}px`;
+    menu.style.top = `${Math.min(y, window.innerHeight - 180)'}px`;
+
+    const add = (label: string, action: () => void) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        this.removeContextMenu();
+        action();
+      });
+      menu.appendChild(button);
+    };
+
+    add("Refresh", () => {
+      void this.renderAppList();
+      this.renderPersonalization();
+    });
+    add("Open Computer", () => this.computer.open());
+    add("Open Settings", () => this.settings.open());
+
+    document.body.appendChild(menu);
+  }
+
+  private removeContextMenu(): void {
+    document.querySelector(".oqerun-context-menu")?.remove();
   }
 
   private startClock(): void {
