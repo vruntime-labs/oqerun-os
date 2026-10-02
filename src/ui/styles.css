@@ -4577,3 +4577,24 @@ input:focus-visible,
   outline:2px solid var(--accent);
   outline-offset:2px;
 }
+
+
+.settings-choice-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:9px;
+}
+.settings-choice-row button,
+.settings-action{
+  padding:8px 11px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:9px;
+  background:rgba(255,255,255,.05);
+  color:var(--text);
+  cursor:pointer;
+}
+.settings-choice-row button:hover,
+.settings-action:hover{
+  background:rgba(255,255,255,.1);
+}
