@@ -108,7 +108,6 @@ export class Settings {
               <div class="storage-card">
                 <h3>Installed applications</h3>
                 <p>Manage installed Oqerun Store applications from the Start Menu context menu.</p>
-                <button class="settings-action" data-open-store-apps>Open Oqerun Store</button>
               </div>
             </div>
 
