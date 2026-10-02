@@ -22,6 +22,7 @@ export class Desktop {
 
   private readonly pinnedStorageKey = "oqerun.pinnedApps";
   private readonly homeStorageKey = "oqerun.homeApps";
+  private readonly desktopPositionsKey = "oqerun.desktopPositions";
   private installedApps = new Map<string, Awaited<ReturnType<Kernel["applications"]["list"]>>[number]>();
 
   constructor(private kernel: Kernel) {
@@ -57,6 +58,7 @@ export class Desktop {
           <div
             class="desktop-icon"
             id="store-icon"
+            data-app-id="oqerun-store"
             tabindex="0"
             role="button"
             aria-label="Oqerun Store"
@@ -73,6 +75,7 @@ export class Desktop {
           <div
             class="desktop-icon"
             id="computer-icon"
+            data-app-id="computer"
             tabindex="0"
             role="button"
             aria-label="Computer"
@@ -231,6 +234,7 @@ export class Desktop {
     `;
 
     this.bindEvents();
+    this.bindDesktopIconDrag();
     this.applyTaskbarPreferences();
 
     void this.renderAppList();
@@ -412,6 +416,151 @@ export class Desktop {
         this.startMenu.open();
         this.startMenu.focusSearch();
       }
+    });
+  }
+
+  private getDesktopPositions(): Record<string, { x: number; y: number }> {
+    try {
+      const value = JSON.parse(
+        localStorage.getItem(this.desktopPositionsKey) ?? "{}"
+      ) as unknown;
+
+      if (!value || typeof value !== "object") return {};
+
+      const result: Record<string, { x: number; y: number }> = {};
+      for (const [id, position] of Object.entries(value as Record<string, unknown>)) {
+        if (
+          position &&
+          typeof position === "object" &&
+          typeof (position as { x?: unknown }).x === "number" &&
+          typeof (position as { y?: unknown }).y === "number"
+        ) {
+          result[id] = {
+            x: (position as { x: number }).x,
+            y: (position as { y: number }).y
+          };
+        }
+      }
+
+      return result;
+    } catch {
+      return {};
+    }
+  }
+
+  private saveDesktopPosition(id: string, x: number, y: number): void {
+    const positions = this.getDesktopPositions();
+    positions[id] = { x, y };
+    localStorage.setItem(
+      this.desktopPositionsKey,
+      JSON.stringify(positions)
+    );
+  }
+
+  private bindDesktopIconDrag(): void {
+    const desktop = document.getElementById("desktop-area");
+    if (!desktop) return;
+
+    const icons = desktop.querySelectorAll<HTMLElement>(".desktop-icon");
+
+    icons.forEach((icon, index) => {
+      const id =
+        icon.dataset.appId ??
+        icon.id ??
+        `desktop-icon-${index}`;
+
+      icon.dataset.appId = id;
+      icon.style.position = "absolute";
+
+      const positions = this.getDesktopPositions();
+      const saved = positions[id];
+
+      if (saved) {
+        icon.style.left = `${saved.x}px`;
+        icon.style.top = `${saved.y}px`;
+      } else {
+        const column = index % 8;
+        const row = Math.floor(index / 8);
+        const x = 18 + column * 94;
+        const y = 18 + row * 102;
+
+        icon.style.left = `${x}px`;
+        icon.style.top = `${y}px`;
+        this.saveDesktopPosition(id, x, y);
+      }
+
+      let dragging = false;
+      let moved = false;
+      let startX = 0;
+      let startY = 0;
+      let startLeft = 0;
+      let startTop = 0;
+
+      icon.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+
+        dragging = true;
+        moved = false;
+        startX = event.clientX;
+        startY = event.clientY;
+        startLeft = icon.offsetLeft;
+        startTop = icon.offsetTop;
+
+        icon.setPointerCapture?.(event.pointerId);
+        icon.classList.add("desktop-icon-dragging");
+      });
+
+      icon.addEventListener("pointermove", (event) => {
+        if (!dragging) return;
+
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+          moved = true;
+        }
+
+        if (!moved) return;
+
+        const maxX = Math.max(0, desktop.clientWidth - icon.offsetWidth - 8);
+        const maxY = Math.max(0, desktop.clientHeight - icon.offsetHeight - 8);
+
+        const x = Math.max(8, Math.min(startLeft + dx, maxX));
+        const y = Math.max(8, Math.min(startTop + dy, maxY));
+
+        icon.style.left = `${x}px`;
+        icon.style.top = `${y}px`;
+      });
+
+      icon.addEventListener("pointerup", (event) => {
+        if (!dragging) return;
+
+        dragging = false;
+        icon.classList.remove("desktop-icon-dragging");
+        icon.releasePointerCapture?.(event.pointerId);
+
+        if (moved) {
+          const grid = 8;
+          const x = Math.round(icon.offsetLeft / grid) * grid;
+          const y = Math.round(icon.offsetTop / grid) * grid;
+
+          const maxX = Math.max(8, desktop.clientWidth - icon.offsetWidth - 8);
+          const maxY = Math.max(8, desktop.clientHeight - icon.offsetHeight - 8);
+
+          const finalX = Math.max(8, Math.min(x, maxX));
+          const finalY = Math.max(8, Math.min(y, maxY));
+
+          icon.style.left = `${finalX}px`;
+          icon.style.top = `${finalY}px`;
+
+          this.saveDesktopPosition(id, finalX, finalY);
+        }
+      });
+
+      icon.addEventListener("pointercancel", () => {
+        dragging = false;
+        icon.classList.remove("desktop-icon-dragging");
+      });
     });
   }
 
@@ -1065,6 +1214,7 @@ export class Desktop {
   ): void {
     const icon = document.createElement("div");
     icon.className = "desktop-icon user-desktop-icon";
+    icon.dataset.appId = app.id;
     icon.tabIndex = 0;
     icon.role = "button";
     icon.setAttribute("aria-label", app.name);
@@ -1092,6 +1242,7 @@ export class Desktop {
     });
 
     desktop.appendChild(icon);
+    this.bindDesktopIconDrag();
   }
 
   private appendPinnedShortcut(
