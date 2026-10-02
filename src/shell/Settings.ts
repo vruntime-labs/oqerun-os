@@ -30,6 +30,9 @@ export class Settings {
           <aside class="settings-sidebar">
             <button class="settings-tab active" data-tab="appearance">Appearance</button>
             <button class="settings-tab" data-tab="storage">Storage</button>
+            <button class="settings-tab" data-tab="taskbar">Taskbar</button>
+            <button class="settings-tab" data-tab="apps">Apps</button>
+            <button class="settings-tab" data-tab="privacy">Privacy</button>
             <button class="settings-tab" data-tab="system">System</button>
             <button class="settings-tab" data-tab="about">About</button>
           </aside>
@@ -78,6 +81,46 @@ export class Settings {
               <div class="storage-card">
                 <h3>Connected Cloud</h3>
                 <p>Coming soon.</p>
+              </div>
+            </div>
+
+            <div class="settings-panel" data-panel="taskbar">
+              <h2>Taskbar</h2>
+              <div class="storage-card">
+                <h3>Position</h3>
+                <div class="settings-choice-row">
+                  <button data-taskbar-position="bottom">Bottom</button>
+                  <button data-taskbar-position="top">Top</button>
+                </div>
+              </div>
+              <div class="storage-card">
+                <h3>Behavior</h3>
+                <div class="settings-choice-row">
+                  <button data-taskbar-compact>Compact</button>
+                  <button data-taskbar-autohide>Auto-hide</button>
+                  <button data-taskbar-reset>Reset</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-panel" data-panel="apps">
+              <h2>Applications</h2>
+              <div class="storage-card">
+                <h3>Installed applications</h3>
+                <p>Manage installed Oqerun Store applications from the Start Menu context menu.</p>
+                <button class="settings-action" data-open-store-apps>Open Oqerun Store</button>
+              </div>
+            </div>
+
+            <div class="settings-panel" data-panel="privacy">
+              <h2>Privacy</h2>
+              <div class="storage-card">
+                <h3>App permissions</h3>
+                <p>Installed applications declare filesystem and other permissions in their manifest.</p>
+              </div>
+              <div class="storage-card">
+                <h3>Local data</h3>
+                <p>Oqerun stores its virtual filesystem in browser-managed local storage such as Origin Private File System.</p>
               </div>
             </div>
 
@@ -172,6 +215,37 @@ export class Settings {
         this.applyPreferences(prefs);
         await this.savePreferences(prefs);
       });
+    });
+
+    win.querySelectorAll<HTMLElement>("[data-taskbar-position]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const position = button.dataset.taskbarPosition === "top" ? "top" : "bottom";
+        const desktop = document.querySelector(".desktop");
+        desktop?.classList.toggle("taskbar-top", position === "top");
+        desktop?.classList.toggle("taskbar-bottom", position !== "top");
+        localStorage.setItem("oqerun.taskbar.position", position);
+      });
+    });
+
+    win.querySelector<HTMLElement>("[data-taskbar-compact]")?.addEventListener("click", () => {
+      const desktop = document.querySelector(".desktop");
+      const enabled = desktop?.classList.toggle("taskbar-compact") ?? false;
+      localStorage.setItem("oqerun.taskbar.compact", enabled ? "1" : "0");
+    });
+
+    win.querySelector<HTMLElement>("[data-taskbar-autohide]")?.addEventListener("click", () => {
+      const desktop = document.querySelector(".desktop");
+      const enabled = desktop?.classList.toggle("taskbar-auto-hide") ?? false;
+      localStorage.setItem("oqerun.taskbar.autoHide", enabled ? "1" : "0");
+    });
+
+    win.querySelector<HTMLElement>("[data-taskbar-reset]")?.addEventListener("click", () => {
+      const desktop = document.querySelector(".desktop");
+      desktop?.classList.remove("taskbar-top", "taskbar-compact", "taskbar-auto-hide");
+      desktop?.classList.add("taskbar-bottom");
+      localStorage.removeItem("oqerun.taskbar.position");
+      localStorage.removeItem("oqerun.taskbar.compact");
+      localStorage.removeItem("oqerun.taskbar.autoHide");
     });
 
     win.querySelectorAll<HTMLElement>(".accent").forEach(button => {
