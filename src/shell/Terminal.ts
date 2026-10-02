@@ -155,7 +155,14 @@ export class Terminal {
           <div>echo &lt;text&gt;</div>
           <div>history</div>
           <div>clear</div>
-          <div>open</div>
+          <div>open [path]</div>
+          <div>rm &lt;path&gt;</div>
+          <div>mv &lt;source&gt; &lt;destination&gt;</div>
+          <div>cp &lt;source&gt; &lt;destination&gt;</div>
+          <div>apps</div>
+          <div>app &lt;id&gt;</div>
+          <div>cloud</div>
+          <div>mount</div>
           <div></div>
         `;
         break;
@@ -226,13 +233,88 @@ export class Terminal {
         break;
 
       case "open":
-        new Explorer(this.kernel, this.wm).open(this.currentPath);
+        await new Explorer(this.kernel, this.wm).open(args[0] || this.currentPath);
         break;
 
       case "rm":
+        if (!args[0]) {
+          output.innerHTML += "<div>Usage: rm &lt;path&gt;</div>";
+          break;
+        }
+        try {
+          await this.kernel.sys.remove(this.resolvePath(args[0]));
+          output.innerHTML += "<div>Removed.</div>";
+        } catch (error) {
+          output.innerHTML += `<div>${this.escape(this.describeError(error))}</div>`;
+        }
+        break;
+
       case "mv":
+        if (!args[0] || !args[1]) {
+          output.innerHTML += "<div>Usage: mv &lt;source&gt; &lt;destination&gt;</div>";
+          break;
+        }
+        try {
+          await this.kernel.sys.rename(
+            this.resolvePath(args[0]),
+            this.resolvePath(args[1])
+          );
+          output.innerHTML += "<div>Moved.</div>";
+        } catch (error) {
+          output.innerHTML += `<div>${this.escape(this.describeError(error))}</div>`;
+        }
+        break;
+
       case "cp":
-        output.innerHTML += `<div>${cmd}: coming in the next filesystem update.</div>`;
+        if (!args[0] || !args[1]) {
+          output.innerHTML += "<div>Usage: cp &lt;source&gt; &lt;destination&gt;</div>";
+          break;
+        }
+        try {
+          const source = this.resolvePath(args[0]);
+          const destination = this.resolvePath(args[1]);
+          const data = await this.kernel.sys.read(source);
+          await this.kernel.sys.write(destination, data);
+          output.innerHTML += "<div>Copied.</div>";
+        } catch (error) {
+          output.innerHTML += `<div>${this.escape(this.describeError(error))}</div>`;
+        }
+        break;
+
+      case "apps": {
+        const apps = await this.kernel.applications.list();
+        output.innerHTML += apps.length
+          ? apps.map((app) => `<div>${this.escape(app.id)} — ${this.escape(app.name)}</div>`).join("")
+          : "<div>No installed Store applications.</div>";
+        break;
+      }
+
+      case "app": {
+        const app = args[0] ? this.kernel.applications.get(args[0]) : undefined;
+        if (!app) {
+          output.innerHTML += "<div>Application not found.</div>";
+          break;
+        }
+        this.kernel.notify.info(app.name, "Opening application.");
+        if (app.sourceUrl) {
+          this.wm.open({
+            id: "installed-app-" + app.id.replace(/[^a-zA-Z0-9_-]/g, "-"),
+            title: app.name,
+            iconUrl: app.iconUrl,
+            width: 980,
+            height: 640,
+            content: `<iframe class="installed-app-frame" src="${this.escapeAttribute(app.sourceUrl)}" title="${this.escapeAttribute(app.name)}"></iframe>`
+          });
+        }
+        break;
+      }
+
+      case "cloud":
+        output.innerHTML += "<div>/mnt/cloud/google-drive is available when Google Drive is connected.</div>";
+        break;
+
+      case "mount":
+        output.innerHTML += "<div>Mount points: /mnt/computer, /mnt/cloud</div>";
         break;
 
       default:
@@ -270,6 +352,28 @@ export class Terminal {
     }
   }
 
+  private resolvePath(value: string): string {
+    if (value.startsWith("/")) return value.replace(/\/+/g, "/");
+    if (value === "~") return "/home/user";
+    if (value.startsWith("~/")) return "/home/user/" + value.slice(2);
+    return `${this.currentPath}/${value}`.replace(/\/+/g, "/");
+  }
+
+  private escape(value: string): string {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+
+  private escapeAttribute(value: string): string {
+    return this.escape(value).replaceAll("\"", "&quot;");
+  }
+
+  private describeError(error: unknown): string {
+    return error instanceof Error ? error.message : "Command failed.";
+  }
+
   private async autocomplete(input: HTMLInputElement): Promise<void> {
 
     const value = input.value.trim();
@@ -285,7 +389,14 @@ export class Terminal {
       "echo",
       "history",
       "clear",
-      "open"
+      "open",
+      "rm",
+      "mv",
+      "cp",
+      "apps",
+      "app",
+      "cloud",
+      "mount"
     ];
 
     if (!value.includes(" ")) {
