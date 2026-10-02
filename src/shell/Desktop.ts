@@ -251,7 +251,9 @@ export class Desktop {
                SETTINGS
                =========================================== -->
 
-          <button
+          <div id="installed-apps"></div>
+
+                    <button
             id="open-settings"
             class="start-menu-item"
             type="button"
@@ -538,6 +540,82 @@ export class Desktop {
     );
   }
 
+
+  private async renderInstalledApps(): Promise<void> {
+    const container = document.getElementById("installed-apps");
+    if (!container) return;
+
+    const apps = await this.kernel.applications.list();
+    container.innerHTML = "";
+
+    if (apps.length === 0) return;
+
+    const label = document.createElement("div");
+    label.className = "start-menu-section-label";
+    label.textContent = "Installed Apps";
+    container.appendChild(label);
+
+    for (const app of apps) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "start-menu-item";
+      button.title = app.name;
+
+      const icon = document.createElement("span");
+      icon.className = "start-icon";
+      icon.textContent = "▣";
+
+      const name = document.createElement("span");
+      name.textContent = app.name;
+
+      button.append(icon, name);
+      button.addEventListener("click", () => {
+        this.hideStartMenu();
+
+        if (!app.sourceUrl) {
+          this.kernel.notify.info(
+            app.name,
+            "This application does not have a launch URL yet."
+          );
+          return;
+        }
+
+        const windowId =
+          "installed-app-" +
+          app.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+
+        this.wm.open({
+          id: windowId,
+          title: app.name,
+          width: 980,
+          height: 640,
+          x: 60,
+          y: 35,
+          content: `
+            <div class="installed-app-shell">
+              <iframe
+                class="installed-app-frame"
+                src="${this.escapeAttribute(app.sourceUrl)}"
+                title="${this.escapeAttribute(app.name)}"
+                loading="eager"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
+          `
+        });
+      });
+
+      container.appendChild(button);
+    }
+  }
+
+  private escapeAttribute(value: string): string {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("\"", "&quot;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
 
   /* =======================================================
      SYSTEM CLOCK
