@@ -463,74 +463,64 @@ export class Desktop {
 
     const icons = [...desktop.querySelectorAll<HTMLElement>(".desktop-icon")];
     const stored = this.getDesktopPositions();
-    const usedSlots = new Set<string>();
+    const repaired: Record<string, { x: number; y: number }> = {};
+    const used = new Set<string>();
 
-    // Oqerun uses a real desktop grid. Built-in icons always occupy their
-    // own stable slots; installed/Home apps get the next available slot.
-    // This also repairs old localStorage entries where multiple icons were
-    // accidentally saved at the same coordinates.
-    const slotFor = (x: number, y: number): string => {
-      const column = Math.max(0, Math.round((x - 18) / 94));
-      const row = Math.max(0, Math.round((y - 18) / 102));
-      return `${column},${row}`;
-    };
-
-    const positionForSlot = (column: number, row: number): { x: number; y: number } => ({
+    const pos = (column: number, row: number) => ({
       x: 18 + Math.max(0, column) * 94,
       y: 18 + Math.max(0, row) * 102
     });
+    const key = (p: { x: number; y: number }) =>
+      `${Math.round((p.x - 18) / 94)},${Math.round((p.y - 18) / 102)}`;
 
-    const nextFreePosition = (startIndex: number): { x: number; y: number } => {
-      for (let slot = Math.max(0, startIndex); slot < startIndex + 500; slot++) {
-        const column = slot % 8;
-        const row = Math.floor(slot / 8);
-        const key = `${column},${row}`;
-        if (!usedSlots.has(key)) {
-          usedSlots.add(key);
-          return positionForSlot(column, row);
-        }
-      }
-      return positionForSlot(0, 0);
-    };
-
-    const repaired: Record<string, { x: number; y: number }> = {};
-
-    // Reserve the two permanent desktop icons first.
-    const builtInSlots: Record<string, { column: number; row: number }> = {
+    const fixed: Record<string, { column: number; row: number }> = {
       "oqerun-store": { column: 0, row: 0 },
       "computer": { column: 0, row: 1 }
     };
 
-    icons.forEach((icon, index) => {
-      if (icon.dataset.dragBound === "1") return;
-      icon.dataset.dragBound = "1";
+    const nextFree = () => {
+      for (let slot = 0; slot < 500; slot++) {
+        const column = slot % 8;
+        const row = Math.floor(slot / 8);
+        const p = pos(column, row);
+        if (!used.has(`${column},${row}`)) {
+          used.add(`${column},${row}`);
+          return p;
+        }
+      }
+      return pos(0, 2);
+    };
 
+    // ALWAYS lay out every icon, including icons that were already bound.
+    // This is what repairs old/overlapping desktop state after Home changes.
+    icons.forEach((icon, index) => {
       const id = icon.dataset.appId ?? icon.id ?? `desktop-icon-${index}`;
       icon.dataset.appId = id;
       icon.style.position = "absolute";
 
-      let position: { x: number; y: number };
-      const fixed = builtInSlots[id];
+      let p: { x: number; y: number };
 
-      if (fixed) {
-        const fixedPosition = positionForSlot(fixed.column, fixed.row);
-        usedSlots.add(`${fixed.column},${fixed.row}`);
-        position = fixedPosition;
+      if (fixed[id]) {
+        p = pos(fixed[id].column, fixed[id].row);
+        used.add(`${fixed[id].column},${fixed[id].row}`);
       } else {
         const saved = stored[id];
-        const savedKey = saved ? slotFor(saved.x, saved.y) : "";
-        if (saved && !usedSlots.has(savedKey)) {
+        const savedKey = saved ? key(saved) : "";
+        if (saved && !used.has(savedKey)) {
           const [column, row] = savedKey.split(",").map(Number);
-          usedSlots.add(savedKey);
-          position = positionForSlot(column, row);
+          used.add(savedKey);
+          p = pos(column, row);
         } else {
-          position = nextFreePosition(index + 2);
+          p = nextFree();
         }
       }
 
-      repaired[id] = position;
-      icon.style.left = `${position.x}px`;
-      icon.style.top = `${position.y}px`;
+      repaired[id] = p;
+      icon.style.left = `${p.x}px`;
+      icon.style.top = `${p.y}px`;
+
+      if (icon.dataset.dragBound === "1") return;
+      icon.dataset.dragBound = "1";
 
       let moving = false;
       let moved = false;
@@ -539,22 +529,21 @@ export class Desktop {
       let startLeft = 0;
       let startTop = 0;
 
-      const setSelected = () => {
-        desktop.querySelectorAll(".desktop-icon-selected").forEach(node =>
-          node.classList.remove("desktop-icon-selected")
-        );
+      const select = () => {
+        desktop.querySelectorAll(".desktop-icon-selected")
+          .forEach(node => node.classList.remove("desktop-icon-selected"));
         icon.classList.add("desktop-icon-selected");
         this.showDesktopMoveAction(icon);
       };
 
       icon.addEventListener("click", (event) => {
-        if ((event as MouseEvent).detail > 1 || moved) return;
-        setSelected();
+        const mouse = event as MouseEvent;
+        if (mouse.detail > 1 || moved) return;
+        select();
       });
 
       icon.addEventListener("pointerdown", (event) => {
         if (event.button !== 0 || icon.dataset.moveMode !== "1") return;
-
         moving = true;
         moved = false;
         startX = event.clientX;
@@ -567,23 +556,19 @@ export class Desktop {
 
       icon.addEventListener("pointermove", (event) => {
         if (!moving) return;
-
         const dx = event.clientX - startX;
         const dy = event.clientY - startY;
-
         if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
         if (!moved) return;
 
-        const maxX = Math.max(0, desktop.clientWidth - icon.offsetWidth - 8);
-        const maxY = Math.max(0, desktop.clientHeight - icon.offsetHeight - 8);
-
+        const maxX = Math.max(8, desktop.clientWidth - icon.offsetWidth - 8);
+        const maxY = Math.max(8, desktop.clientHeight - icon.offsetHeight - 8);
         icon.style.left = `${Math.max(8, Math.min(startLeft + dx, maxX))}px`;
         icon.style.top = `${Math.max(8, Math.min(startTop + dy, maxY))}px`;
       });
 
-      const finishMove = (event?: PointerEvent) => {
+      const finish = (event?: PointerEvent) => {
         if (!moving) return;
-
         moving = false;
         icon.classList.remove("desktop-icon-dragging");
         if (event) icon.releasePointerCapture?.(event.pointerId);
@@ -591,36 +576,33 @@ export class Desktop {
         if (moved) {
           const column = Math.max(0, Math.round((icon.offsetLeft - 18) / 94));
           const row = Math.max(0, Math.round((icon.offsetTop - 18) / 102));
-          const targetKey = `${column},${row}`;
-
-          // Do not allow an icon to occupy another app's grid slot.
-          const occupiedByOther = icons.some(other =>
+          const target = `${column},${row}`;
+          const occupied = icons.some(other =>
             other !== icon &&
-            slotFor(other.offsetLeft, other.offsetTop) === targetKey
+            key({ x: other.offsetLeft, y: other.offsetTop }) === target
           );
 
-          if (occupiedByOther) {
-            const current = positionForSlot(
-              Math.max(0, Math.round((startLeft - 18) / 94)),
-              Math.max(0, Math.round((startTop - 18) / 102))
-            );
-            icon.style.left = `${current.x}px`;
-            icon.style.top = `${current.y}px`;
-            this.kernel.notify.info("Desktop", "That desktop position is already occupied.");
+          if (occupied) {
+            icon.style.left = `${startLeft}px`;
+            icon.style.top = `${startTop}px`;
+            this.kernel.notify.info("Desktop", "That position is already occupied.");
           } else {
-            const finalPosition = positionForSlot(column, row);
-            icon.style.left = `${finalPosition.x}px`;
-            icon.style.top = `${finalPosition.y}px`;
-            repaired[id] = finalPosition;
+            const p = pos(column, row);
+            repaired[id] = p;
+            icon.style.left = `${p.x}px`;
+            icon.style.top = `${p.y}px`;
           }
         }
 
+        localStorage.setItem(this.desktopPositionsKey, JSON.stringify({
+          ...this.getDesktopPositions(),
+          ...repaired
+        }));
         icon.dataset.moveMode = "0";
         this.showDesktopMoveAction(icon);
-        localStorage.setItem(this.desktopPositionsKey, JSON.stringify(repaired));
       };
 
-      icon.addEventListener("pointerup", finishMove);
+      icon.addEventListener("pointerup", finish);
       icon.addEventListener("pointercancel", () => {
         moving = false;
         icon.classList.remove("desktop-icon-dragging");
@@ -628,16 +610,19 @@ export class Desktop {
       });
     });
 
-    // Repair stale/duplicate positions immediately.
-    localStorage.setItem(this.desktopPositionsKey, JSON.stringify(repaired));
+    // Remove stale positions for shortcuts no longer on Home.
+    const validIds = new Set(icons.map(icon => icon.dataset.appId ?? ""));
+    const cleaned = Object.fromEntries(
+      Object.entries(repaired).filter(([id]) => validIds.has(id))
+    );
+    localStorage.setItem(this.desktopPositionsKey, JSON.stringify(cleaned));
 
     if (desktop.dataset.desktopSelectionBound !== "1") {
       desktop.dataset.desktopSelectionBound = "1";
       desktop.addEventListener("click", (event) => {
         if ((event.target as HTMLElement).closest(".desktop-icon, .desktop-move-action")) return;
-        desktop.querySelectorAll(".desktop-icon-selected").forEach(node =>
-          node.classList.remove("desktop-icon-selected")
-        );
+        desktop.querySelectorAll(".desktop-icon-selected")
+          .forEach(node => node.classList.remove("desktop-icon-selected"));
         this.hideDesktopMoveAction();
       }, { passive: true });
     }
@@ -1185,21 +1170,21 @@ export class Desktop {
   }
 
   private async toggleHome(id: string): Promise<void> {
-    const ids = this.getStoredIds(this.homeStorageKey);
-    const next = ids.includes(id)
-      ? ids.filter((item) => item !== id)
-      : [...ids, id];
+    const current = this.getStoredIds(this.homeStorageKey);
+    const onHome = !current.includes(id);
+    const next = onHome
+      ? [...current, id]
+      : current.filter((item) => item !== id);
 
     this.setStoredIds(this.homeStorageKey, next);
 
-    // Refresh the application catalog first so newly installed apps are
-    // available to the desktop renderer immediately.
+    // Keep the desktop as the source of truth for Home Screen shortcuts.
+    // Refresh the catalog first so an installed app is available before
+    // its shortcut is created.
     await this.renderAppList();
     await this.renderPersonalization();
 
     const app = this.getAppCatalog().find((item) => item.id === id);
-    const onHome = next.includes(id);
-
     this.kernel.notify.info(
       app?.name ?? "Application",
       onHome ? "Added to Home Screen." : "Removed from Home Screen."
@@ -1288,9 +1273,13 @@ export class Desktop {
         .querySelectorAll(".user-desktop-icon")
         .forEach((node) => node.remove());
 
+      const storedHomeIds = this.getStoredIds(this.homeStorageKey);
       const homeIds = new Set(
-        this.getStoredIds(this.homeStorageKey)
+        storedHomeIds.filter((id) => id !== "computer" && id !== "oqerun-store")
       );
+      if (homeIds.size !== storedHomeIds.length) {
+        this.setStoredIds(this.homeStorageKey, [...homeIds]);
+      }
 
       // Built-in desktop shortcuts are rendered by render() itself.
       // Never create a second copy from the personalized Home list.
