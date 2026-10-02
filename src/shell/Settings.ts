@@ -4,6 +4,7 @@ import { WindowManager } from "../window/WindowManager";
 interface Preferences {
   theme: "system" | "dark" | "light";
   accent: string;
+  reduceMotion: boolean;
 }
 
 export class Settings {
@@ -29,10 +30,13 @@ export class Settings {
 
           <aside class="settings-sidebar">
             <button class="settings-tab active" data-tab="appearance">Appearance</button>
+            <button class="settings-tab" data-tab="personalization">Personalization</button>
             <button class="settings-tab" data-tab="storage">Storage</button>
+            <button class="settings-tab" data-tab="network">Network</button>
             <button class="settings-tab" data-tab="taskbar">Taskbar</button>
             <button class="settings-tab" data-tab="apps">Apps</button>
             <button class="settings-tab" data-tab="privacy">Privacy</button>
+            <button class="settings-tab" data-tab="accessibility">Accessibility</button>
             <button class="settings-tab" data-tab="system">System</button>
             <button class="settings-tab" data-tab="about">About</button>
           </aside>
@@ -65,12 +69,39 @@ export class Settings {
               </div>
             </div>
 
+            <div class="settings-panel" data-panel="personalization">
+              <h2>Personalization</h2>
+              <p class="settings-description">Customize your desktop layout and shortcuts.</p>
+              <div class="storage-card"><div class="settings-row"><div><strong>Desktop icon positions</strong><p>Drag applications freely on the desktop. Oqerun remembers their positions.</p></div><button data-reset-desktop>Reset positions</button></div></div>
+              <div class="storage-card"><div class="settings-row"><div><strong>Home screen apps</strong><p>Use an app context menu to add or remove shortcuts from the desktop.</p></div><span class="settings-badge">Customizable</span></div></div>
+              <div class="storage-card"><div class="settings-row"><div><strong>Taskbar apps</strong><p>Pin frequently used applications from an app context menu.</p></div><span class="settings-badge">Customizable</span></div></div>
+            </div>
+
+            <div class="settings-panel" data-panel="network">
+              <h2>Network</h2>
+              <p class="settings-description">Live browser connection status.</p>
+              <div class="settings-status-card"><span class="status-dot" data-network-dot></span><div><strong data-network-status>Checking…</strong><p data-network-detail>Checking connection.</p></div></div>
+              <div class="storage-card"><div class="settings-row"><div><strong>Connection type</strong><p>Reported by the browser when available.</p></div><strong data-network-type>Unavailable</strong></div></div>
+            </div>
+
+            <div class="settings-panel" data-panel="accessibility">
+              <h2>Accessibility</h2>
+              <p class="settings-description">Make Oqerun more comfortable to use.</p>
+              <div class="storage-card"><div class="settings-row"><div><strong>Reduce motion</strong><p>Reduce interface animation and transitions.</p></div><button class="settings-toggle" data-reduce-motion>Off</button></div></div>
+              <div class="storage-card"><h3>Keyboard shortcuts</h3><p><kbd>Alt</kbd> + <kbd>Tab</kbd> switches windows. <kbd>Ctrl</kbd> + <kbd>Space</kbd> opens Start Menu search.</p></div>
+            </div>
             <div class="settings-panel" data-panel="storage">
               <h2>Storage</h2>
 
               <div class="storage-card">
                 <h3>Oqerun Drive</h3>
                 <p>Preferences are stored in <code>/system/preferences.json</code>.</p>
+              </div>
+
+              <div class="storage-card">
+                <div class="storage-meter"><div class="storage-meter-fill" data-storage-fill></div></div>
+                <div class="settings-row"><strong data-storage-used>Calculating…</strong><span data-storage-percent>—</span></div>
+                <p data-storage-detail>Checking browser storage.</p>
               </div>
 
               <div class="storage-card">
@@ -113,6 +144,9 @@ export class Settings {
 
             <div class="settings-panel" data-panel="privacy">
               <h2>Privacy</h2>
+              <div class="storage-card">
+                <div class="settings-row"><div><strong>Installed applications</strong><p>Applications installed from Oqerun Store can be managed from Start Menu.</p></div><span class="settings-badge" data-app-count>Loading…</span></div>
+              </div>
               <div class="storage-card">
                 <h3>App permissions</h3>
                 <p>Installed applications declare filesystem and other permissions in their manifest.</p>
@@ -172,6 +206,7 @@ export class Settings {
     if (!win) return;
 
     const storedPrefs = await this.loadPreferences();
+    await this.refreshSystemPanels(win);
 
     /*
      * Opening Settings must never silently change the current theme.
@@ -247,6 +282,26 @@ export class Settings {
       localStorage.removeItem("oqerun.taskbar.autoHide");
     });
 
+
+    win.querySelector<HTMLElement>("[data-reset-desktop]")?.addEventListener("click", () => {
+      localStorage.removeItem("oqerun.desktopPositions");
+      this.kernel.notify.info("Desktop", "Desktop icon positions have been reset.");
+      window.dispatchEvent(new Event("resize"));
+    });
+
+    win.querySelector<HTMLElement>("[data-reduce-motion]")?.addEventListener("click", async () => {
+      const enabled = document.documentElement.classList.toggle("oqerun-reduce-motion");
+      document.documentElement.classList.toggle("oqerun-reduce-motion", enabled);
+      const prefs = await this.loadPreferences();
+      prefs.reduceMotion = enabled;
+      await this.savePreferences(prefs);
+      const button = win.querySelector<HTMLElement>("[data-reduce-motion]");
+      if (button) {
+        button.textContent = enabled ? "On" : "Off";
+        button.classList.toggle("on", enabled);
+      }
+    });
+
     win.querySelectorAll<HTMLElement>(".accent").forEach(button => {
       button.addEventListener("click", async () => {
         prefs.accent = button.dataset.color || "#00D4FF";
@@ -257,10 +312,56 @@ export class Settings {
     });
   }
 
+
+  private async refreshSystemPanels(win: HTMLElement): Promise<void> {
+    const count = win.querySelector<HTMLElement>("[data-app-count]");
+    if (count) count.textContent = `${this.kernel.applications.list().length} installed`;
+
+    const online = navigator.onLine;
+    const status = win.querySelector<HTMLElement>("[data-network-status]");
+    const detail = win.querySelector<HTMLElement>("[data-network-detail]");
+    const dot = win.querySelector<HTMLElement>("[data-network-dot]");
+    const type = win.querySelector<HTMLElement>("[data-network-type]");
+    if (status) status.textContent = online ? "Connected" : "Offline";
+    if (detail) detail.textContent = online ? "The browser reports an active network connection." : "The browser reports no network connection.";
+    dot?.classList.toggle("offline", !online);
+    const connection = (navigator as Navigator & { connection?: { effectiveType?: string; type?: string } }).connection;
+    if (type) type.textContent = connection?.effectiveType || connection?.type || "Unavailable";
+
+    const used = win.querySelector<HTMLElement>("[data-storage-used]");
+    const percent = win.querySelector<HTMLElement>("[data-storage-percent]");
+    const storageDetail = win.querySelector<HTMLElement>("[data-storage-detail]");
+    const fill = win.querySelector<HTMLElement>("[data-storage-fill]");
+    if (used && percent && storageDetail && fill) {
+      try {
+        const estimate = await navigator.storage.estimate();
+        const usage = estimate.usage ?? 0;
+        const quota = estimate.quota ?? 0;
+        const ratio = quota ? Math.min(100, usage / quota * 100) : 0;
+        used.textContent = `${this.formatBytes(usage)} used`;
+        percent.textContent = quota ? `${ratio.toFixed(1)}%` : "—";
+        storageDetail.textContent = quota ? `${this.formatBytes(quota)} estimated browser quota` : "Quota unavailable.";
+        fill.style.width = `${Math.max(ratio, usage ? 1 : 0)}%`;
+      } catch {
+        used.textContent = "Unavailable";
+        percent.textContent = "—";
+        storageDetail.textContent = "Storage information unavailable.";
+      }
+    }
+  }
+
+  private formatBytes(bytes: number): string {
+    if (!bytes) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${(bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0)} ${units[i]}`;
+  }
+
   private async loadPreferences(): Promise<Preferences> {
     const defaults: Preferences = {
       theme: "system",
-      accent: "#00D4FF"
+      accent: "#00D4FF",
+      reduceMotion: false
     };
 
     try {
@@ -270,7 +371,7 @@ export class Settings {
       }
 
       const data = await this.kernel.sys.read(this.PREF_PATH);
-      return { ...defaults, ...JSON.parse(data) };
+      return { ...defaults, ...JSON.parse(data), reduceMotion: JSON.parse(data).reduceMotion === true };
     } catch {
       return defaults;
     }
@@ -314,5 +415,6 @@ export class Settings {
     app.classList.add(`theme-${prefs.theme}`);
 
     document.documentElement.style.setProperty("--accent", prefs.accent);
+    document.documentElement.classList.toggle("oqerun-reduce-motion", prefs.reduceMotion);
   }
 }
