@@ -1175,6 +1175,8 @@ export class Desktop {
         if (!homeIds.has(app.id)) continue;
         this.appendDesktopShortcut(desktop, app);
       }
+
+      this.bindDesktopIconDrag();
     }
 
     if (pinned) {
@@ -1242,7 +1244,6 @@ export class Desktop {
     });
 
     desktop.appendChild(icon);
-    this.bindDesktopIconDrag();
   }
 
   private appendPinnedShortcut(
