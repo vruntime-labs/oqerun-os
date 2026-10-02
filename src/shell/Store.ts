@@ -27,6 +27,10 @@ export class Store {
           "Oqerun Store",
           installed.name + " was installed successfully."
         );
+
+        window.dispatchEvent(
+          new CustomEvent("oqerun-app-installed")
+        );
       }
     );
   }
