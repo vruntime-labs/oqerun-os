@@ -62,6 +62,7 @@ export class Desktop {
             tabindex="0"
             role="button"
             aria-label="Oqerun Store"
+            style="left: 18px; top: 18px;"
           >
             <img
               class="desktop-icon-image"
@@ -79,6 +80,7 @@ export class Desktop {
             tabindex="0"
             role="button"
             aria-label="Computer"
+            style="left: 18px; top: 120px;"
           >
             <img
               class="desktop-icon-image"
@@ -516,8 +518,13 @@ export class Desktop {
       }
 
       repaired[id] = p;
-      icon.style.left = `${p.x}px`;
-      icon.style.top = `${p.y}px`;
+      if (fixed[id]) {
+        icon.style.setProperty("left", `${p.x}px`, "important");
+        icon.style.setProperty("top", `${p.y}px`, "important");
+      } else {
+        icon.style.left = `${p.x}px`;
+        icon.style.top = `${p.y}px`;
+      }
 
       if (icon.dataset.dragBound === "1") return;
       icon.dataset.dragBound = "1";
@@ -1291,6 +1298,7 @@ export class Desktop {
       }
 
       this.bindDesktopIconDrag();
+      this.repairBuiltInDesktopIcons();
     }
 
     if (pinned) {
@@ -1321,6 +1329,26 @@ export class Desktop {
 
         this.appendPinnedShortcut(pinned, app);
       }
+    }
+  }
+
+  private repairBuiltInDesktopIcons(): void {
+    const desktop = document.getElementById("desktop-area");
+    if (!desktop) return;
+
+    const store = document.getElementById("store-icon");
+    const computer = document.getElementById("computer-icon");
+
+    if (store) {
+      store.style.setProperty("position", "absolute", "important");
+      store.style.setProperty("left", "18px", "important");
+      store.style.setProperty("top", "18px", "important");
+    }
+
+    if (computer) {
+      computer.style.setProperty("position", "absolute", "important");
+      computer.style.setProperty("left", "18px", "important");
+      computer.style.setProperty("top", "120px", "important");
     }
   }
 
