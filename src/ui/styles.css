@@ -3997,3 +3997,54 @@ input:focus-visible,
     padding:0 5px;
   }
 }
+
+
+/* =========================================================
+   OQERUN CONTEXT MENU
+   ========================================================= */
+
+.oqerun-context-menu{
+  position:fixed;
+  z-index:10000;
+  min-width:210px;
+  padding:6px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:13px;
+  background:rgba(12,24,52,.94);
+  backdrop-filter:blur(24px) saturate(145%);
+  -webkit-backdrop-filter:blur(24px) saturate(145%);
+  box-shadow:0 18px 50px rgba(0,0,0,.45);
+}
+
+.oqerun-context-menu button{
+  width:100%;
+  min-height:36px;
+  padding:8px 11px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  font:inherit;
+  font-size:12px;
+  cursor:pointer;
+}
+
+.oqerun-context-menu button:hover{
+  background:rgba(255,255,255,.09);
+}
+
+.oqerun-context-menu button:disabled{
+  opacity:.4;
+  cursor:default;
+}
+
+#app.theme-light .oqerun-context-menu{
+  background:rgba(248,250,253,.96);
+  border-color:rgba(10,18,42,.12);
+  box-shadow:0 18px 50px rgba(20,45,90,.22);
+}
+
+#app.theme-light .oqerun-context-menu button:hover{
+  background:rgba(10,18,42,.06);
+}
