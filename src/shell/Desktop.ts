@@ -239,8 +239,13 @@ export class Desktop {
     this.bindDesktopIconDrag();
     this.applyTaskbarPreferences();
 
-    void this.renderAppList();
-    void this.renderPersonalization();
+    // Render the application catalog first. Home Screen shortcuts depend on
+    // the same catalog, so personalization is reconciled only after the
+    // catalog has finished loading. This prevents async renders from
+    // deleting a shortcut that was just added from the Start Menu.
+    void this.renderAppList().then(() => {
+      this.renderPersonalization();
+    });
     this.bindContextMenus();
 
     this.startClock();
@@ -387,8 +392,9 @@ export class Desktop {
       });
 
     window.addEventListener("oqerun-app-installed", () => {
-      void this.renderAppList();
-      void this.renderPersonalization();
+      void this.renderAppList().then(() => {
+        this.renderPersonalization();
+      });
     });
 
     document.addEventListener("click", (event) => {
@@ -897,11 +903,9 @@ export class Desktop {
     empty.innerHTML = "<strong>No applications found</strong><span>Try another search.</span>";
     container.appendChild(empty);
 
-    // renderAppList is the point where the complete application catalog is
-    // guaranteed to be available. Reconcile Home Screen shortcuts here so
-    // installed apps added from Start Menu are rendered immediately and on
-    // every boot, even if the initial personalization render ran earlier.
-    void this.renderPersonalization();
+    // Home Screen rendering is intentionally handled by the caller after
+    // the catalog load completes. Keeping it out of renderAppList prevents
+    // overlapping asynchronous personalization passes.
   }
 
   private openInstalledApp(
@@ -1189,13 +1193,17 @@ export class Desktop {
       ? [...current, id]
       : current.filter((item) => item !== id);
 
+    // Update persistent state first, then synchronously reconcile the
+    // desktop. Built-in apps such as Settings are already in the catalog,
+    // so the shortcut must appear immediately after the menu action.
     this.setStoredIds(this.homeStorageKey, next);
+    this.renderPersonalization();
 
-    // Keep the desktop as the source of truth for Home Screen shortcuts.
-    // Refresh the catalog first so an installed app is available before
-    // its shortcut is created.
+    // Refresh installed-app metadata in the background and reconcile once
+    // more after it completes. This covers Store-installed applications
+    // without creating competing personalization renders.
     await this.renderAppList();
-    await this.renderPersonalization();
+    this.renderPersonalization();
 
     const app = this.getAppCatalog().find((item) => item.id === id);
     this.kernel.notify.info(
@@ -1275,7 +1283,7 @@ export class Desktop {
     return definitions;
   }
 
-  private async renderPersonalization(): Promise<void> {
+  private renderPersonalization(): void {
     const desktop = document.getElementById("desktop-area");
     const pinned = document.getElementById("taskbar-pinned");
 
@@ -1748,8 +1756,9 @@ export class Desktop {
     };
 
     add("Refresh", () => {
-      void this.renderAppList();
-      this.renderPersonalization();
+      void this.renderAppList().then(() => {
+        this.renderPersonalization();
+      });
     });
     add("Open Computer", () => this.computer.open());
     add("Open Settings", () => this.settings.open());
