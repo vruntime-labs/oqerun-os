@@ -1,7 +1,9 @@
 import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
+import { InstallationBridge } from "../core/InstallationBridge";
 
 export class Store {
+  private bridge: import("../core/InstallationBridge").InstallationBridge | null = null;
   private readonly url = "https://vruntime-labs.github.io/oqerun-store/";
 
   constructor(
