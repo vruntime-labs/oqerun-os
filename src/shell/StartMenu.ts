@@ -8,4 +8,12 @@ export class StartMenu {
     this.isOpen = !this.isOpen;
     menu.style.display = this.isOpen ? "flex" : "none";
   }
+
+  close(): void {
+    const menu = document.getElementById("start-menu");
+    if (!menu) return;
+
+    this.isOpen = false;
+    menu.style.display = "none";
+  }
 }
