@@ -464,6 +464,10 @@ export class Desktop {
     const icons = desktop.querySelectorAll<HTMLElement>(".desktop-icon");
 
     icons.forEach((icon, index) => {
+      // renderPersonalization() can run more than once. Keep drag handling
+      // idempotent so a desktop icon never receives duplicate pointer logic.
+      if (icon.dataset.dragBound === "1") return;
+      icon.dataset.dragBound = "1";
       const id =
         icon.dataset.appId ??
         icon.id ??
@@ -1171,8 +1175,12 @@ export class Desktop {
         this.getStoredIds(this.homeStorageKey)
       );
 
+      // Built-in desktop shortcuts are rendered by render() itself.
+      // Never create a second copy from the personalized Home list.
+      const builtInDesktopIds = new Set(["computer", "oqerun-store"]);
+
       for (const app of definitions) {
-        if (!homeIds.has(app.id)) continue;
+        if (!homeIds.has(app.id) || builtInDesktopIds.has(app.id)) continue;
         this.appendDesktopShortcut(desktop, app);
       }
 
