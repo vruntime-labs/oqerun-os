@@ -196,6 +196,9 @@ export class Explorer {
 
     if (!list) return;
 
+    const isTrash =
+      this.currentPath === TRASH_PATH;
+
     try {
       const entries =
         await this.kernel.sys.listDetailed(
