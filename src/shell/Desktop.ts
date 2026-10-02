@@ -4,6 +4,7 @@ import { Computer } from "./Computer";
 import { Terminal } from "./Terminal";
 import { Settings } from "./Settings";
 import { Store } from "./Store";
+import { TaskManager } from "./TaskManager";
 
 import { WindowManager } from "../window/WindowManager";
 import { Kernel } from "../core/Kernel";
@@ -17,6 +18,7 @@ export class Desktop {
   private terminal: Terminal;
   private settings: Settings;
   private store: Store;
+  private taskManager: TaskManager;
 
   private readonly pinnedStorageKey = "oqerun.pinnedApps";
   private readonly homeStorageKey = "oqerun.homeApps";
@@ -28,6 +30,7 @@ export class Desktop {
     this.terminal = new Terminal(this.kernel, this.wm);
     this.settings = new Settings(this.kernel, this.wm);
     this.store = new Store(this.kernel, this.wm);
+    this.taskManager = new TaskManager(this.kernel, this.wm);
   }
 
   render(): void {
@@ -543,6 +546,12 @@ export class Desktop {
         icon: ">_",
         iconUrl: `${import.meta.env.BASE_URL}icons/terminal.png`,
         open: () => this.terminal.open()
+      },
+      {
+        id: "task-manager",
+        name: "Task Manager",
+        icon: "◫",
+        open: () => this.taskManager.open()
       }
     ];
 
@@ -963,6 +972,11 @@ export class Desktop {
         name: "Terminal",
         iconUrl: `${import.meta.env.BASE_URL}icons/terminal.png`,
         open: () => this.terminal.open()
+      },
+      {
+        id: "task-manager",
+        name: "Task Manager",
+        open: () => this.taskManager.open()
       }
     ];
   }
