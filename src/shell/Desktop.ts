@@ -896,6 +896,12 @@ export class Desktop {
     empty.hidden = true;
     empty.innerHTML = "<strong>No applications found</strong><span>Try another search.</span>";
     container.appendChild(empty);
+
+    // renderAppList is the point where the complete application catalog is
+    // guaranteed to be available. Reconcile Home Screen shortcuts here so
+    // installed apps added from Start Menu are rendered immediately and on
+    // every boot, even if the initial personalization render ran earlier.
+    void this.renderPersonalization();
   }
 
   private openInstalledApp(
