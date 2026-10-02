@@ -1164,11 +1164,12 @@ export class Desktop {
       `
     });
 
-    const propertiesWindow = document.querySelector(
-      ".window[data-window-id=\"app-properties-" +
-      id.replace(/[^a-zA-Z0-9_-]/g, "-") +
-      "\"]"
-    ) as HTMLElement | null;
+    const propertiesId =
+      "app-properties-" + id.replace(/[^a-zA-Z0-9_-]/g, "-");
+
+    const propertiesWindow = document.getElementById(
+      propertiesId
+    );
 
     propertiesWindow?.querySelector("[data-properties-open]")?.addEventListener(
       "click",
