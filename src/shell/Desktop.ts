@@ -461,111 +461,163 @@ export class Desktop {
     const desktop = document.getElementById("desktop-area");
     if (!desktop) return;
 
-    const icons = desktop.querySelectorAll<HTMLElement>(".desktop-icon");
+    const icons = [...desktop.querySelectorAll<HTMLElement>(".desktop-icon")];
+    const positions = this.getDesktopPositions();
+    const occupied = new Set<string>();
+
+    const nextFreePosition = (index: number): { x: number; y: number } => {
+      for (let slot = index; slot < index + 200; slot++) {
+        const column = slot % 8;
+        const row = Math.floor(slot / 8);
+        const x = 18 + column * 94;
+        const y = 18 + row * 102;
+        const key = `${x},${y}`;
+        if (!occupied.has(key)) {
+          occupied.add(key);
+          return { x, y };
+        }
+      }
+      return { x: 18, y: 18 };
+    };
 
     icons.forEach((icon, index) => {
-      // renderPersonalization() can run more than once. Keep drag handling
-      // idempotent so a desktop icon never receives duplicate pointer logic.
       if (icon.dataset.dragBound === "1") return;
       icon.dataset.dragBound = "1";
-      const id =
-        icon.dataset.appId ??
-        icon.id ??
-        `desktop-icon-${index}`;
 
+      const id = icon.dataset.appId ?? icon.id ?? `desktop-icon-${index}`;
       icon.dataset.appId = id;
       icon.style.position = "absolute";
 
-      const positions = this.getDesktopPositions();
       const saved = positions[id];
+      let position = saved;
 
-      if (saved) {
-        icon.style.left = `${saved.x}px`;
-        icon.style.top = `${saved.y}px`;
-      } else {
-        const column = index % 8;
-        const row = Math.floor(index / 8);
-        const x = 18 + column * 94;
-        const y = 18 + row * 102;
-
-        icon.style.left = `${x}px`;
-        icon.style.top = `${y}px`;
-        this.saveDesktopPosition(id, x, y);
+      if (position && occupied.has(`${position.x},${position.y}`)) {
+        delete positions[id];
+        position = undefined;
       }
 
-      let dragging = false;
+      if (!position) {
+        position = nextFreePosition(index);
+        this.saveDesktopPosition(id, position.x, position.y);
+      } else {
+        occupied.add(`${position.x},${position.y}`);
+      }
+
+      icon.style.left = `${position.x}px`;
+      icon.style.top = `${position.y}px`;
+
+      let moving = false;
       let moved = false;
       let startX = 0;
       let startY = 0;
       let startLeft = 0;
       let startTop = 0;
 
-      icon.addEventListener("pointerdown", (event) => {
-        if (event.button !== 0) return;
+      const setSelected = () => {
+        desktop.querySelectorAll(".desktop-icon-selected").forEach(node => node.classList.remove("desktop-icon-selected"));
+        icon.classList.add("desktop-icon-selected");
+        this.showDesktopMoveAction(icon);
+      };
 
-        dragging = true;
+      icon.addEventListener("click", (event) => {
+        if ((event as MouseEvent).detail > 1) return;
+        if (moved) return;
+        setSelected();
+      });
+
+      icon.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0 || icon.dataset.moveMode !== "1") return;
+
+        moving = true;
         moved = false;
         startX = event.clientX;
         startY = event.clientY;
         startLeft = icon.offsetLeft;
         startTop = icon.offsetTop;
-
         icon.setPointerCapture?.(event.pointerId);
         icon.classList.add("desktop-icon-dragging");
       });
 
       icon.addEventListener("pointermove", (event) => {
-        if (!dragging) return;
-
+        if (!moving) return;
         const dx = event.clientX - startX;
         const dy = event.clientY - startY;
 
-        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-          moved = true;
-        }
-
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
         if (!moved) return;
 
         const maxX = Math.max(0, desktop.clientWidth - icon.offsetWidth - 8);
         const maxY = Math.max(0, desktop.clientHeight - icon.offsetHeight - 8);
-
-        const x = Math.max(8, Math.min(startLeft + dx, maxX));
-        const y = Math.max(8, Math.min(startTop + dy, maxY));
-
-        icon.style.left = `${x}px`;
-        icon.style.top = `${y}px`;
+        icon.style.left = `${Math.max(8, Math.min(startLeft + dx, maxX))}px`;
+        icon.style.top = `${Math.max(8, Math.min(startTop + dy, maxY))}px`;
       });
 
-      icon.addEventListener("pointerup", (event) => {
-        if (!dragging) return;
-
-        dragging = false;
+      const finishMove = (event?: PointerEvent) => {
+        if (!moving) return;
+        moving = false;
         icon.classList.remove("desktop-icon-dragging");
-        icon.releasePointerCapture?.(event.pointerId);
+        if (event) icon.releasePointerCapture?.(event.pointerId);
 
         if (moved) {
           const grid = 8;
-          const x = Math.round(icon.offsetLeft / grid) * grid;
-          const y = Math.round(icon.offsetTop / grid) * grid;
-
           const maxX = Math.max(8, desktop.clientWidth - icon.offsetWidth - 8);
           const maxY = Math.max(8, desktop.clientHeight - icon.offsetHeight - 8);
-
-          const finalX = Math.max(8, Math.min(x, maxX));
-          const finalY = Math.max(8, Math.min(y, maxY));
+          const finalX = Math.max(8, Math.min(Math.round(icon.offsetLeft / grid) * grid, maxX));
+          const finalY = Math.max(8, Math.min(Math.round(icon.offsetTop / grid) * grid, maxY));
 
           icon.style.left = `${finalX}px`;
           icon.style.top = `${finalY}px`;
-
           this.saveDesktopPosition(id, finalX, finalY);
         }
-      });
 
+        icon.dataset.moveMode = "0";
+        this.showDesktopMoveAction(icon);
+      };
+
+      icon.addEventListener("pointerup", finishMove);
       icon.addEventListener("pointercancel", () => {
-        dragging = false;
+        moving = false;
         icon.classList.remove("desktop-icon-dragging");
+        icon.dataset.moveMode = "0";
       });
     });
+
+    desktop.addEventListener("click", (event) => {
+      if ((event.target as HTMLElement).closest(".desktop-icon, .desktop-move-action")) return;
+      desktop.querySelectorAll(".desktop-icon-selected").forEach(node => node.classList.remove("desktop-icon-selected"));
+      this.hideDesktopMoveAction();
+    }, { passive: true });
+  }
+
+  private showDesktopMoveAction(icon: HTMLElement): void {
+    this.hideDesktopMoveAction();
+
+    const action = document.createElement("button");
+    action.type = "button";
+    action.className = "desktop-move-action";
+    action.textContent = icon.dataset.moveMode === "1" ? "Moving…" : "↔ Move app";
+    action.title = "Move this app without using browser-level Alt + mouse shortcuts";
+
+    const desktop = document.getElementById("desktop-area");
+    if (!desktop) return;
+
+    desktop.appendChild(action);
+    const left = Math.max(8, Math.min(icon.offsetLeft, desktop.clientWidth - 110));
+    const top = Math.max(8, icon.offsetTop + icon.offsetHeight + 6);
+    action.style.left = `${left}px`;
+    action.style.top = `${top}px`;
+
+    action.addEventListener("click", (event) => {
+      event.stopPropagation();
+      icon.dataset.moveMode = "1";
+      icon.classList.add("desktop-icon-selected");
+      action.textContent = "Drag to move";
+      action.classList.add("active");
+    });
+  }
+
+  private hideDesktopMoveAction(): void {
+    document.querySelector(".desktop-move-action")?.remove();
   }
 
   private async searchWorkspace(query: string): Promise<void> {
