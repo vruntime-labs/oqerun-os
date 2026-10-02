@@ -4374,3 +4374,67 @@ input:focus-visible,
     display:none;
   }
 }
+
+
+/* Application properties */
+.app-properties{
+  height:100%;
+  box-sizing:border-box;
+  padding:22px;
+  overflow:auto;
+  color:var(--text);
+}
+.app-properties-header{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  margin-bottom:18px;
+}
+.app-properties-header strong{
+  font-size:20px;
+}
+.app-properties-header span{
+  color:var(--muted);
+  font-size:11px;
+}
+.app-properties-grid{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  overflow:hidden;
+}
+.app-properties-row{
+  display:grid;
+  grid-template-columns:150px 1fr;
+  gap:14px;
+  padding:10px 12px;
+  background:rgba(255,255,255,.025);
+}
+.app-properties-row span{
+  color:var(--muted);
+  font-size:11px;
+}
+.app-properties-row strong{
+  font-size:11px;
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+.app-properties-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:18px;
+}
+.app-properties-actions button{
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:9px;
+  padding:8px 12px;
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  cursor:pointer;
+}
+.app-properties-actions button:hover{
+  background:rgba(255,255,255,.12);
+}
