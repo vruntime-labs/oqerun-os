@@ -319,7 +319,8 @@ export class WindowManager {
           explorer: "icons/explorer.png",
           terminal: "icons/terminal.png",
           settings: "icons/settings.png",
-          "computer-files": "icons/computer.png"
+          "computer-files": "icons/computer.png",
+          "oqerun-store": "icons/oqerun-store.svg"
         };
 
         const iconPath =
