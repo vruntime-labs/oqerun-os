@@ -7,6 +7,7 @@ export interface InstallationRequest {
   version: string;
   type: InstalledApplication["type"];
   sourceUrl?: string;
+  iconUrl?: string;
   sha256?: string;
   permissions: string[];
   fileAssociations: string[];
