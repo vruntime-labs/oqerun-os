@@ -1,12 +1,30 @@
 export class StartMenu {
   private isOpen = false;
 
-  toggle(): void {
+  open(): void {
     const menu = document.getElementById("start-menu");
     if (!menu) return;
 
-    this.isOpen = !this.isOpen;
-    menu.style.display = this.isOpen ? "flex" : "none";
+    this.isOpen = true;
+    menu.style.display = "flex";
+  }
+
+  toggle(): void {
+    if (this.isOpen) {
+      this.close();
+    } else {
+      this.open();
+    }
+  }
+
+  focusSearch(): void {
+    const input = document.getElementById("app-search") as HTMLInputElement | null;
+    if (!input) return;
+
+    window.requestAnimationFrame(() => {
+      input.focus();
+      input.select();
+    });
   }
 
   close(): void {
