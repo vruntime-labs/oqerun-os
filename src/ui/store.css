@@ -1,6 +1,57 @@
-/* Oqerun Store system-app shell */
-.store-app-shell{position:absolute;inset:0;display:flex;overflow:hidden;background:#07112c}
-.store-app-frame{width:100%;height:100%;border:0;display:block;background:#07112c}
-.store-app-fallback{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:12px;padding:32px;color:#fff;background:#07112c;text-align:center}
-.store-app-fallback[hidden]{display:none}
-.store-app-fallback a{color:#00d4ff;font-weight:700}
+/* =========================================================
+   OQERUN STORE — OS EMBEDDED APP SHELL
+   ========================================================= */
+
+.window-content:has(.store-app-shell){
+  position:relative!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+.store-app-shell{
+  position:absolute;
+  inset:0;
+  display:flex;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  background:#07112c;
+}
+
+.store-app-frame{
+  display:block;
+  flex:1 1 auto;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  border:0;
+  margin:0;
+  padding:0;
+  background:#07112c;
+}
+
+.store-app-fallback{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:12px;
+  padding:32px;
+  color:#fff;
+  background:#07112c;
+  text-align:center;
+  z-index:2;
+}
+
+.store-app-fallback[hidden]{
+  display:none;
+}
+
+.store-app-fallback a{
+  color:#00d4ff;
+  font-weight:700;
+}
