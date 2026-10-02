@@ -19,21 +19,21 @@ export class Store {
       height: 680,
       x: 70,
       y: 35,
-      content: \`
+      content: `
         <div class="store-app-shell">
           <iframe
             class="store-app-frame"
-            src="\${this.url}"
+            src="${this.url}"
             title="Oqerun Store"
             loading="eager"
             referrerpolicy="strict-origin-when-cross-origin"
           ></iframe>
           <div class="store-app-fallback" hidden>
             <span>Oqerun Store could not be loaded inside Oqerun.</span>
-            <a href="\${this.url}" target="_blank" rel="noopener noreferrer">Open Store</a>
+            <a href="${this.url}" target="_blank" rel="noopener noreferrer">Open Store</a>
           </div>
         </div>
-      \`
+      `
     });
 
     requestAnimationFrame(() => {
