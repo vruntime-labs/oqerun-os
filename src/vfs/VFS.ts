@@ -115,6 +115,27 @@ export class VFS {
     );
   }
 
+  async remove(path: string): Promise<void> {
+    const normalized = Path.normalize(path);
+
+    if (this.cloud.handles(normalized)) {
+      throw new Error("Cloud delete is not enabled yet.");
+    }
+
+    await this.storage.remove(normalized);
+  }
+
+  async rename(path: string, newPath: string): Promise<void> {
+    const normalized = Path.normalize(path);
+    const destination = Path.normalize(newPath);
+
+    if (this.cloud.handles(normalized) || this.cloud.handles(destination)) {
+      throw new Error("Cloud rename is not enabled yet.");
+    }
+
+    await this.storage.rename(normalized, destination);
+  }
+
   async listDetailed(
     path: string
   ): Promise<VfsEntry[]> {
