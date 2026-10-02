@@ -3321,3 +3321,378 @@ input:focus-visible,
   margin: 0;
   background: #07112c;
 }
+
+
+/* =========================================================
+   OQERUN LAUNCHPAD — MAC-STYLE START MENU
+   ========================================================= */
+
+.start-menu{
+  position:absolute;
+  left:50%;
+  bottom:82px;
+  transform:translateX(-50%);
+  width:min(760px,calc(100vw - 32px));
+  height:min(560px,calc(100vh - 120px));
+  min-height:420px;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  padding:18px;
+  z-index:1000;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(28,46,91,.92),
+      rgba(9,20,48,.94)
+    );
+  backdrop-filter:blur(34px) saturate(145%);
+  -webkit-backdrop-filter:blur(34px) saturate(145%);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:28px;
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.48),
+    0 0 0 1px rgba(0,212,255,.035);
+  animation:launchpadIn .18s cubic-bezier(.2,.8,.2,1);
+}
+
+.start-menu-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:2px 2px 14px;
+}
+
+.start-menu-brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.start-menu-brand-mark{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:linear-gradient(145deg,#36b9ff,#1774ed);
+  color:white;
+  font-size:18px;
+  font-weight:800;
+  box-shadow:0 7px 18px rgba(0,145,255,.28);
+}
+
+.start-menu h3{
+  margin:0;
+  color:var(--text);
+  font-size:17px;
+  line-height:1.1;
+}
+
+.start-menu-brand span{
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.04em;
+}
+
+.start-menu-close{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:50%;
+  background:rgba(255,255,255,.055);
+  color:var(--muted);
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.start-menu-close:hover{
+  background:rgba(255,255,255,.12);
+  color:var(--text);
+}
+
+.start-menu-search{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  width:100%;
+  height:40px;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:12px;
+  background:rgba(0,0,0,.18);
+}
+
+.start-menu-search > span{
+  color:var(--muted);
+  font-size:19px;
+}
+
+.start-menu-search input{
+  width:100%;
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:var(--text);
+  font-size:13px;
+}
+
+.start-menu-search input::placeholder{
+  color:rgba(159,178,216,.7);
+}
+
+.start-menu-apps-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 3px 10px;
+  color:var(--text);
+  font-size:12px;
+  font-weight:700;
+}
+
+.start-menu-apps-header span:last-child{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:600;
+}
+
+.launchpad-grid{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  grid-auto-rows:minmax(94px,1fr);
+  gap:8px;
+  overflow-y:auto;
+  padding:3px 2px 10px;
+  align-content:start;
+}
+
+.start-menu-item{
+  width:100%;
+  min-height:92px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:8px;
+  padding:10px 5px 8px;
+  border:1px solid transparent;
+  border-radius:16px;
+  background:transparent;
+  color:var(--text);
+  text-align:center;
+  cursor:pointer;
+  transition:
+    background .16s ease,
+    transform .16s ease,
+    border-color .16s ease;
+}
+
+.start-menu-item:hover{
+  background:rgba(255,255,255,.075);
+  border-color:rgba(255,255,255,.08);
+  transform:translateY(-2px);
+}
+
+.start-menu-item:active{
+  transform:scale(.96);
+}
+
+.start-menu-item[hidden]{
+  display:none;
+}
+
+.start-icon{
+  width:52px;
+  height:52px;
+  flex:0 0 52px;
+  object-fit:contain;
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.24));
+  transition:transform .16s ease;
+}
+
+.start-icon-fallback{
+  display:grid;
+  place-items:center;
+  color:var(--text);
+  font-size:22px;
+  font-weight:700;
+}
+
+.start-menu-item:hover .start-icon{
+  transform:scale(1.07);
+}
+
+.start-menu-item span{
+  flex:0 0 auto;
+  width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--text);
+  font-size:11px;
+  font-weight:600;
+}
+
+.start-menu-empty{
+  grid-column:1 / -1;
+  min-height:180px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  color:var(--muted);
+  text-align:center;
+}
+
+.start-menu-empty strong{
+  color:var(--text);
+  font-size:13px;
+}
+
+.start-menu-empty span{
+  color:var(--muted);
+  font-size:11px;
+}
+
+.start-menu-empty[hidden]{
+  display:none;
+}
+
+.start-menu-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 3px 1px;
+  color:rgba(159,178,216,.75);
+  font-size:10px;
+  font-weight:600;
+}
+
+.taskbar{
+  left:50%;
+  right:auto;
+  bottom:10px;
+  width:max-content;
+  max-width:calc(100vw - 24px);
+  height:58px;
+  transform:translateX(-50%);
+  padding:6px 10px;
+  gap:7px;
+  border-radius:20px;
+  background:rgba(10,22,49,.72);
+  backdrop-filter:blur(28px) saturate(145%);
+  -webkit-backdrop-filter:blur(28px) saturate(145%);
+  border:1px solid rgba(255,255,255,.13);
+  box-shadow:
+    0 14px 40px rgba(0,0,0,.4),
+    0 0 0 1px rgba(0,212,255,.025);
+}
+
+.start-btn{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  border-radius:14px;
+  background:rgba(255,255,255,.065);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.start-btn:hover{
+  background:rgba(255,255,255,.12);
+  transform:translateY(-2px);
+}
+
+.start-btn img{
+  width:29px;
+  height:29px;
+}
+
+.taskbar-title{
+  display:none;
+}
+
+#taskbar-apps{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+}
+
+#clock{
+  min-width:58px;
+  padding:0 8px;
+  color:var(--text);
+  font-size:11px;
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  border-left:1px solid rgba(255,255,255,.09);
+}
+
+@keyframes launchpadIn{
+  from{
+    opacity:0;
+    transform:translateX(-50%) translateY(14px) scale(.97);
+  }
+  to{
+    opacity:1;
+    transform:translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@media (max-width:900px){
+  .launchpad-grid{
+    grid-template-columns:repeat(5,minmax(0,1fr));
+  }
+}
+
+@media (max-width:700px){
+  .start-menu{
+    width:calc(100vw - 16px);
+    bottom:74px;
+    height:calc(100vh - 92px);
+    min-height:360px;
+    border-radius:22px;
+    padding:14px;
+  }
+
+  .launchpad-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-auto-rows:88px;
+  }
+
+  .start-menu-item{
+    min-height:84px;
+  }
+
+  .start-icon{
+    width:46px;
+    height:46px;
+    flex-basis:46px;
+  }
+
+  .taskbar{
+    max-width:calc(100vw - 16px);
+    height:54px;
+    bottom:7px;
+  }
+
+  #clock{
+    display:none;
+  }
+}
