@@ -8,6 +8,7 @@ export interface InstalledApplication {
   version: string;
   type: InstalledAppType;
   sourceUrl?: string;
+  iconUrl?: string;
   permissions: string[];
   fileAssociations: string[];
   installedAt: string;
