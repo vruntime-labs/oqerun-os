@@ -1130,15 +1130,26 @@ export class Desktop {
     this.renderPersonalization();
   }
 
-  private toggleHome(id: string): void {
+  private async toggleHome(id: string): Promise<void> {
     const ids = this.getStoredIds(this.homeStorageKey);
     const next = ids.includes(id)
       ? ids.filter((item) => item !== id)
       : [...ids, id];
 
     this.setStoredIds(this.homeStorageKey, next);
-    void this.renderAppList();
-    this.renderPersonalization();
+
+    // Refresh the application catalog first so newly installed apps are
+    // available to the desktop renderer immediately.
+    await this.renderAppList();
+    await this.renderPersonalization();
+
+    const app = this.getAppCatalog().find((item) => item.id === id);
+    const onHome = next.includes(id);
+
+    this.kernel.notify.info(
+      app?.name ?? "Application",
+      onHome ? "Added to Home Screen." : "Removed from Home Screen."
+    );
   }
 
   private appDefinitions(): Array<{
@@ -1411,8 +1422,19 @@ export class Desktop {
       menu.appendChild(button);
     };
 
+    const builtInHomeIds = new Set(["computer", "oqerun-store"]);
+    const isBuiltInDesktopApp = builtInHomeIds.has(id);
+
     add(this.isPinned(id) ? "Unpin from Taskbar" : "Pin to Taskbar", () => this.togglePinned(id));
-    add(this.isOnHome(id) ? "Remove from Home Screen" : "Add to Home Screen", () => this.toggleHome(id));
+
+    if (isBuiltInDesktopApp) {
+      add("Already on Home Screen", () => undefined, true);
+    } else {
+      add(
+        this.isOnHome(id) ? "Remove from Home Screen" : "Add to Home Screen",
+        () => { void this.toggleHome(id); }
+      );
+    }
     add("Open", () => {
       const builtIn = this.getAppCatalog().find((item) => item.id === id);
       if (builtIn) {
