@@ -357,3 +357,21 @@
     padding: 18px;
   }
 }
+
+
+/* Expanded Settings controls */
+.settings-description{margin:-12px 0 20px;color:var(--muted);font-size:13px;line-height:1.5}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.settings-badge{padding:5px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,var(--surface-2));color:var(--accent);font-size:11px;font-weight:700;white-space:nowrap}
+.settings-status-card{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:16px 18px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 84%,transparent)}
+.status-dot{width:11px;height:11px;border-radius:50%;background:#38d996;box-shadow:0 0 12px rgba(56,217,150,.45)}
+.status-dot.offline{background:#ff5f57;box-shadow:0 0 12px rgba(255,95,87,.4)}
+.settings-status-card strong{color:var(--text);font-size:14px}.settings-status-card p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.storage-meter{height:9px;margin-bottom:12px;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--text) 10%,transparent)}
+.storage-meter-fill{height:100%;width:0;border-radius:inherit;background:var(--accent);transition:width .25s ease}
+.settings-toggle{min-width:62px}.settings-toggle.on{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--border));background:color-mix(in srgb,var(--accent) 12%,var(--surface-2))}
+.danger-card{border-color:color-mix(in srgb,#ff5f57 28%,var(--border))}
+.danger-button{color:#ff5f57!important}
+kbd{display:inline-block;padding:2px 6px;border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;background:var(--surface-2);color:var(--text);font-size:11px}
+.oqerun-reduce-motion *,.oqerun-reduce-motion *::before,.oqerun-reduce-motion *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+@media(max-width:760px){.settings-row{align-items:flex-start;flex-direction:column}.settings-sidebar-title{display:none}}
