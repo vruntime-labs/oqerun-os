@@ -1,0 +1,6 @@
+/* Oqerun Store system-app shell */
+.store-app-shell{position:absolute;inset:0;display:flex;overflow:hidden;background:#07112c}
+.store-app-frame{width:100%;height:100%;border:0;display:block;background:#07112c}
+.store-app-fallback{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:12px;padding:32px;color:#fff;background:#07112c;text-align:center}
+.store-app-fallback[hidden]{display:none}
+.store-app-fallback a{color:#00d4ff;font-weight:700}
