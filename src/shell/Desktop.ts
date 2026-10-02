@@ -388,9 +388,11 @@ export class Desktop {
         this.hideStartMenu();
       }
 
-      // Any normal left click should also dismiss an open context menu.
-      // This keeps the desktop/taskbar fully interactive after a right-click.
-      this.removeContextMenu();
+      // Keep context-menu buttons clickable. The menu itself owns its
+      // dismissal after an action is selected.
+      if (!target.closest(".oqerun-context-menu")) {
+        this.removeContextMenu();
+      }
     });
 
     document.addEventListener("keydown", (event) => {
@@ -522,6 +524,17 @@ export class Desktop {
         app.open();
       });
 
+      button.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.showAppContextMenu(
+          event.clientX,
+          event.clientY,
+          app.id,
+          app.name
+        );
+      });
+
       container.appendChild(button);
     }
 
@@ -635,6 +648,17 @@ export class Desktop {
             app.open();
           });
 
+          button.addEventListener("contextmenu", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.showAppContextMenu(
+              event.clientX,
+              event.clientY,
+              app.id,
+              app.name
+            );
+          });
+
           const img = document.createElement("img");
           img.src = app.iconUrl ?? `${import.meta.env.BASE_URL}branding/icon-flat-1024.png`;
           img.alt = "";
@@ -678,6 +702,17 @@ export class Desktop {
         this.renderRecentApps();
         this.hideStartMenu();
         app.open();
+      });
+
+      button.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.showAppContextMenu(
+          event.clientX,
+          event.clientY,
+          app.id,
+          app.name
+        );
       });
 
       const img = document.createElement("img");
@@ -1043,6 +1078,10 @@ export class Desktop {
       this.kernel.notify.info(name, "Application shortcuts and installation settings are managed by Oqerun OS.");
     });
 
+    menu.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
     document.body.appendChild(menu);
   }
 
@@ -1101,6 +1140,10 @@ export class Desktop {
       localStorage.removeItem("oqerun.taskbar.autoHide");
     });
 
+    menu.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
     document.body.appendChild(menu);
   }
 
@@ -1129,6 +1172,10 @@ export class Desktop {
     });
     add("Open Computer", () => this.computer.open());
     add("Open Settings", () => this.settings.open());
+
+    menu.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
 
     document.body.appendChild(menu);
   }
