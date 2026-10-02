@@ -30,6 +30,16 @@ export class WindowManager {
 
   private zIndex = 100;
 
+  constructor() {
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab" || !event.altKey) return;
+      if (event.ctrlKey || event.metaKey) return;
+
+      event.preventDefault();
+      this.cycleWindow(event.shiftKey ? -1 : 1);
+    });
+  }
+
   open(
     options: WindowOptions
   ): void {
@@ -247,6 +257,27 @@ export class WindowManager {
     }
 
     this.focus(id);
+  }
+
+  private cycleWindow(direction: 1 | -1): void {
+    const visible = [...this.windows.values()]
+      .filter((window) => !window.minimized);
+
+    if (visible.length < 2) return;
+
+    const activeIndex = visible.findIndex(
+      (window) => window.id === this.activeWindow
+    );
+
+    const start =
+      activeIndex >= 0
+        ? activeIndex
+        : 0;
+
+    const nextIndex =
+      (start + direction + visible.length) % visible.length;
+
+    this.focus(visible[nextIndex].id);
   }
 
   private activateNextWindow(): void {
