@@ -20,6 +20,7 @@ export class Desktop {
 
   private readonly pinnedStorageKey = "oqerun.pinnedApps";
   private readonly homeStorageKey = "oqerun.homeApps";
+  private installedApps = new Map<string, Awaited<ReturnType<Kernel["applications"]["list"]>>[number]>();
 
   constructor(private kernel: Kernel) {
     this.explorer = new Explorer(this.kernel, this.wm);
@@ -399,6 +400,12 @@ export class Desktop {
       if (event.key === "Escape") {
         this.removeContextMenu();
       }
+
+      if ((event.ctrlKey || event.metaKey) && event.code === "Space") {
+        event.preventDefault();
+        this.startMenu.open();
+        this.startMenu.focusSearch();
+      }
     });
   }
 
@@ -407,6 +414,7 @@ export class Desktop {
     if (!container) return;
 
     const installed = await this.kernel.applications.list();
+    this.installedApps = new Map(installed.map((app) => [app.id, app]));
 
     type StartApp = {
       id: string;
@@ -624,7 +632,7 @@ export class Desktop {
   private renderQuickSections(): void {
     const pinnedContainer = document.getElementById("start-pinned");
     const pinnedIds = this.getStoredIds(this.pinnedStorageKey);
-    const definitions = this.appDefinitions();
+    const definitions = this.getAppCatalog();
 
     if (pinnedContainer) {
       pinnedContainer.innerHTML = "";
@@ -687,7 +695,7 @@ export class Desktop {
       return;
     }
 
-    const definitions = this.appDefinitions();
+    const definitions = this.getAppCatalog();
 
     for (const item of recent.slice(0, 4)) {
       const app = definitions.find((definition) => definition.id === item.id);
@@ -875,35 +883,37 @@ export class Desktop {
     ];
   }
 
+  private getAppCatalog(): Array<{
+    id: string;
+    name: string;
+    iconUrl?: string;
+    open: () => void;
+  }> {
+    const definitions = this.appDefinitions();
+
+    for (const app of this.installedApps.values()) {
+      if (definitions.some((item) => item.id === app.id)) continue;
+
+      const windowId =
+        "installed-app-" +
+        app.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+
+      definitions.push({
+        id: app.id,
+        name: app.name,
+        iconUrl: app.iconUrl,
+        open: () => this.openInstalledApp(app, windowId)
+      });
+    }
+
+    return definitions;
+  }
+
   private async renderPersonalization(): Promise<void> {
     const desktop = document.getElementById("desktop-area");
     const pinned = document.getElementById("taskbar-pinned");
 
-    const definitions = this.appDefinitions();
-
-    // Include apps installed from Oqerun Store so they can be pinned
-    // to the taskbar or added to the desktop just like built-in apps.
-    try {
-      const installed = await this.kernel.applications.list();
-
-      for (const app of installed) {
-        const windowId =
-          "installed-app-" +
-          app.id.replace(/[^a-zA-Z0-9_-]/g, "-");
-
-        if (definitions.some((item) => item.id === app.id)) continue;
-
-        definitions.push({
-          id: app.id,
-          name: app.name,
-          iconUrl: app.iconUrl,
-          open: () => this.openInstalledApp(app, windowId)
-        });
-      }
-    } catch {
-      // Built-in apps remain available even if the application registry
-      // cannot be read during an early desktop render.
-    }
+    const definitions = this.getAppCatalog();
 
     if (desktop) {
       desktop
@@ -1002,6 +1012,29 @@ export class Desktop {
     image.draggable = false;
 
     button.appendChild(image);
+    button.draggable = true;
+    button.addEventListener("dragstart", (event) => {
+      event.dataTransfer?.setData("text/plain", app.id);
+      button.classList.add("dragging");
+    });
+    button.addEventListener("dragend", () => button.classList.remove("dragging"));
+    button.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      button.classList.add("drag-over");
+    });
+    button.addEventListener("dragleave", () => button.classList.remove("drag-over"));
+    button.addEventListener("drop", (event) => {
+      event.preventDefault();
+      button.classList.remove("drag-over");
+      const draggedId = event.dataTransfer?.getData("text/plain");
+      if (!draggedId || draggedId === app.id) return;
+
+      const ids = this.getStoredIds(this.pinnedStorageKey).filter((id) => id !== draggedId);
+      const targetIndex = ids.indexOf(app.id);
+      ids.splice(Math.max(0, targetIndex), 0, draggedId);
+      this.setStoredIds(this.pinnedStorageKey, ids);
+      void this.renderPersonalization();
+    });
     button.addEventListener("click", app.open);
     button.addEventListener("contextmenu", (event) => {
       event.preventDefault();
@@ -1071,7 +1104,7 @@ export class Desktop {
     add(this.isPinned(id) ? "Unpin from Taskbar" : "Pin to Taskbar", () => this.togglePinned(id));
     add(this.isOnHome(id) ? "Remove from Home Screen" : "Add to Home Screen", () => this.toggleHome(id));
     add("Open", () => {
-      const builtIn = this.appDefinitions().find((item) => item.id === id);
+      const builtIn = this.getAppCatalog().find((item) => item.id === id);
       if (builtIn) {
         builtIn.open();
         return;
@@ -1096,11 +1129,43 @@ export class Desktop {
       void this.showAppProperties(id, name);
     });
 
+    if (this.installedApps.has(id)) {
+      add("Uninstall", () => {
+        void this.uninstallApp(id, name);
+      });
+    }
+
     menu.addEventListener("click", (event) => {
       event.stopPropagation();
     });
 
     document.body.appendChild(menu);
+  }
+
+  private async uninstallApp(id: string, name: string): Promise<void> {
+    const confirmed = window.confirm(`Uninstall ${name} from Oqerun OS?`);
+    if (!confirmed) return;
+
+    try {
+      await this.kernel.applications.uninstall(id);
+      this.installedApps.delete(id);
+
+      this.setStoredIds(
+        this.pinnedStorageKey,
+        this.getStoredIds(this.pinnedStorageKey).filter((item) => item !== id)
+      );
+      this.setStoredIds(
+        this.homeStorageKey,
+        this.getStoredIds(this.homeStorageKey).filter((item) => item !== id)
+      );
+
+      await this.renderAppList();
+      await this.renderPersonalization();
+      this.kernel.notify.info(name, "Application uninstalled from Oqerun OS.");
+      window.dispatchEvent(new CustomEvent("oqerun-app-uninstalled", { detail: { id } }));
+    } catch (error) {
+      this.kernel.notify.info(name, error instanceof Error ? error.message : "Unable to uninstall this application.");
+    }
   }
 
   private async showAppProperties(id: string, fallbackName: string): Promise<void> {
