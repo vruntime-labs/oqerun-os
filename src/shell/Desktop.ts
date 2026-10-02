@@ -116,6 +116,24 @@ export class Desktop {
             />
           </div>
 
+          <div class="start-menu-quick-row">
+            <section class="start-menu-quick-section">
+              <div class="start-menu-section-head">
+                <span>Pinned</span>
+                <span>Quick access</span>
+              </div>
+              <div id="start-pinned" class="start-menu-pinned"></div>
+            </section>
+
+            <section class="start-menu-quick-section start-menu-recent-section">
+              <div class="start-menu-section-head">
+                <span>Recent</span>
+                <span>Last opened</span>
+              </div>
+              <div id="start-recent" class="start-menu-recent"></div>
+            </section>
+          </div>
+
           <div class="start-menu-apps-header">
             <span>All Applications</span>
             <span id="app-count"></span>
@@ -124,8 +142,14 @@ export class Desktop {
           <div id="app-list" class="launchpad-grid"></div>
 
           <div class="start-menu-footer">
-            <span>Oqerun OS</span>
-            <span>Launchpad</span>
+            <button id="start-user" class="start-footer-action" type="button">
+              <span class="start-footer-avatar">V</span>
+              <span>User</span>
+            </button>
+            <div class="start-footer-actions">
+              <button id="start-settings" class="start-footer-icon" type="button" title="Settings" aria-label="Settings">⚙</button>
+              <button id="start-power" class="start-footer-icon" type="button" title="Power" aria-label="Power">⏻</button>
+            </div>
           </div>
         </div>
 
@@ -142,6 +166,14 @@ export class Desktop {
               draggable="false"
             />
           </button>
+
+          <button
+            id="taskbar-search"
+            class="taskbar-tool"
+            type="button"
+            title="Search"
+            aria-label="Search Oqerun"
+          >⌕</button>
 
           <div class="taskbar-left" id="taskbar-pinned">
             <button
@@ -182,7 +214,10 @@ export class Desktop {
           <div class="taskbar-divider taskbar-divider-right" aria-hidden="true"></div>
 
           <div class="taskbar-right">
+            <button id="taskbar-network" class="taskbar-tray-button" type="button" title="Network: Online" aria-label="Network status">⌁</button>
+            <button id="taskbar-volume" class="taskbar-tray-button" type="button" title="Volume" aria-label="Volume">◖</button>
             <span class="taskbar-status" title="Oqerun OS">●</span>
+            <div class="taskbar-date" id="date">--/--</div>
             <div id="clock">--:--</div>
           </div>
         </footer>
@@ -190,12 +225,27 @@ export class Desktop {
     `;
 
     this.bindEvents();
+    this.applyTaskbarPreferences();
 
     void this.renderAppList();
     void this.renderPersonalization();
     this.bindContextMenus();
 
     this.startClock();
+  }
+
+  private applyTaskbarPreferences(): void {
+    const desktop = document.querySelector(".desktop");
+    if (!desktop) return;
+
+    const position = localStorage.getItem("oqerun.taskbar.position") ?? "bottom";
+    const compact = localStorage.getItem("oqerun.taskbar.compact") === "1";
+    const autoHide = localStorage.getItem("oqerun.taskbar.autoHide") === "1";
+
+    desktop.classList.toggle("taskbar-top", position === "top");
+    desktop.classList.toggle("taskbar-bottom", position !== "top");
+    desktop.classList.toggle("taskbar-compact", compact);
+    desktop.classList.toggle("taskbar-auto-hide", autoHide);
   }
 
   private hideStartMenu(): void {
@@ -223,6 +273,52 @@ export class Desktop {
       });
 
     document
+      .getElementById("taskbar-search")
+      ?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.startMenu.open();
+        this.startMenu.focusSearch();
+      });
+
+    document
+      .getElementById("start-settings")
+      ?.addEventListener("click", () => {
+        this.hideStartMenu();
+        this.settings.open();
+      });
+
+    document
+      .getElementById("start-user")
+      ?.addEventListener("click", () => {
+        this.kernel.notify.info("User Profile", "User profile management will be available in Oqerun Settings.");
+      });
+
+    document
+      .getElementById("start-power")
+      ?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.showPowerMenu();
+      });
+
+    document
+      .getElementById("taskbar-network")
+      ?.addEventListener("click", () => {
+        this.kernel.notify.info(
+          navigator.onLine ? "Network" : "Network",
+          navigator.onLine ? "Oqerun is online." : "Oqerun is offline."
+        );
+      });
+
+    document
+      .getElementById("taskbar-volume")
+      ?.addEventListener("click", () => {
+        this.kernel.notify.info("Volume", "Audio controls are managed by the active Oqerun app.");
+      });
+
+    window.addEventListener("online", () => this.updateSystemTray());
+    window.addEventListener("offline", () => this.updateSystemTray());
+
+    document
       .getElementById("start-menu-close")
       ?.addEventListener("click", () => {
         this.hideStartMenu();
@@ -244,6 +340,7 @@ export class Desktop {
 
         const empty = document.getElementById("app-search-empty");
         if (empty) empty.hidden = visible !== 0;
+        this.filterQuickSections(query);
       });
 
     document
@@ -379,6 +476,8 @@ export class Desktop {
 
     container.innerHTML = "";
 
+    this.renderQuickSections();
+
     const count = document.getElementById("app-count");
     if (count) {
       count.textContent = String(apps.length);
@@ -417,6 +516,8 @@ export class Desktop {
       button.appendChild(name);
 
       button.addEventListener("click", () => {
+        this.recordRecentApp(app.id, app.name, app.iconUrl);
+        this.renderRecentApps();
         this.hideStartMenu();
         app.open();
       });
@@ -479,6 +580,181 @@ export class Desktop {
       .replaceAll(">", "&gt;");
   }
 
+
+  private readonly recentStorageKey = "oqerun.recentApps";
+
+  private getRecentApps(): Array<{ id: string; name: string; iconUrl?: string }> {
+    try {
+      const value = JSON.parse(localStorage.getItem(this.recentStorageKey) ?? "[]");
+      return Array.isArray(value)
+        ? value.filter((item): item is { id: string; name: string; iconUrl?: string } =>
+            !!item &&
+            typeof item === "object" &&
+            typeof item.id === "string" &&
+            typeof item.name === "string"
+          )
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private recordRecentApp(id: string, name: string, iconUrl?: string): void {
+    const next = [
+      { id, name, iconUrl },
+      ...this.getRecentApps().filter((item) => item.id !== id)
+    ].slice(0, 6);
+
+    localStorage.setItem(this.recentStorageKey, JSON.stringify(next));
+  }
+
+  private renderQuickSections(): void {
+    const pinnedContainer = document.getElementById("start-pinned");
+    const pinnedIds = this.getStoredIds(this.pinnedStorageKey);
+    const definitions = this.appDefinitions();
+
+    if (pinnedContainer) {
+      pinnedContainer.innerHTML = "";
+      const pinnedApps = definitions.filter((app) => pinnedIds.includes(app.id));
+
+      if (pinnedApps.length === 0) {
+        const empty = document.createElement("span");
+        empty.className = "start-quick-empty";
+        empty.textContent = "Pin apps from the desktop or taskbar menu.";
+        pinnedContainer.appendChild(empty);
+      } else {
+        for (const app of pinnedApps.slice(0, 8)) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "start-quick-app";
+          button.title = app.name;
+          button.addEventListener("click", () => {
+            this.recordRecentApp(app.id, app.name, app.iconUrl);
+            this.renderRecentApps();
+            this.hideStartMenu();
+            app.open();
+          });
+
+          const img = document.createElement("img");
+          img.src = app.iconUrl ?? `${import.meta.env.BASE_URL}branding/icon-flat-1024.png`;
+          img.alt = "";
+          img.draggable = false;
+          button.appendChild(img);
+          pinnedContainer.appendChild(button);
+        }
+      }
+    }
+
+    this.renderRecentApps();
+  }
+
+  private renderRecentApps(): void {
+    const container = document.getElementById("start-recent");
+    if (!container) return;
+
+    container.innerHTML = "";
+    const recent = this.getRecentApps();
+
+    if (recent.length === 0) {
+      const empty = document.createElement("span");
+      empty.className = "start-quick-empty";
+      empty.textContent = "Your recently opened apps will appear here.";
+      container.appendChild(empty);
+      return;
+    }
+
+    const definitions = this.appDefinitions();
+
+    for (const item of recent.slice(0, 4)) {
+      const app = definitions.find((definition) => definition.id === item.id);
+      if (!app) continue;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "start-recent-app";
+      button.title = app.name;
+      button.addEventListener("click", () => {
+        this.recordRecentApp(app.id, app.name, app.iconUrl);
+        this.renderRecentApps();
+        this.hideStartMenu();
+        app.open();
+      });
+
+      const img = document.createElement("img");
+      img.src = app.iconUrl ?? `${import.meta.env.BASE_URL}branding/icon-flat-1024.png`;
+      img.alt = "";
+      img.draggable = false;
+      button.appendChild(img);
+
+      const name = document.createElement("span");
+      name.textContent = app.name;
+      button.appendChild(name);
+
+      container.appendChild(button);
+    }
+  }
+
+  private filterQuickSections(query: string): void {
+    const sections = document.querySelectorAll<HTMLElement>(".start-quick-app, .start-recent-app");
+    sections.forEach((item) => {
+      item.hidden = !!query && !item.title.toLocaleLowerCase().includes(query);
+    });
+  }
+
+  private showPowerMenu(): void {
+    this.removeContextMenu();
+
+    const menu = document.createElement("div");
+    menu.className = "oqerun-context-menu oqerun-power-menu";
+
+    const add = (label: string, action: () => void) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        this.removeContextMenu();
+        action();
+      });
+      menu.appendChild(button);
+    };
+
+    add("Sleep Oqerun", () => {
+      document.querySelector(".desktop")?.classList.add("oqerun-sleep");
+      this.kernel.notify.info("Oqerun is sleeping", "Click the desktop to wake the session.");
+      const wake = () => {
+        document.querySelector(".desktop")?.classList.remove("oqerun-sleep");
+        document.removeEventListener("click", wake);
+      };
+      setTimeout(() => document.addEventListener("click", wake, { once: true }), 100);
+    });
+
+    add("Restart Oqerun", () => window.location.reload());
+
+    add("Lock Session", () => {
+      document.querySelector(".desktop")?.classList.add("oqerun-locked");
+      this.kernel.notify.info("Session locked", "Reload the page to unlock this Oqerun session.");
+    });
+
+    document.body.appendChild(menu);
+  }
+
+  private updateSystemTray(): void {
+    const network = document.getElementById("taskbar-network");
+    if (!network) return;
+
+    const online = navigator.onLine;
+    network.textContent = online ? "⌁" : "×";
+    network.title = online ? "Network: Online" : "Network: Offline";
+    network.setAttribute("aria-label", network.title);
+
+    const date = document.getElementById("date");
+    if (date) {
+      date.textContent = new Date().toLocaleDateString([], {
+        day: "2-digit",
+        month: "short"
+      });
+    }
+  }
 
   private getStoredIds(key: string): string[] {
     try {
@@ -701,6 +977,11 @@ export class Desktop {
   }
 
   private bindContextMenus(): void {
+    document.querySelector(".taskbar")?.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      this.showTaskbarContextMenu(event.clientX, event.clientY);
+    });
+
     for (const id of ["store-icon", "computer-icon"]) {
       document.getElementById(id)?.addEventListener("contextmenu", (event) => {
         event.preventDefault();
@@ -765,6 +1046,64 @@ export class Desktop {
     document.body.appendChild(menu);
   }
 
+  private showTaskbarContextMenu(x: number, y: number): void {
+    this.removeContextMenu();
+
+    const menu = document.createElement("div");
+    menu.className = "oqerun-context-menu";
+
+    const add = (label: string, action: () => void) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        this.removeContextMenu();
+        action();
+      });
+      menu.appendChild(button);
+    };
+
+    const app = document.querySelector(".desktop");
+
+    add("Move Taskbar to Top", () => {
+      app?.classList.remove("taskbar-bottom");
+      app?.classList.add("taskbar-top");
+      localStorage.setItem("oqerun.taskbar.position", "top");
+    });
+
+    add("Move Taskbar to Bottom", () => {
+      app?.classList.remove("taskbar-top");
+      app?.classList.add("taskbar-bottom");
+      localStorage.setItem("oqerun.taskbar.position", "bottom");
+    });
+
+    add("Compact Taskbar", () => {
+      app?.classList.toggle("taskbar-compact");
+      localStorage.setItem(
+        "oqerun.taskbar.compact",
+        app?.classList.contains("taskbar-compact") ? "1" : "0"
+      );
+    });
+
+    add("Auto-hide Taskbar", () => {
+      app?.classList.toggle("taskbar-auto-hide");
+      localStorage.setItem(
+        "oqerun.taskbar.autoHide",
+        app?.classList.contains("taskbar-auto-hide") ? "1" : "0"
+      );
+    });
+
+    add("Reset Taskbar", () => {
+      app?.classList.remove("taskbar-top", "taskbar-compact", "taskbar-auto-hide");
+      app?.classList.add("taskbar-bottom");
+      localStorage.removeItem("oqerun.taskbar.position");
+      localStorage.removeItem("oqerun.taskbar.compact");
+      localStorage.removeItem("oqerun.taskbar.autoHide");
+    });
+
+    document.body.appendChild(menu);
+  }
+
   private showDesktopContextMenu(x: number, y: number): void {
     this.removeContextMenu();
 
@@ -811,6 +1150,10 @@ export class Desktop {
     };
 
     update();
-    setInterval(update, 1000);
+    this.updateSystemTray();
+    setInterval(() => {
+      update();
+      this.updateSystemTray();
+    }, 1000);
   }
 }
