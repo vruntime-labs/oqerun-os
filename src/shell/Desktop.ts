@@ -140,14 +140,47 @@ export class Desktop {
             />
           </button>
 
-          <div class="taskbar-title">
-            Oqerun OS
+          <div class="taskbar-left">
+            <button
+              id="taskbar-computer"
+              class="taskbar-dock-app pinned"
+              type="button"
+              title="Computer"
+              aria-label="Computer"
+            >
+              <img src="${base}icons/computer.png" alt="" draggable="false" />
+            </button>
+
+            <button
+              id="taskbar-explorer"
+              class="taskbar-dock-app pinned"
+              type="button"
+              title="Explorer"
+              aria-label="Explorer"
+            >
+              <img src="${base}icons/explorer.png" alt="" draggable="false" />
+            </button>
+
+            <button
+              id="taskbar-store"
+              class="taskbar-dock-app pinned"
+              type="button"
+              title="Oqerun Store"
+              aria-label="Oqerun Store"
+            >
+              <img src="${base}icons/oqerun-store.svg" alt="" draggable="false" />
+            </button>
           </div>
+
+          <div class="taskbar-divider" aria-hidden="true"></div>
 
           <div id="taskbar-apps"></div>
 
-          <div id="clock">
-            --:--
+          <div class="taskbar-divider taskbar-divider-right" aria-hidden="true"></div>
+
+          <div class="taskbar-right">
+            <span class="taskbar-status" title="Oqerun OS">●</span>
+            <div id="clock">--:--</div>
           </div>
         </footer>
       </div>
@@ -165,6 +198,18 @@ export class Desktop {
   }
 
   private bindEvents(): void {
+    document
+      .getElementById("taskbar-computer")
+      ?.addEventListener("click", () => this.computer.open());
+
+    document
+      .getElementById("taskbar-explorer")
+      ?.addEventListener("click", () => this.explorer.open("/home/user"));
+
+    document
+      .getElementById("taskbar-store")
+      ?.addEventListener("click", () => this.store.open());
+
     document
       .getElementById("start-btn")
       ?.addEventListener("click", (event) => {
