@@ -111,11 +111,13 @@ export class Desktop {
             <input
               id="app-search"
               type="search"
-              placeholder="Search applications"
+              placeholder="Search apps, files and settings"
               autocomplete="off"
               spellcheck="false"
             />
           </div>
+
+          <div id="start-search-results" class="start-search-results" hidden></div>
 
           <div class="start-menu-quick-row">
             <section class="start-menu-quick-section">
@@ -342,6 +344,7 @@ export class Desktop {
         const empty = document.getElementById("app-search-empty");
         if (empty) empty.hidden = visible !== 0;
         this.filterQuickSections(query);
+        void this.searchWorkspace(query);
       });
 
     document
@@ -407,6 +410,87 @@ export class Desktop {
         this.startMenu.focusSearch();
       }
     });
+  }
+
+  private async searchWorkspace(query: string): Promise<void> {
+    const container = document.getElementById("start-search-results");
+    if (!container) return;
+
+    container.innerHTML = "";
+    container.hidden = !query;
+
+    if (!query) return;
+
+    const matches: Array<{ name: string; path: string; kind: string }> = [];
+
+    const walk = async (path: string, depth: number): Promise<void> => {
+      if (depth > 4 || matches.length >= 40) return;
+
+      let entries: Array<{ name: string; kind: string }> = [];
+      try {
+        entries = await this.kernel.sys.listDetailed(path);
+      } catch {
+        return;
+      }
+
+      for (const entry of entries) {
+        const fullPath = Path.join(path, entry.name);
+        if (entry.name.toLocaleLowerCase().includes(query)) {
+          matches.push({ name: entry.name, path: fullPath, kind: entry.kind });
+          if (matches.length >= 40) return;
+        }
+
+        if (entry.kind === "directory") {
+          await walk(fullPath, depth + 1);
+          if (matches.length >= 40) return;
+        }
+      }
+    };
+
+    await walk("/home/user", 0);
+
+    const apps = [...this.installedApps.values()]
+      .filter((app) => app.name.toLocaleLowerCase().includes(query))
+      .slice(0, 8);
+
+    if (!matches.length && !apps.length) {
+      container.innerHTML = `
+        <div class="start-search-empty">
+          <strong>No results</strong>
+          <span>Try an app, file, folder, or setting.</span>
+        </div>
+      `;
+      return;
+    }
+
+    const title = document.createElement("div");
+    title.className = "start-search-title";
+    title.textContent = "Search Results";
+    container.appendChild(title);
+
+    for (const app of apps) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "start-search-result";
+      button.innerHTML = `<span class="start-search-result-icon">▣</span><span><strong>${this.escapeHtml(app.name)}</strong><small>Installed application</small></span>`;
+      button.addEventListener("click", () => {
+        this.hideStartMenu();
+        this.openInstalledApp(app, "installed-app-" + app.id.replace(/[^a-zA-Z0-9_-]/g, "-"));
+      });
+      container.appendChild(button);
+    }
+
+    for (const match of matches) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "start-search-result";
+      button.innerHTML = `<span class="start-search-result-icon">${match.kind === "directory" ? "▰" : "▱"}</span><span><strong>${this.escapeHtml(match.name)}</strong><small>${this.escapeHtml(match.path)}</small></span>`;
+      button.addEventListener("click", () => {
+        this.hideStartMenu();
+        this.explorer.open(match.kind === "directory" ? match.path : Path.dirname(match.path));
+      });
+      container.appendChild(button);
+    }
   }
 
   private async renderAppList(): Promise<void> {
