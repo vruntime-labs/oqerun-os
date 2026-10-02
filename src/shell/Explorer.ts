@@ -110,6 +110,19 @@ export class Explorer {
             Refresh
           </button>
 
+          <button class="explorer-btn" data-new-folder type="button">New Folder</button>
+          <button class="explorer-btn" data-new-file type="button">New File</button>
+          <button class="explorer-btn" data-rename type="button" disabled>Rename</button>
+          <button class="explorer-btn" data-delete type="button" disabled>Delete</button>
+
+          <input
+            class="explorer-search"
+            data-search
+            type="search"
+            placeholder="Search this folder"
+            autocomplete="off"
+          />
+
           <div
             class="explorer-path"
             aria-label="Current location"
@@ -321,6 +334,70 @@ export class Explorer {
       }
     );
 
+    const renameButton = win.querySelector<HTMLButtonElement>("[data-rename]");
+    const deleteButton = win.querySelector<HTMLButtonElement>("[data-delete]");
+
+    win.querySelector<HTMLInputElement>("[data-search]")?.addEventListener("input", (event) => {
+      const query = (event.target as HTMLInputElement).value.trim().toLocaleLowerCase();
+      win.querySelectorAll<HTMLElement>(".explorer-item").forEach((item) => {
+        item.hidden = !!query && !(item.dataset.name ?? "").toLocaleLowerCase().includes(query);
+      });
+    });
+
+    win.querySelector<HTMLButtonElement>("[data-new-folder]")?.addEventListener("click", async () => {
+      const name = window.prompt("New folder name", "New Folder")?.trim();
+      if (!name) return;
+      try {
+        await this.kernel.sys.mkdir(Path.join(this.currentPath, name));
+        await this.refresh(this.currentPath);
+      } catch (error) {
+        this.kernel.notify.info("Explorer", this.describeError(error));
+      }
+    });
+
+    win.querySelector<HTMLButtonElement>("[data-new-file]")?.addEventListener("click", async () => {
+      const name = window.prompt("New file name", "New Text File.oqtxt")?.trim();
+      if (!name) return;
+      try {
+        await this.kernel.sys.write(Path.join(this.currentPath, name), "");
+        await this.refresh(this.currentPath);
+      } catch (error) {
+        this.kernel.notify.info("Explorer", this.describeError(error));
+      }
+    });
+
+    renameButton?.addEventListener("click", async () => {
+      if (!this.selectedPath) return;
+      const currentName = Path.basename(this.selectedPath);
+      const nextName = window.prompt("Rename", currentName)?.trim();
+      if (!nextName || nextName === currentName) return;
+
+      try {
+        await this.kernel.sys.rename(
+          this.selectedPath,
+          Path.join(this.currentPath, nextName)
+        );
+        await this.refresh(this.currentPath);
+      } catch (error) {
+        this.kernel.notify.info("Explorer", this.describeError(error));
+      }
+    });
+
+    deleteButton?.addEventListener("click", async () => {
+      if (!this.selectedPath) return;
+      const currentName = Path.basename(this.selectedPath);
+      if (!window.confirm(`Move "${currentName}" to Trash?`)) return;
+
+      try {
+        await this.kernel.sys.mkdir("/home/user/Trash");
+        const trashPath = Path.join("/home/user/Trash", currentName);
+        await this.kernel.sys.rename(this.selectedPath, trashPath);
+        await this.refresh(this.currentPath);
+      } catch (error) {
+        this.kernel.notify.info("Explorer", this.describeError(error));
+      }
+    });
+
     win.querySelectorAll<HTMLButtonElement>(
       ".breadcrumb"
     ).forEach(
@@ -366,10 +443,7 @@ export class Explorer {
             ) {
               void this.refresh(next);
             } else if (kind === "file") {
-              this.kernel.notify.info(
-                "Explorer",
-                "Virtual files will open in Text Editor when that app is added."
-              );
+              void this.openFile(next);
             }
           }
         );
@@ -401,10 +475,7 @@ export class Explorer {
             selected?.dataset.kind ===
             "file"
           ) {
-            this.kernel.notify.info(
-              "Explorer",
-              "Virtual files will open in Text Editor when that app is added."
-            );
+            void this.openFile(this.selectedPath);
           }
         }
       }
@@ -428,6 +499,10 @@ export class Explorer {
           );
         }
       );
+
+    const winControls = win;
+    winControls.querySelector<HTMLButtonElement>("[data-rename]")?.toggleAttribute("disabled", !path);
+    winControls.querySelector<HTMLButtonElement>("[data-delete]")?.toggleAttribute("disabled", !path);
 
     if (!path) return;
 
@@ -470,6 +545,50 @@ export class Explorer {
       this.render();
 
     await this.attachEvents();
+  }
+
+  private async openFile(path: string | undefined): Promise<void> {
+    if (!path) return;
+
+    try {
+      const text = await this.kernel.sys.read(path);
+      const name = Path.basename(path);
+      this.wm.open({
+        id: "file-viewer-" + path.replace(/[^a-zA-Z0-9_-]/g, "-"),
+        title: name,
+        width: 700,
+        height: 480,
+        x: 120,
+        y: 80,
+        content: `
+          <div class="file-viewer">
+            <div class="file-viewer-path">${this.escapeHtml(path)}</div>
+            <textarea class="file-viewer-editor" spellcheck="false">${this.escapeHtml(text)}</textarea>
+            <div class="file-viewer-actions">
+              <button type="button" data-save-file>Save</button>
+            </div>
+          </div>
+        `
+      });
+
+      requestAnimationFrame(() => {
+        const win = document.getElementById(
+          "file-viewer-" + path.replace(/[^a-zA-Z0-9_-]/g, "-")
+        );
+        win?.querySelector<HTMLButtonElement>("[data-save-file]")?.addEventListener("click", async () => {
+          const editor = win.querySelector<HTMLTextAreaElement>(".file-viewer-editor");
+          if (!editor) return;
+          try {
+            await this.kernel.sys.write(path, editor.value);
+            this.kernel.notify.info(name, "File saved.");
+          } catch (error) {
+            this.kernel.notify.info(name, this.describeError(error));
+          }
+        });
+      });
+    } catch (error) {
+      this.kernel.notify.info("Explorer", this.describeError(error));
+    }
   }
 
   private escapeHtml(
