@@ -9,6 +9,7 @@ export interface WindowOptions {
   height?: number;
   x?: number;
   y?: number;
+  iconUrl?: string;
 }
 
 interface ManagedWindow {
@@ -16,6 +17,7 @@ interface ManagedWindow {
   instance: Window;
   minimized: boolean;
   maximized: boolean;
+  iconUrl?: string;
 }
 
 export class WindowManager {
@@ -78,7 +80,8 @@ export class WindowManager {
         id: options.id,
         instance: win,
         minimized: false,
-        maximized: false
+        maximized: false,
+        iconUrl: options.iconUrl
       }
     );
 
@@ -332,7 +335,9 @@ export class WindowManager {
           document.createElement("img");
 
         icon.className = "taskbar-icon";
-        icon.src = `${base}${iconPath}`;
+        icon.src =
+          managed.iconUrl ??
+          `${base}${iconPath}`;
         icon.alt = "";
         icon.draggable = false;
 
