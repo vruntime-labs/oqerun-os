@@ -278,6 +278,7 @@ export class Desktop {
 
     window.addEventListener("oqerun-app-installed", () => {
       void this.renderAppList();
+      void this.renderPersonalization();
     });
 
     document.addEventListener("click", (event) => {
