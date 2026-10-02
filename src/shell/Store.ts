@@ -1,7 +1,6 @@
 import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
 import { InstallationBridge, type InstallationRequest } from "../core/InstallationBridge";
-import { InstallationBridge } from "../core/InstallationBridge";
 
 export class Store {
   private readonly bridge: InstallationBridge;
@@ -19,6 +18,7 @@ export class Store {
           version: request.version,
           type: request.type,
           sourceUrl: request.sourceUrl,
+          iconUrl: request.iconUrl,
           permissions: request.permissions,
           fileAssociations: request.fileAssociations
         });
