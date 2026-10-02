@@ -3259,3 +3259,33 @@ input:focus-visible,
     align-self: flex-start;
   }
 }
+
+
+/* =========================================================
+   INSTALLED STORE APPS
+   ========================================================= */
+
+.start-menu-section-label{
+  padding:10px 14px 6px;
+  color:var(--muted-text, rgba(255,255,255,.55));
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.installed-app-shell{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  background:#07112c;
+}
+
+.installed-app-frame{
+  display:block;
+  width:100%;
+  height:100%;
+  border:0;
+  margin:0;
+  background:#07112c;
+}
