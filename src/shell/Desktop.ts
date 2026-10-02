@@ -86,10 +86,44 @@ export class Desktop {
           style="display:none;"
         >
           <div class="start-menu-header">
-            <h3>Oqerun</h3>
+            <div class="start-menu-brand">
+              <div class="start-menu-brand-mark">O</div>
+              <div>
+                <h3>Oqerun</h3>
+                <span>Applications</span>
+              </div>
+            </div>
+
+            <button
+              id="start-menu-close"
+              class="start-menu-close"
+              type="button"
+              aria-label="Close Applications"
+            >×</button>
           </div>
 
-          <div id="app-list"></div>
+          <div class="start-menu-search">
+            <span>⌕</span>
+            <input
+              id="app-search"
+              type="search"
+              placeholder="Search applications"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+
+          <div class="start-menu-apps-header">
+            <span>All Applications</span>
+            <span id="app-count"></span>
+          </div>
+
+          <div id="app-list" class="launchpad-grid"></div>
+
+          <div class="start-menu-footer">
+            <span>Oqerun OS</span>
+            <span>Launchpad</span>
+          </div>
         </div>
 
         <footer class="taskbar">
@@ -136,6 +170,30 @@ export class Desktop {
       ?.addEventListener("click", (event) => {
         event.stopPropagation();
         this.startMenu.toggle();
+      });
+
+    document
+      .getElementById("start-menu-close")
+      ?.addEventListener("click", () => {
+        this.hideStartMenu();
+      });
+
+    document
+      .getElementById("app-search")
+      ?.addEventListener("input", (event) => {
+        const input = event.target as HTMLInputElement;
+        const query = input.value.trim().toLocaleLowerCase();
+        const items = document.querySelectorAll<HTMLElement>(".start-menu-item");
+        let visible = 0;
+
+        for (const item of items) {
+          const match = !query || item.dataset.appName?.includes(query);
+          item.hidden = !match;
+          if (match) visible++;
+        }
+
+        const empty = document.getElementById("app-search-empty");
+        if (empty) empty.hidden = visible !== 0;
       });
 
     document
@@ -260,16 +318,17 @@ export class Desktop {
 
     container.innerHTML = "";
 
-    const label = document.createElement("div");
-    label.className = "start-menu-section-label";
-    label.textContent = "All Apps";
-    container.appendChild(label);
+    const count = document.getElementById("app-count");
+    if (count) {
+      count.textContent = String(apps.length);
+    }
 
     for (const app of apps) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "start-menu-item";
       button.title = app.name;
+      button.dataset.appName = app.name.toLocaleLowerCase();
 
       if (app.iconUrl) {
         const icon = document.createElement("img");
@@ -303,6 +362,13 @@ export class Desktop {
 
       container.appendChild(button);
     }
+
+    const empty = document.createElement("div");
+    empty.id = "app-search-empty";
+    empty.className = "start-menu-empty";
+    empty.hidden = true;
+    empty.innerHTML = "<strong>No applications found</strong><span>Try another search.</span>";
+    container.appendChild(empty);
   }
 
   private openInstalledApp(
