@@ -554,6 +554,9 @@ img {
 
 .desktop-icon {
 
+  position:
+    absolute;
+
   width:
     82px;
 
@@ -598,6 +601,19 @@ img {
 
   transform:
     scale(0.96);
+}
+
+.desktop-icon-dragging {
+  z-index: 20;
+  background: rgba(80, 150, 255, 0.16);
+  outline: 1px solid rgba(120, 190, 255, 0.34);
+  cursor: grabbing !important;
+  transition: none;
+}
+
+.desktop-icon-dragging .desktop-icon-image {
+  transform: scale(1.08);
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.42));
 }
 
 
