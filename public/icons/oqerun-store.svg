@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Oqerun Store">
+<defs><linearGradient id="g" x1="18" y1="14" x2="110" y2="116" gradientUnits="userSpaceOnUse"><stop stop-color="#0b63ff"/><stop offset="1" stop-color="#00d4ff"/></linearGradient></defs>
+<rect x="8" y="8" width="112" height="112" rx="28" fill="#07112c"/>
+<path d="M34 42h60l-5 57H39l-5-57Z" fill="url(#g)"/>
+<path d="M48 44c0-12 7-20 16-20s16 8 16 20" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+<path d="M52 67h24M52 82h24" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+</svg>
