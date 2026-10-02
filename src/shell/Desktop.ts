@@ -558,7 +558,7 @@ export class Desktop {
     if (!app.sourceUrl) {
       this.kernel.notify.info(
         app.name,
-        "This application does not have a launch URL yet."
+        "This application does not publish a launch URL. Open it from Oqerun Store to view its source or install information."
       );
       return;
     }
@@ -1071,11 +1071,29 @@ export class Desktop {
     add(this.isPinned(id) ? "Unpin from Taskbar" : "Pin to Taskbar", () => this.togglePinned(id));
     add(this.isOnHome(id) ? "Remove from Home Screen" : "Add to Home Screen", () => this.toggleHome(id));
     add("Open", () => {
-      const app = this.appDefinitions().find((item) => item.id === id);
-      app?.open();
+      const builtIn = this.appDefinitions().find((item) => item.id === id);
+      if (builtIn) {
+        builtIn.open();
+        return;
+      }
+
+      const installed = this.kernel.applications.get(id);
+      if (installed) {
+        const windowId =
+          "installed-app-" +
+          installed.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+        this.openInstalledApp(installed, windowId);
+        return;
+      }
+
+      this.kernel.notify.info(
+        name,
+        "Oqerun could not find this application's installation record."
+      );
     });
+
     add("Properties", () => {
-      this.kernel.notify.info(name, "Application shortcuts and installation settings are managed by Oqerun OS.");
+      void this.showAppProperties(id, name);
     });
 
     menu.addEventListener("click", (event) => {
@@ -1083,6 +1101,94 @@ export class Desktop {
     });
 
     document.body.appendChild(menu);
+  }
+
+  private async showAppProperties(id: string, fallbackName: string): Promise<void> {
+    const builtIn = this.appDefinitions().find((item) => item.id === id);
+    const installed = this.kernel.applications.get(id);
+
+    const name = installed?.name ?? builtIn?.name ?? fallbackName;
+    const version = installed?.version ?? "System application";
+    const type = installed?.type ?? "built-in";
+    const source = installed?.sourceUrl ?? "Managed by Oqerun OS";
+    const permissions = installed?.permissions?.length
+      ? installed.permissions.join(", ")
+      : "None declared";
+    const associations = installed?.fileAssociations?.length
+      ? installed.fileAssociations.join(", ")
+      : "None declared";
+
+    const esc = (value: string): string =>
+      value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;");
+
+    const details = [
+      ["Name", name],
+      ["Version", version],
+      ["Type", type],
+      ["Permissions", permissions],
+      ["File associations", associations],
+      ["Launch source", source]
+    ];
+
+    this.wm.open({
+      id: "app-properties-" + id.replace(/[^a-zA-Z0-9_-]/g, "-"),
+      title: name + " Properties",
+      iconUrl: installed?.iconUrl ?? builtIn?.iconUrl,
+      width: 520,
+      height: 420,
+      x: 120,
+      y: 90,
+      content: `
+        <div class="app-properties">
+          <div class="app-properties-header">
+            <strong>${esc(name)}</strong>
+            <span>Application information</span>
+          </div>
+          <div class="app-properties-grid">
+            ${details.map(([label, value]) =>
+              `<div class="app-properties-row">
+                <span>${esc(label)}</span>
+                <strong>${esc(value)}</strong>
+              </div>`
+            ).join("")}
+          </div>
+          <div class="app-properties-actions">
+            <button type="button" data-properties-open>Open Application</button>
+            <button type="button" data-properties-close>Close</button>
+          </div>
+        </div>
+      `
+    });
+
+    const propertiesWindow = document.querySelector(
+      ".window[data-window-id=\"app-properties-" +
+      id.replace(/[^a-zA-Z0-9_-]/g, "-") +
+      "\"]"
+    ) as HTMLElement | null;
+
+    propertiesWindow?.querySelector("[data-properties-open]")?.addEventListener(
+      "click",
+      () => {
+        const current = this.kernel.applications.get(id);
+        if (current) {
+          this.openInstalledApp(
+            current,
+            "installed-app-" + current.id.replace(/[^a-zA-Z0-9_-]/g, "-")
+          );
+        } else {
+          builtIn?.open();
+        }
+      }
+    );
+
+    propertiesWindow?.querySelector("[data-properties-close]")?.addEventListener(
+      "click",
+      () => propertiesWindow?.remove()
+    );
   }
 
   private showTaskbarContextMenu(x: number, y: number): void {
