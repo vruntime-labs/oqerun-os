@@ -7,6 +7,18 @@ type ExplorerEntry = {
   kind: "file" | "directory";
 };
 
+type TrashRecord = {
+  id: string;
+  name: string;
+  kind: "file" | "directory";
+  originalPath: string;
+  trashPath: string;
+  deletedAt: string;
+};
+
+const TRASH_PATH = "/home/user/Trash";
+const TRASH_META_PATH = "/home/user/Trash/.oqtrash.json";
+
 export class Explorer {
   private readonly WINDOW_ID = "explorer";
   private currentPath = "/home/user";
@@ -69,6 +81,9 @@ export class Explorer {
     const isRoot =
       this.currentPath === "/";
 
+    const isTrash =
+      this.currentPath === TRASH_PATH;
+
     return `
       <div class="explorer">
         <div class="explorer-toolbar">
@@ -93,6 +108,15 @@ export class Explorer {
 
           <button
             class="explorer-btn explorer-nav-btn"
+            data-trash
+            type="button"
+            title="Open Trash"
+          >
+            Trash
+          </button>
+
+          <button
+            class="explorer-btn explorer-nav-btn"
             data-up
             type="button"
             ${isRoot ? "disabled" : ""}
@@ -110,10 +134,13 @@ export class Explorer {
             Refresh
           </button>
 
-          <button class="explorer-btn" data-new-folder type="button">New Folder</button>
-          <button class="explorer-btn" data-new-file type="button">New File</button>
-          <button class="explorer-btn" data-rename type="button" disabled>Rename</button>
-          <button class="explorer-btn" data-delete type="button" disabled>Delete</button>
+          <button class="explorer-btn" data-new-folder type="button" ${isTrash ? "hidden" : ""}>New Folder</button>
+          <button class="explorer-btn" data-new-file type="button" ${isTrash ? "hidden" : ""}>New File</button>
+          <button class="explorer-btn" data-rename type="button" disabled ${isTrash ? "hidden" : ""}>Rename</button>
+          <button class="explorer-btn" data-restore type="button" disabled ${isTrash ? "" : "hidden"}>Restore</button>
+          <button class="explorer-btn" data-delete-permanent type="button" disabled ${isTrash ? "" : "hidden"}>Delete Permanently</button>
+          <button class="explorer-btn" data-empty-trash type="button" ${isTrash ? "" : "hidden"}>Empty Trash</button>
+          <button class="explorer-btn" data-delete type="button" disabled ${isTrash ? "hidden" : ""}>Delete</button>
 
           <input
             class="explorer-search"
@@ -200,6 +227,7 @@ export class Explorer {
       } else {
         list.innerHTML =
           sorted
+            .filter((entry) => !isTrash || entry.name !== ".oqtrash.json")
             .map((entry) => {
               const fullPath =
                 Path.join(
@@ -336,6 +364,8 @@ export class Explorer {
 
     const renameButton = win.querySelector<HTMLButtonElement>("[data-rename]");
     const deleteButton = win.querySelector<HTMLButtonElement>("[data-delete]");
+    const restoreButton = win.querySelector<HTMLButtonElement>("[data-restore]");
+    const permanentDeleteButton = win.querySelector<HTMLButtonElement>("[data-delete-permanent]");
 
     win.querySelector<HTMLInputElement>("[data-search]")?.addEventListener("input", (event) => {
       const query = (event.target as HTMLInputElement).value.trim().toLocaleLowerCase();
@@ -389,12 +419,57 @@ export class Explorer {
       if (!window.confirm(`Move "${currentName}" to Trash?`)) return;
 
       try {
-        await this.kernel.sys.mkdir("/home/user/Trash");
-        const trashPath = Path.join("/home/user/Trash", currentName);
-        await this.kernel.sys.rename(this.selectedPath, trashPath);
+        await this.moveToTrash(this.selectedPath);
         await this.refresh(this.currentPath);
       } catch (error) {
-        this.kernel.notify.info("Explorer", this.describeError(error));
+        this.kernel.notify.info("Trash", this.describeError(error));
+      }
+    });
+
+    restoreButton?.addEventListener("click", async () => {
+      if (!this.selectedPath) return;
+      try {
+        await this.restoreFromTrash(this.selectedPath);
+        await this.refresh(TRASH_PATH);
+      } catch (error) {
+        this.kernel.notify.info("Trash", this.describeError(error));
+      }
+    });
+
+    permanentDeleteButton?.addEventListener("click", async () => {
+      if (!this.selectedPath) return;
+      const currentName = Path.basename(this.selectedPath);
+      if (!window.confirm(`Permanently delete "${currentName}"? This cannot be undone.`)) return;
+
+      try {
+        await this.kernel.sys.remove(this.selectedPath);
+        await this.removeTrashRecord(this.selectedPath);
+        await this.refresh(TRASH_PATH);
+      } catch (error) {
+        this.kernel.notify.info("Trash", this.describeError(error));
+      }
+    });
+
+    win.querySelector<HTMLButtonElement>("[data-empty-trash]")?.addEventListener("click", async () => {
+      const records = await this.loadTrashRecords();
+      if (!records.length) {
+        this.kernel.notify.info("Trash", "Trash is already empty.");
+        return;
+      }
+
+      if (!window.confirm("Empty Trash? All items will be permanently deleted.")) return;
+
+      try {
+        const entries = await this.kernel.sys.listDetailed(TRASH_PATH);
+        for (const entry of entries) {
+          if (entry.name === ".oqtrash.json") continue;
+          await this.kernel.sys.remove(Path.join(TRASH_PATH, entry.name));
+        }
+        await this.saveTrashRecords([]);
+        await this.refresh(TRASH_PATH);
+        this.kernel.notify.info("Trash", "Trash emptied.");
+      } catch (error) {
+        this.kernel.notify.info("Trash", this.describeError(error));
       }
     });
 
@@ -503,6 +578,8 @@ export class Explorer {
     const winControls = win;
     winControls.querySelector<HTMLButtonElement>("[data-rename]")?.toggleAttribute("disabled", !path);
     winControls.querySelector<HTMLButtonElement>("[data-delete]")?.toggleAttribute("disabled", !path);
+    winControls.querySelector<HTMLButtonElement>("[data-restore]")?.toggleAttribute("disabled", !path);
+    winControls.querySelector<HTMLButtonElement>("[data-delete-permanent]")?.toggleAttribute("disabled", !path);
 
     if (!path) return;
 
@@ -545,6 +622,141 @@ export class Explorer {
       this.render();
 
     await this.attachEvents();
+  }
+
+  private async loadTrashRecords(): Promise<TrashRecord[]> {
+    try {
+      if (!(await this.kernel.sys.exists(TRASH_META_PATH))) {
+        return [];
+      }
+
+      const raw = await this.kernel.sys.read(TRASH_META_PATH);
+      const parsed = JSON.parse(raw) as unknown;
+
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed.filter((item): item is TrashRecord => {
+        if (!item || typeof item !== "object") return false;
+        const record = item as Partial<TrashRecord>;
+        return (
+          typeof record.id === "string" &&
+          typeof record.name === "string" &&
+          (record.kind === "file" || record.kind === "directory") &&
+          typeof record.originalPath === "string" &&
+          typeof record.trashPath === "string" &&
+          typeof record.deletedAt === "string"
+        );
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  private async saveTrashRecords(records: TrashRecord[]): Promise<void> {
+    await this.kernel.sys.mkdir(TRASH_PATH);
+    await this.kernel.sys.write(
+      TRASH_META_PATH,
+      JSON.stringify(records, null, 2)
+    );
+  }
+
+  private async moveToTrash(sourcePath: string): Promise<void> {
+    const normalizedSource = Path.normalize(sourcePath);
+
+    if (
+      normalizedSource === TRASH_PATH ||
+      normalizedSource.startsWith(TRASH_PATH + "/")
+    ) {
+      throw new Error("Items already in Trash cannot be moved to Trash again.");
+    }
+
+    await this.kernel.sys.mkdir(TRASH_PATH);
+
+    const entries = await this.kernel.sys.listDetailed(TRASH_PATH);
+    const existingNames = new Set(
+      entries
+        .filter((entry) => entry.name !== ".oqtrash.json")
+        .map((entry) => entry.name)
+    );
+
+    const originalName = Path.basename(normalizedSource);
+    let trashName = originalName;
+    let suffix = 1;
+
+    while (existingNames.has(trashName)) {
+      trashName = `${originalName} (${suffix++})`;
+    }
+
+    const trashPath = Path.join(TRASH_PATH, trashName);
+    const sourceEntries = await this.kernel.sys.listDetailed(Path.dirname(normalizedSource));
+    const kind =
+      sourceEntries.find((entry) => entry.name === originalName)?.kind ?? "file";
+
+    await this.kernel.sys.rename(normalizedSource, trashPath);
+
+    const records = await this.loadTrashRecords();
+    records.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      name: originalName,
+      kind,
+      originalPath: normalizedSource,
+      trashPath,
+      deletedAt: new Date().toISOString()
+    });
+
+    await this.saveTrashRecords(records);
+    this.kernel.notify.info("Trash", `Moved "${originalName}" to Trash.`);
+  }
+
+  private async restoreFromTrash(trashPath: string): Promise<void> {
+    const records = await this.loadTrashRecords();
+    const record = records.find((item) => item.trashPath === trashPath);
+
+    if (!record) {
+      throw new Error("Trash metadata for this item is missing.");
+    }
+
+    let destination = record.originalPath;
+
+    if (await this.kernel.sys.exists(destination)) {
+      const directory = Path.dirname(record.originalPath);
+      const extension = Path.extname(record.name);
+      const stem = extension
+        ? record.name.slice(0, -extension.length)
+        : record.name;
+
+      let candidate = Path.join(
+        directory,
+        `${stem} (restored)${extension}`
+      );
+      let counter = 2;
+
+      while (await this.kernel.sys.exists(candidate)) {
+        candidate = Path.join(
+          directory,
+          `${stem} (restored ${counter++})${extension}`
+        );
+      }
+
+      destination = candidate;
+    }
+
+    await this.kernel.sys.rename(trashPath, destination);
+    await this.saveTrashRecords(
+      records.filter((item) => item.trashPath !== trashPath)
+    );
+
+    this.kernel.notify.info(
+      "Trash",
+      `Restored "${record.name}" to ${destination}.`
+    );
+  }
+
+  private async removeTrashRecord(trashPath: string): Promise<void> {
+    const records = await this.loadTrashRecords();
+    await this.saveTrashRecords(
+      records.filter((item) => item.trashPath !== trashPath)
+    );
   }
 
   private async openFile(path: string | undefined): Promise<void> {
