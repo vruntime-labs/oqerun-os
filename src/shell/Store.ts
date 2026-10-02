@@ -1,15 +1,35 @@
 import { Kernel } from "../core/Kernel";
 import { WindowManager } from "../window/WindowManager";
+import { InstallationBridge, type InstallationRequest } from "../core/InstallationBridge";
 import { InstallationBridge } from "../core/InstallationBridge";
 
 export class Store {
-  private bridge: import("../core/InstallationBridge").InstallationBridge | null = null;
+  private readonly bridge: InstallationBridge;
   private readonly url = "https://vruntime-labs.github.io/oqerun-store/";
 
   constructor(
     private kernel: Kernel,
     private wm: WindowManager
-  ) {}
+  ) {
+    this.bridge = new InstallationBridge(
+      async (request: InstallationRequest) => {
+        const installed = await this.kernel.applications.install({
+          id: request.appId,
+          name: request.name,
+          version: request.version,
+          type: request.type,
+          sourceUrl: request.sourceUrl,
+          permissions: request.permissions,
+          fileAssociations: request.fileAssociations
+        });
+
+        this.kernel.notify.success(
+          "Oqerun Store",
+          installed.name + " was installed successfully."
+        );
+      }
+    );
+  }
 
   open(): void {
     const windowId = "oqerun-store";
@@ -28,10 +48,10 @@ export class Store {
     this.wm.open({
       id: windowId,
       title: "Oqerun Store",
-      width: 1080,
-      height: 680,
-      x: 70,
-      y: 35,
+      width,
+      height,
+      x,
+      y,
       content: `
         <div class="store-app-shell">
           <iframe
