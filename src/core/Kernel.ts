@@ -3,6 +3,7 @@ import { Desktop } from "../shell/Desktop";
 import { ProcessManager } from "./ProcessManager";
 import { Syscalls } from "./Syscalls";
 import { NotificationService } from "./NotificationService";
+import { ApplicationManager } from "./ApplicationManager";
 
 export class Kernel {
   public readonly version = "0.3.0";
@@ -11,11 +12,13 @@ export class Kernel {
   public readonly processes: ProcessManager;
   public readonly sys: Syscalls;
   public readonly notify: NotificationService;
+  public readonly applications: ApplicationManager;
 
   constructor() {
     this.processes = new ProcessManager();
     this.sys = new Syscalls();
     this.notify = new NotificationService();
+    this.applications = new ApplicationManager(this.sys);
   }
 
   async boot(): Promise<void> {
@@ -24,6 +27,7 @@ export class Kernel {
     await boot.start();
 
     await this.initializeFilesystem();
+    await this.applications.initialize();
 
     new Desktop(this).render();
 
