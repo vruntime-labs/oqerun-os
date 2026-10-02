@@ -111,36 +111,53 @@ export class OPFS {
   async rename(path: string, newPath: string): Promise<void> {
     const source = Path.normalize(path);
     const destination = Path.normalize(newPath);
+
+    if (source === destination) return;
+
     const sourceParent = await this.getDirectory(Path.dirname(source));
     const destinationParent = await this.getDirectory(Path.dirname(destination));
     const sourceName = Path.basename(source);
     const destinationName = Path.basename(destination);
 
+    let sourceFile: FileSystemFileHandle | null = null;
+
     try {
-      const file = await sourceParent.getFileHandle(sourceName);
-      const text = await (await file.getFile()).text();
+      sourceFile = await sourceParent.getFileHandle(sourceName);
+    } catch {
+      sourceFile = null;
+    }
+
+    if (sourceFile) {
       const target = await destinationParent.getFileHandle(destinationName, { create: true });
       const writable = await target.createWritable();
-      await writable.write(text);
+      await writable.write(await sourceFile.getFile());
       await writable.close();
       await sourceParent.removeEntry(sourceName);
       return;
-    } catch {
-      // Fall through to directory copy/rename support.
     }
 
     const sourceDir = await sourceParent.getDirectoryHandle(sourceName);
     const destinationDir = await destinationParent.getDirectoryHandle(destinationName, { create: true });
-    for await (const [name, handle] of sourceDir.entries()) {
-      if (handle.kind === "file") {
-        const file = await sourceDir.getFileHandle(name);
-        const text = await (await file.getFile()).text();
-        const target = await destinationDir.getFileHandle(name, { create: true });
-        const writable = await target.createWritable();
-        await writable.write(text);
-        await writable.close();
+
+    const copyDirectory = async (
+      from: FileSystemDirectoryHandle,
+      to: FileSystemDirectoryHandle
+    ): Promise<void> => {
+      for await (const [name, handle] of from.entries()) {
+        if (handle.kind === "file") {
+          const sourceHandle = await from.getFileHandle(name);
+          const targetHandle = await to.getFileHandle(name, { create: true });
+          const writable = await targetHandle.createWritable();
+          await writable.write(await sourceHandle.getFile());
+          await writable.close();
+        } else {
+          const child = await to.getDirectoryHandle(name, { create: true });
+          await copyDirectory(handle as FileSystemDirectoryHandle, child);
+        }
       }
-    }
+    };
+
+    await copyDirectory(sourceDir, destinationDir);
     await sourceParent.removeEntry(sourceName, { recursive: true });
   }
 
