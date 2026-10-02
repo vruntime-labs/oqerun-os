@@ -62,4 +62,14 @@ export class Syscalls {
     await this.ensureReady();
     return this.vfs.exists(path);
   }
+
+  async remove(path: string): Promise<void> {
+    await this.ensureReady();
+    await this.vfs.remove(path);
+  }
+
+  async rename(path: string, newPath: string): Promise<void> {
+    await this.ensureReady();
+    await this.vfs.rename(path, newPath);
+  }
 }
