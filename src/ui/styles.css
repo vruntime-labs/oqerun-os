@@ -4661,3 +4661,33 @@ input:focus-visible,
 .task-row:last-child{border-bottom:0}
 .task-row span{color:var(--muted)}
 .task-empty{padding:28px;color:var(--muted);text-align:center;font-size:10px}
+
+
+.desktop-icon-selected{
+  background:rgba(0,150,255,.12)!important;
+  outline:1px solid rgba(80,180,255,.45);
+  box-shadow:0 0 0 2px rgba(0,150,255,.08);
+}
+.desktop-move-action{
+  position:absolute;
+  z-index:200;
+  min-width:104px;
+  padding:7px 10px;
+  border:1px solid rgba(120,190,255,.38);
+  border-radius:9px;
+  background:rgba(13,25,55,.94);
+  color:#eef7ff;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.desktop-move-action:hover,
+.desktop-move-action.active{
+  background:rgba(0,150,255,.2);
+  border-color:rgba(80,190,255,.65);
+  color:#fff;
+}
