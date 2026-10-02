@@ -80,6 +80,19 @@ export class ApplicationManager {
   async uninstall(id: string): Promise<void> {
     await this.initialize();
     this.apps.delete(id);
+
+    const appPath = "/apps/" + this.safeId(id);
+    try {
+      if (await this.sys.exists(appPath)) {
+        const remove = (this.sys as typeof this.sys & {
+          remove?: (path: string) => Promise<void>;
+        }).remove;
+        if (remove) await remove(appPath);
+      }
+    } catch {
+      // Registry removal remains valid even if package cleanup is unavailable.
+    }
+
     await this.persist();
   }
 
