@@ -192,7 +192,7 @@ export class Desktop {
     this.bindEvents();
 
     void this.renderAppList();
-    this.renderPersonalization();
+    void this.renderPersonalization();
     this.bindContextMenus();
 
     this.startClock();
@@ -288,6 +288,16 @@ export class Desktop {
         !target.closest("#start-btn")
       ) {
         this.hideStartMenu();
+      }
+
+      // Any normal left click should also dismiss an open context menu.
+      // This keeps the desktop/taskbar fully interactive after a right-click.
+      this.removeContextMenu();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        this.removeContextMenu();
       }
     });
   }
@@ -553,28 +563,77 @@ export class Desktop {
     ];
   }
 
-  private renderPersonalization(): void {
+  private async renderPersonalization(): Promise<void> {
     const desktop = document.getElementById("desktop-area");
     const pinned = document.getElementById("taskbar-pinned");
 
-    if (desktop) {
-      desktop.querySelectorAll(".user-desktop-icon").forEach((node) => node.remove());
-      const homeIds = new Set(this.getStoredIds(this.homeStorageKey));
+    const definitions = this.appDefinitions();
 
-      for (const app of this.appDefinitions()) {
+    // Include apps installed from Oqerun Store so they can be pinned
+    // to the taskbar or added to the desktop just like built-in apps.
+    try {
+      const installed = await this.kernel.applications.list();
+
+      for (const app of installed) {
+        const windowId =
+          "installed-app-" +
+          app.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+
+        if (definitions.some((item) => item.id === app.id)) continue;
+
+        definitions.push({
+          id: app.id,
+          name: app.name,
+          iconUrl: app.iconUrl,
+          open: () => this.openInstalledApp(app, windowId)
+        });
+      }
+    } catch {
+      // Built-in apps remain available even if the application registry
+      // cannot be read during an early desktop render.
+    }
+
+    if (desktop) {
+      desktop
+        .querySelectorAll(".user-desktop-icon")
+        .forEach((node) => node.remove());
+
+      const homeIds = new Set(
+        this.getStoredIds(this.homeStorageKey)
+      );
+
+      for (const app of definitions) {
         if (!homeIds.has(app.id)) continue;
         this.appendDesktopShortcut(desktop, app);
       }
     }
 
     if (pinned) {
-      pinned.querySelectorAll(".user-pinned-app").forEach((node) => node.remove());
-      const pinnedIds = this.getStoredIds(this.pinnedStorageKey);
-      const definitions = this.appDefinitions();
+      pinned
+        .querySelectorAll(".user-pinned-app")
+        .forEach((node) => node.remove());
 
+      const builtInIds = new Set([
+        "computer",
+        "explorer",
+        "oqerun-store"
+      ]);
+
+      const pinnedIds = this.getStoredIds(
+        this.pinnedStorageKey
+      );
+
+      // Built-in apps already have permanent taskbar buttons.
+      // Do not create duplicate buttons when the user pins them.
       for (const id of pinnedIds) {
-        const app = definitions.find((item) => item.id === id);
+        if (builtInIds.has(id)) continue;
+
+        const app = definitions.find(
+          (item) => item.id === id
+        );
+
         if (!app) continue;
+
         this.appendPinnedShortcut(pinned, app);
       }
     }
