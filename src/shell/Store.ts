@@ -12,6 +12,17 @@ export class Store {
   open(): void {
     const windowId = "oqerun-store";
 
+    const desktop = document.querySelector<HTMLElement>(".desktop-area");
+    const desktopRect = desktop?.getBoundingClientRect();
+
+    const availableWidth = desktopRect?.width ?? window.innerWidth;
+    const availableHeight = desktopRect?.height ?? window.innerHeight;
+
+    const width = Math.max(760, Math.min(1120, availableWidth - 24));
+    const height = Math.max(520, Math.min(720, availableHeight - 24));
+    const x = Math.max(12, Math.round((availableWidth - width) / 2));
+    const y = Math.max(12, Math.round((availableHeight - height) / 2));
+
     this.wm.open({
       id: windowId,
       title: "Oqerun Store",
