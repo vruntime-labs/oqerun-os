@@ -677,8 +677,8 @@ export class Desktop {
 
     const menu = document.createElement("div");
     menu.className = "oqerun-context-menu";
-    menu.style.left = `${Math.min(x, window.innerWidth - 240)'}px`;
-    menu.style.top = `${Math.min(y, window.innerHeight - 230)'}px`;
+    menu.style.left = `${Math.min(x, window.innerWidth - 240)}px`;
+    menu.style.top = `${Math.min(y, window.innerHeight - 230)}px`;
 
     const add = (label: string, action: () => void, disabled = false) => {
       const button = document.createElement("button");
@@ -710,8 +710,8 @@ export class Desktop {
 
     const menu = document.createElement("div");
     menu.className = "oqerun-context-menu";
-    menu.style.left = `${Math.min(x, window.innerWidth - 220)'}px`;
-    menu.style.top = `${Math.min(y, window.innerHeight - 180)'}px`;
+    menu.style.left = `${Math.min(x, window.innerWidth - 220)}px`;
+    menu.style.top = `${Math.min(y, window.innerHeight - 180)}px`;
 
     const add = (label: string, action: () => void) => {
       const button = document.createElement("button");
