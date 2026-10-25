@@ -217,6 +217,7 @@ export class Settings {
               <div class="settings-info-card"><strong>License</strong><p>MIT · Open Source</p></div>
               <div class="settings-info-card"><strong>Publisher</strong><p>VRuntime Labs</p></div>
             </div>
+            <div class="storage-card"><h3>Legal</h3><p><a href="${base}privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a> · <a href="${base}terms.html" target="_blank" rel="noopener noreferrer">Terms and Conditions</a></p></div>
           </div>
         </section>
       </div>`;
