@@ -12,6 +12,16 @@ export class Store {
   ) {
     this.bridge = new InstallationBridge(
       async (request: InstallationRequest) => {
+        const permissionSummary = request.permissions.length
+          ? request.permissions.map(permission => "• " + permission).join("\n")
+          : "No permissions were declared.";
+        const accepted = window.confirm(
+          "Install " + request.name + " v" + request.version + "?\n\n" +
+          "Publisher-provided permissions:\n" + permissionSummary +
+          "\n\nOqerun records these permissions as metadata. This version does not enforce app sandbox permissions at runtime."
+        );
+        if (!accepted) throw new Error("Installation cancelled by the user.");
+
         const installed = await this.kernel.applications.install({
           id: request.appId,
           name: request.name,
@@ -19,6 +29,7 @@ export class Store {
           type: request.type,
           sourceUrl: request.sourceUrl,
           iconUrl: request.iconUrl,
+          sha256: request.sha256,
           permissions: request.permissions,
           fileAssociations: request.fileAssociations
         });
