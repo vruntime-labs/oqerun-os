@@ -75,14 +75,14 @@ export class InstallationBridge {
     window.removeEventListener("message", this.onMessage);
   }
 
-  private trustedStoreWindow(): Window | null {
-    const frame = document.querySelector<HTMLIFrameElement>(".store-app-frame");
-    return frame?.contentWindow ?? null;
+  private trustedStoreWindow(source: MessageEventSource | null): Window | null {
+    const frames = Array.from(document.querySelectorAll<HTMLIFrameElement>(".store-app-frame"));
+    return frames.find(frame => frame.contentWindow === source)?.contentWindow ?? null;
   }
 
   private onMessage = (event: MessageEvent): void => {
     if (event.origin !== STORE_ORIGIN) return;
-    const trustedWindow = this.trustedStoreWindow();
+    const trustedWindow = this.trustedStoreWindow(event.source);
     if (!trustedWindow || event.source !== trustedWindow) return;
 
     const data = event.data as { type?: unknown; requestId?: unknown; apiVersion?: unknown };
