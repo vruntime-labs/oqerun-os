@@ -12,6 +12,13 @@ export class Store {
   ) {
     this.bridge = new InstallationBridge(
       async (request: InstallationRequest) => {
+        // Native package handling is intentionally blocked until the OS can download,
+        // hash-verify, safely extract, and register the actual .oqpkg bytes. Merely
+        // recording a manifest is not a native package installation.
+        if (request.type === "oqpkg") {
+          throw new Error("Native .oqpkg installation is not available yet. The package has not been downloaded or verified.");
+        }
+
         const permissionSummary = request.permissions.length
           ? request.permissions.map(permission => "• " + permission).join("\n")
           : "No permissions were declared.";
@@ -36,7 +43,7 @@ export class Store {
 
         this.kernel.notify.success(
           "Oqerun Store",
-          installed.name + " was installed successfully."
+          installed.name + " was added to Oqerun. Web apps still open from their published website."
         );
 
         window.dispatchEvent(
