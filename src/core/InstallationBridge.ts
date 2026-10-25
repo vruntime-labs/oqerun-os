@@ -15,6 +15,9 @@ export interface InstallationRequest {
 
 const STORE_ORIGIN = "https://vruntime-labs.github.io";
 const APP_TYPES = new Set(["oqpkg", "pwa", "web", "wasm", "external"]);
+const ALLOWED_PERMISSIONS = new Set([
+  "filesystem.read", "filesystem.write", "network", "notifications", "microphone", "camera"
+]);
 
 function boundedString(value: unknown, maxLength: number): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= maxLength && value.trim() === value;
@@ -38,6 +41,7 @@ function parseInstallationRequest(value: unknown): InstallationRequest | null {
   if (!boundedString(data.name, 100) || !boundedString(data.version, 80)) return null;
   if (typeof data.type !== "string" || !APP_TYPES.has(data.type)) return null;
   if (data.sourceUrl !== undefined && data.sourceUrl !== "" && !validHttpsUrl(data.sourceUrl)) return null;
+  if (data.type === "oqpkg" && (typeof data.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(data.sha256))) return null;
   if (data.sha256 !== undefined && data.sha256 !== "" && (typeof data.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(data.sha256))) return null;
 
   // Icon metadata may be a short glyph (for example "W") or a secure URL.
@@ -48,7 +52,8 @@ function parseInstallationRequest(value: unknown): InstallationRequest | null {
   }
 
   if (!Array.isArray(data.permissions) || data.permissions.length > 50 ||
-      data.permissions.some(item => typeof item !== "string" || item.length > 64)) return null;
+      data.permissions.some(item => typeof item !== "string" || item.length > 64 || !ALLOWED_PERMISSIONS.has(item)) ||
+      new Set(data.permissions).size !== data.permissions.length) return null;
   if (!Array.isArray(data.fileAssociations) || data.fileAssociations.length > 50 ||
       data.fileAssociations.some(item => typeof item !== "string" || !/^\.[a-z0-9]{1,12}$/i.test(item))) return null;
 
