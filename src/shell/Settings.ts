@@ -426,8 +426,9 @@ export class Settings {
   }
 
   private async refreshSystemPanels(win: HTMLElement): Promise<void> {
+    const installedAppCount = (await this.kernel.applications.list()).length;
     const count = win.querySelectorAll<HTMLElement>("[data-app-count]");
-    count.forEach(node => node.textContent = `${this.kernel.applications.list().length} installed`);
+    count.forEach(node => node.textContent = `${installedAppCount} installed`);
 
     const online = navigator.onLine;
     win.querySelector<HTMLElement>("[data-network-status]")!.textContent = online ? "Connected" : "Offline";
@@ -465,7 +466,7 @@ export class Settings {
       `Device pixel ratio: ${window.devicePixelRatio || 1}`,
       `Online: ${navigator.onLine}`,
       `Service Worker API: ${"serviceWorker" in navigator}`,
-      `Apps installed: ${this.kernel.applications.list().length}`
+      `Apps installed: ${installedAppCount}`
     ].join("\n");
 
     const used = win.querySelector<HTMLElement>("[data-storage-used]");
