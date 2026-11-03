@@ -97,7 +97,7 @@ export class InstallationBridge {
     const trustedWindow = this.trustedStoreWindow(event.source);
     if (!trustedWindow || event.source !== trustedWindow) return;
 
-    const data = event.data as { type?: unknown; requestId?: unknown; apiVersion?: unknown };
+    const data = event.data as { type?: unknown; request?: unknown; apiVersion?: unknown };
     if (!data || typeof data !== "object") return;
 
     if (data.type === "oqerun-installation-probe") {
@@ -109,10 +109,14 @@ export class InstallationBridge {
     }
 
     if (data.type !== "oqerun-installation-request") return;
-    const request = parseInstallationRequest(event.data);
+    // Keep the message envelope's type separate from the application's type.
+    const request = parseInstallationRequest(data.request);
     if (!request) {
+      const rawRequest = data.request && typeof data.request === "object"
+        ? data.request as Record<string, unknown>
+        : {};
       trustedWindow.postMessage(
-        { type: "oqerun-installation-response", requestId: typeof data.requestId === "string" ? data.requestId : "", result: "error", error: "Invalid installation request." },
+        { type: "oqerun-installation-response", requestId: typeof rawRequest.requestId === "string" ? rawRequest.requestId : "", result: "error", error: "Invalid installation request." },
         "*"
       );
       return;
