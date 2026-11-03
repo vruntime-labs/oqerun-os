@@ -82,6 +82,8 @@ export class Store {
             title="Oqerun Store"
             loading="eager"
             referrerpolicy="strict-origin-when-cross-origin"
+            sandbox="allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox"
+            allow="camera 'none'; microphone 'none'; geolocation 'none'; display-capture 'none'; clipboard-read 'none'; clipboard-write 'none'"
           ></iframe>
           <div class="store-app-fallback" hidden>
             <span>Oqerun Store could not be loaded inside Oqerun.</span>

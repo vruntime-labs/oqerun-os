@@ -13,7 +13,6 @@ export interface InstallationRequest {
   fileAssociations: string[];
 }
 
-const STORE_ORIGIN = "https://vruntime-labs.github.io";
 const APP_TYPES = new Set(["oqpkg", "pwa", "web", "wasm", "external"]);
 const ALLOWED_PERMISSIONS = new Set([
   "filesystem.read", "filesystem.write", "network", "notifications", "microphone", "camera"
@@ -26,7 +25,8 @@ function boundedString(value: unknown, maxLength: number): value is string {
 function validHttpsUrl(value: unknown): value is string {
   if (typeof value !== "string" || value.length > 2048) return false;
   try {
-    return new URL(value).protocol === "https:";
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password;
   } catch {
     return false;
   }
@@ -72,6 +72,9 @@ function parseInstallationRequest(value: unknown): InstallationRequest | null {
 }
 
 export class InstallationBridge {
+  private readonly processedRequestIds = new Set<string>();
+  private installationInProgress = false;
+
   constructor(private readonly install: (request: InstallationRequest) => Promise<void>) {
     window.addEventListener("message", this.onMessage);
   }
@@ -82,11 +85,15 @@ export class InstallationBridge {
 
   private trustedStoreWindow(source: MessageEventSource | null): Window | null {
     const frames = Array.from(document.querySelectorAll<HTMLIFrameElement>(".store-app-frame"));
-    return frames.find(frame => frame.contentWindow === source)?.contentWindow ?? null;
+    const frame = frames.find(candidate => candidate.contentWindow === source);
+    if (!frame || !frame.hasAttribute("sandbox") || frame.sandbox.contains("allow-same-origin")) return null;
+    return frame.contentWindow;
   }
 
   private onMessage = (event: MessageEvent): void => {
-    if (event.origin !== STORE_ORIGIN) return;
+    // The Store iframe deliberately has an opaque sandbox origin ("null").
+    // Its WindowProxy must also match the one sandboxed Store iframe in the OS.
+    if (event.origin !== "null") return;
     const trustedWindow = this.trustedStoreWindow(event.source);
     if (!trustedWindow || event.source !== trustedWindow) return;
 
@@ -96,7 +103,7 @@ export class InstallationBridge {
     if (data.type === "oqerun-installation-probe") {
       trustedWindow.postMessage(
         { type: "oqerun-installation-ready", apiVersion: "1.0" },
-        STORE_ORIGIN
+        "*"
       );
       return;
     }
@@ -106,23 +113,41 @@ export class InstallationBridge {
     if (!request) {
       trustedWindow.postMessage(
         { type: "oqerun-installation-response", requestId: typeof data.requestId === "string" ? data.requestId : "", result: "error", error: "Invalid installation request." },
-        STORE_ORIGIN
+        "*"
       );
       return;
     }
 
+    if (this.processedRequestIds.has(request.requestId)) return;
+    this.processedRequestIds.add(request.requestId);
+    if (this.processedRequestIds.size > 256) {
+      const oldest = this.processedRequestIds.values().next().value;
+      if (oldest) this.processedRequestIds.delete(oldest);
+    }
+
+    if (this.installationInProgress) {
+      trustedWindow.postMessage(
+        { type: "oqerun-installation-response", requestId: request.requestId, result: "error", error: "Another installation is already in progress." },
+        "*"
+      );
+      return;
+    }
+
+    this.installationInProgress = true;
     void (async () => {
       try {
         await this.install(request);
         trustedWindow.postMessage(
           { type: "oqerun-installation-response", requestId: request.requestId, result: "ok" },
-          STORE_ORIGIN
+          "*"
         );
       } catch {
         trustedWindow.postMessage(
           { type: "oqerun-installation-response", requestId: request.requestId, result: "error", error: "Installation failed. Please retry." },
-          STORE_ORIGIN
+          "*"
         );
+      } finally {
+        this.installationInProgress = false;
       }
     })();
   };
