@@ -11,7 +11,7 @@ import { Kernel } from "../core/Kernel";
 
 export class Desktop {
   private startMenu = new StartMenu();
-  private wm = new WindowManager();
+  private wm: WindowManager;
 
   private explorer: Explorer;
   private computer: Computer;
@@ -26,6 +26,7 @@ export class Desktop {
   private installedApps = new Map<string, Awaited<ReturnType<Kernel["applications"]["list"]>>[number]>();
 
   constructor(private kernel: Kernel) {
+    this.wm = new WindowManager(this.kernel.processes);
     this.explorer = new Explorer(this.kernel, this.wm);
     this.computer = new Computer(this.kernel, this.wm);
     this.terminal = new Terminal(this.kernel, this.wm);
