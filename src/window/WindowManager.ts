@@ -1,4 +1,5 @@
 import { Window } from "./Window";
+import type { ProcessManager } from "../core/ProcessManager";
 
 export interface WindowOptions {
   id: string;
@@ -18,6 +19,7 @@ interface ManagedWindow {
   minimized: boolean;
   maximized: boolean;
   iconUrl?: string;
+  pid: number;
 }
 
 export class WindowManager {
@@ -30,7 +32,7 @@ export class WindowManager {
 
   private zIndex = 100;
 
-  constructor() {
+  constructor(private readonly processes: ProcessManager) {
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Tab" || !event.altKey) return;
       if (event.ctrlKey || event.metaKey) return;
@@ -84,6 +86,12 @@ export class WindowManager {
 
     win.render();
 
+    // Do not register a process if the window could not be mounted.
+    const element = document.getElementById(options.id);
+    if (!element?.classList.contains("oq-window")) return;
+
+    const pid = this.processes.start(options.title);
+
     this.windows.set(
       options.id,
       {
@@ -91,7 +99,8 @@ export class WindowManager {
         instance: win,
         minimized: false,
         maximized: false,
-        iconUrl: options.iconUrl
+        iconUrl: options.iconUrl,
+        pid
       }
     );
 
@@ -110,6 +119,7 @@ export class WindowManager {
     if (!managed) return;
 
     managed.instance.destroy();
+    this.processes.stop(managed.pid);
 
     this.windows.delete(id);
 
@@ -122,6 +132,18 @@ export class WindowManager {
     }
 
     this.updateTaskbar();
+  }
+
+  /** Close the window associated with a Task Manager PID. */
+  endProcess(pid: number): boolean {
+    const managed = [...this.windows.values()].find(
+      (window) => window.pid === pid
+    );
+
+    if (!managed) return false;
+
+    this.close(managed.id);
+    return true;
   }
 
   minimize(
