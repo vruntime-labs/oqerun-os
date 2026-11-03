@@ -24,5 +24,8 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Type-check Oqerun OS
+        run: npm run typecheck
+
       - name: Build Oqerun OS
         run: npm run build
