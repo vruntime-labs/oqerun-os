@@ -129,6 +129,19 @@ export class InstallationBridge {
       if (oldest) this.processedRequestIds.delete(oldest);
     }
 
+    if (request.sourceUrl && new URL(request.sourceUrl).origin === window.location.origin) {
+      trustedWindow.postMessage(
+        {
+          type: "oqerun-installation-response",
+          requestId: request.requestId,
+          result: "error",
+          error: "This app is hosted on Oqerun OS's own origin. Move it to a separate origin before installing it."
+        },
+        "*"
+      );
+      return;
+    }
+
     if (this.installationInProgress) {
       trustedWindow.postMessage(
         { type: "oqerun-installation-response", requestId: request.requestId, result: "error", error: "Another installation is already in progress." },
