@@ -926,6 +926,27 @@ export class Desktop {
       return;
     }
 
+    let appUrl: URL;
+    try {
+      appUrl = new URL(app.sourceUrl);
+    } catch {
+      this.kernel.notify.warning(app.name, "This application's launch URL is invalid.");
+      return;
+    }
+
+    if (appUrl.protocol !== "https:" || appUrl.username || appUrl.password) {
+      this.kernel.notify.warning(app.name, "Only secure HTTPS application URLs can be opened.");
+      return;
+    }
+
+    if (appUrl.origin === window.location.origin) {
+      this.kernel.notify.warning(
+        app.name,
+        "This app is hosted on Oqerun's own origin. It is blocked until it is moved to a separate origin so it cannot access the OS."
+      );
+      return;
+    }
+
     this.wm.open({
       id: windowId,
       title: app.name,
@@ -938,10 +959,12 @@ export class Desktop {
         <div class="installed-app-shell">
           <iframe
             class="installed-app-frame"
-            src="${this.escapeAttribute(app.sourceUrl)}"
+            src="${this.escapeAttribute(appUrl.href)}"
             title="${this.escapeAttribute(app.name)}"
             loading="eager"
             referrerpolicy="strict-origin-when-cross-origin"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox"
+            allow="camera 'none'; microphone 'none'; geolocation 'none'; display-capture 'none'; clipboard-read 'none'; clipboard-write 'none'"
           ></iframe>
         </div>
       `
