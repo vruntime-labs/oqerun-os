@@ -6,7 +6,7 @@
     "strict": true,
     "outDir": "dist",
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node", "vite/client"]
   },
   "include": ["src", "api"]
 }
