@@ -962,8 +962,8 @@ export class Desktop {
             src="${this.escapeAttribute(appUrl.href)}"
             title="${this.escapeAttribute(app.name)}"
             loading="eager"
-            referrerpolicy="strict-origin-when-cross-origin"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox"
+            referrerpolicy="no-referrer"
+            sandbox="allow-scripts allow-forms allow-downloads"
             allow="camera 'none'; microphone 'none'; geolocation 'none'; display-capture 'none'; clipboard-read 'none'; clipboard-write 'none'"
           ></iframe>
         </div>
