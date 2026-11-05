@@ -7,6 +7,7 @@ import {
   disconnect,
   files,
   health,
+  isAllowedOrigin,
   optionsResponse,
   status,
   type CloudEnv
@@ -24,6 +25,13 @@ export default {
     env: Env
   ): Promise<Response> {
     const url = new URL(request.url);
+
+    if (url.pathname.startsWith("/api/") && !isAllowedOrigin(request.headers.get("Origin"))) {
+      return Response.json(
+        { ok: false, error: "Origin is not allowed." },
+        { status: 403 }
+      );
+    }
 
     if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
       return optionsResponse(request);
@@ -43,7 +51,13 @@ export default {
       if (url.pathname === "/api/cloud/onedrive/status" && request.method === "GET") {
         return onedrive.status(request, env);
       }
-      if (url.pathname === "/api/cloud/onedrive/disconnect" && (request.method === "GET" || request.method === "POST")) {
+      if (url.pathname === "/api/cloud/onedrive/disconnect") {
+        if (request.method !== "POST") {
+          return Response.json(
+            { ok: false, error: "Method not allowed. Use POST." },
+            { status: 405, headers: { Allow: "POST" } }
+          );
+        }
         return onedrive.disconnect(request, env);
       }
       if (url.pathname === "/api/cloud/onedrive/files" && request.method === "GET") {
@@ -65,7 +79,13 @@ export default {
       if (url.pathname === "/api/cloud/dropbox/status" && request.method === "GET") {
         return dropbox.status(request, env);
       }
-      if (url.pathname === "/api/cloud/dropbox/disconnect" && (request.method === "GET" || request.method === "POST")) {
+      if (url.pathname === "/api/cloud/dropbox/disconnect") {
+        if (request.method !== "POST") {
+          return Response.json(
+            { ok: false, error: "Method not allowed. Use POST." },
+            { status: 405, headers: { Allow: "POST" } }
+          );
+        }
         return dropbox.disconnect(request, env);
       }
       if (url.pathname === "/api/cloud/dropbox/files" && request.method === "GET") {
@@ -102,10 +122,13 @@ export default {
         return status(request, env);
       }
 
-      if (
-        url.pathname === "/api/cloud/google/disconnect" &&
-        (request.method === "GET" || request.method === "POST")
-      ) {
+      if (url.pathname === "/api/cloud/google/disconnect") {
+        if (request.method !== "POST") {
+          return Response.json(
+            { ok: false, error: "Method not allowed. Use POST." },
+            { status: 405, headers: { Allow: "POST" } }
+          );
+        }
         return disconnect(request, env);
       }
 

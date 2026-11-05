@@ -10,6 +10,7 @@ import {
 } from "./google";
 
 const SESSION_COOKIE = "oqerun_onedrive_session";
+const STATE_COOKIE = "oqerun_onedrive_oauth_state";
 const STATE_TTL = 600;
 const SESSION_TTL = 60 * 60 * 24 * 30;
 const GRAPH = "https://graph.microsoft.com/v1.0";
@@ -33,7 +34,9 @@ function redirectUri(request:Request):string {
 function callbackHtml(message:string, success:boolean, sessionId?:string):Response {
   const safe=message.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
   const payload=JSON.stringify({source:"oqerun-cloud",type:success?"onedrive-connected":"onedrive-error",sessionId:sessionId??null});
-  return new Response(`<!doctype html><html><body style="font-family:system-ui;background:#07112c;color:#eef4ff;display:grid;place-items:center;min-height:100vh"><main style="text-align:center"><h1>Oqerun Cloud</h1><p>${safe}</p><p>You can close this window.</p></main><script>try{if(window.opener)window.opener.postMessage(${payload},"https://vruntime-labs.github.io")}catch{};if(${success})setTimeout(()=>window.close(),900)</script></body></html>`,{status:success?200:400,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
+  const headers = new Headers({"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"});
+  headers.append("Set-Cookie", serializeCookie(STATE_COOKIE,"",{httpOnly:true,secure:true,sameSite:"Lax",path:"/",maxAge:0}));
+  return new Response(`<!doctype html><html><body style="font-family:system-ui;background:#07112c;color:#eef4ff;display:grid;place-items:center;min-height:100vh"><main style="text-align:center"><h1>Oqerun Cloud</h1><p>${safe}</p><p>You can close this window.</p></main><script>try{if(window.opener)window.opener.postMessage(${payload},"https://vruntime-labs.github.io")}catch{};if(${success})setTimeout(()=>window.close(),900)</script></body></html>`,{status:success?200:400,headers});
 }
 async function session(request:Request,env:OneDriveEnv):Promise<{id:string;record:Record}|null>{
   const auth=request.headers.get("Authorization")??"";
@@ -62,12 +65,15 @@ export async function connect(request:Request,env:OneDriveEnv):Promise<Response>
   const state=randomHex(); await env.OQERUN_KV.put(`oqerun:cloud:onedrive:state:${state}`,state,{expirationTtl:STATE_TTL});
   const url=new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
   url.searchParams.set("client_id",env.MICROSOFT_CLIENT_ID!.trim());url.searchParams.set("redirect_uri",redirectUri(request));url.searchParams.set("response_type","code");url.searchParams.set("response_mode","query");url.searchParams.set("scope","openid profile offline_access Files.ReadWrite");url.searchParams.set("state",state);
-  return new Response(null,{status:302,headers:{Location:url.toString(),"Cache-Control":"no-store"}});
+  const headers = new Headers({Location:url.toString(),"Cache-Control":"no-store"});
+  headers.append("Set-Cookie",serializeCookie(STATE_COOKIE,state,{httpOnly:true,secure:true,sameSite:"Lax",path:"/",maxAge:STATE_TTL}));
+  return new Response(null,{status:302,headers});
 }
 export async function callback(request:Request,env:OneDriveEnv):Promise<Response>{
   const u=new URL(request.url),code=u.searchParams.get("code"),state=u.searchParams.get("state"),saved=state?await env.OQERUN_KV.get(`oqerun:cloud:onedrive:state:${state}`):null;
+  const stateCookie=readCookie(request,STATE_COOKIE);
   if(u.searchParams.get("error"))return callbackHtml("Microsoft authorization was not completed.",false);
-  if(!code||!state||!saved)return callbackHtml("The OneDrive connection could not be verified. Please try again.",false);
+  if(!code||!state||saved!==state||stateCookie!==state)return callbackHtml("The OneDrive connection could not be verified. Please try again.",false);
   await env.OQERUN_KV.delete(`oqerun:cloud:onedrive:state:${state}`);
   if(missing(env))return callbackHtml("OneDrive backend configuration is incomplete.",false);
   try{
