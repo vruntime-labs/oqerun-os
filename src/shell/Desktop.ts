@@ -8,6 +8,7 @@ import { TaskManager } from "./TaskManager";
 
 import { WindowManager } from "../window/WindowManager";
 import { Kernel } from "../core/Kernel";
+import { Path } from "../vfs/Path";
 
 export class Desktop {
   private startMenu = new StartMenu();
@@ -1477,7 +1478,8 @@ export class Desktop {
   private bindContextMenus(): void {
     document.querySelector(".taskbar")?.addEventListener("contextmenu", (event) => {
       event.preventDefault();
-      this.showTaskbarContextMenu(event.clientX, event.clientY);
+      const mouseEvent = event as MouseEvent;
+      this.showTaskbarContextMenu(mouseEvent.clientX, mouseEvent.clientY);
     });
 
     for (const id of ["store-icon", "computer-icon"]) {
@@ -1792,6 +1794,19 @@ export class Desktop {
     });
 
     document.body.appendChild(menu);
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (character) => {
+      const entities: Record<string, string> = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      };
+      return entities[character] ?? character;
+    });
   }
 
   private removeContextMenu(): void {

@@ -15,6 +15,14 @@
       "id": "3fbb686fd7cd4063a6dac32c7ecb94cb"
     }
   ],
+  "previews": {
+    "kv_namespaces": [
+      {
+        "binding": "OQERUN_KV",
+        "id": "f914bc638e7e482ca53cec653c5cf59f"
+      }
+    ]
+  },
   "secrets": {
     "required": [
       "GOOGLE_CLIENT_ID",

@@ -10,6 +10,8 @@ export class Boot {
     const app = document.getElementById("app");
     if (!app) return;
 
+    const base = import.meta.env.BASE_URL;
+
     app.innerHTML = `
       <div class="boot-screen" id="boot-screen">
 

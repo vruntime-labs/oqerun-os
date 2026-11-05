@@ -12,11 +12,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "@types/node": "^24.10.1"
+    "@types/node": "^24.10.1",
+    "redis": "^5.8.3"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.0.0",
