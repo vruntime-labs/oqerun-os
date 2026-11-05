@@ -120,7 +120,7 @@ export class GoogleDriveProvider
     }
 
     const response = await fetch(url, {
-      method: "GET",
+      method: "POST",
       credentials: "include",
       headers: cloudAuthHeaders(),
       cache: "no-store"
@@ -161,7 +161,7 @@ export class GoogleDriveProvider
     }
 
     const response = await fetch(url, {
-      method: "GET",
+      method: "POST",
       credentials: "include",
       headers: cloudAuthHeaders(),
       cache: "no-store"
