@@ -65,7 +65,9 @@ export async function connect(request:Request,env:OneDriveEnv):Promise<Response>
   const state=randomHex(); await env.OQERUN_KV.put(`oqerun:cloud:onedrive:state:${state}`,state,{expirationTtl:STATE_TTL});
   const url=new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
   url.searchParams.set("client_id",env.MICROSOFT_CLIENT_ID!.trim());url.searchParams.set("redirect_uri",redirectUri(request));url.searchParams.set("response_type","code");url.searchParams.set("response_mode","query");url.searchParams.set("scope","openid profile offline_access Files.ReadWrite");url.searchParams.set("state",state);
-  return new Response(null,{status:302,headers:{Location:url.toString(),"Cache-Control":"no-store"}});
+  const headers = new Headers({Location:url.toString(),"Cache-Control":"no-store"});
+  headers.append("Set-Cookie",serializeCookie(STATE_COOKIE,state,{httpOnly:true,secure:true,sameSite:"Lax",path:"/",maxAge:STATE_TTL}));
+  return new Response(null,{status:302,headers});
 }
 export async function callback(request:Request,env:OneDriveEnv):Promise<Response>{
   const u=new URL(request.url),code=u.searchParams.get("code"),state=u.searchParams.get("state"),saved=state?await env.OQERUN_KV.get(`oqerun:cloud:onedrive:state:${state}`):null;
