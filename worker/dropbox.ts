@@ -1,6 +1,7 @@
 import { corsHeaders, decryptSecret, encryptSecret, json, randomHex, readCookie, serializeCookie, validId } from "./google";
 
 const SESSION_COOKIE = "oqerun_dropbox_session";
+const STATE_COOKIE = "oqerun_dropbox_oauth_state";
 const STATE_TTL = 600;
 const SESSION_TTL = 60 * 60 * 24 * 30;
 export interface DropboxEnv { OQERUN_KV: KVNamespace; DROPBOX_APP_KEY?: string; DROPBOX_APP_SECRET?: string; OQERUN_TOKEN_ENCRYPTION_KEY: string; }
@@ -11,7 +12,9 @@ function redirectUri(request: Request) { return new URL("/api/cloud/dropbox/call
 function callbackHtml(message: string, success: boolean, sessionId?: string) {
   const safe = message.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
   const payload = JSON.stringify({ source:"oqerun-cloud", type:success?"dropbox-connected":"dropbox-error", sessionId:sessionId ?? null });
-  return new Response('<!doctype html><html><body style="font-family:system-ui;background:#07112c;color:#eef4ff;display:grid;place-items:center;min-height:100vh"><main style="text-align:center"><h1>Oqerun Cloud</h1><p>'+safe+'</p><p>You can close this window.</p></main><script>try{if(window.opener)window.opener.postMessage('+payload+',"https://vruntime-labs.github.io")}catch{};if('+success+')setTimeout(()=>window.close(),900)</script></body></html>',{status:success?200:400,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
+  const headers = new Headers({"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"});
+  headers.append("Set-Cookie",serializeCookie(STATE_COOKIE,"",{httpOnly:true,secure:true,sameSite:"Lax",path:"/",maxAge:0}));
+  return new Response('<!doctype html><html><body style="font-family:system-ui;background:#07112c;color:#eef4ff;display:grid;place-items:center;min-height:100vh"><main style="text-align:center"><h1>Oqerun Cloud</h1><p>'+safe+'</p><p>You can close this window.</p></main><script>try{if(window.opener)window.opener.postMessage('+payload+',"https://vruntime-labs.github.io")}catch{};if('+success+')setTimeout(()=>window.close(),900)</script></body></html>',{status:success?200:400,headers});
 }
 async function session(request: Request, env: DropboxEnv) {
   const auth=request.headers.get("Authorization")??"";
@@ -40,12 +43,15 @@ export async function connect(request:Request,env:DropboxEnv){
   const state=randomHex(); await env.OQERUN_KV.put("oqerun:cloud:dropbox:state:"+state,state,{expirationTtl:STATE_TTL});
   const u=new URL("https://www.dropbox.com/oauth2/authorize");
   u.searchParams.set("client_id",env.DROPBOX_APP_KEY!.trim()); u.searchParams.set("redirect_uri",redirectUri(request)); u.searchParams.set("response_type","code"); u.searchParams.set("token_access_type","offline"); u.searchParams.set("state",state);
-  return new Response(null,{status:302,headers:{Location:u.toString(),"Cache-Control":"no-store"}});
+  const headers=new Headers({Location:u.toString(),"Cache-Control":"no-store"});
+  headers.append("Set-Cookie",serializeCookie(STATE_COOKIE,state,{httpOnly:true,secure:true,sameSite:"Lax",path:"/",maxAge:STATE_TTL}));
+  return new Response(null,{status:302,headers});
 }
 export async function callback(request:Request,env:DropboxEnv){
   const u=new URL(request.url),code=u.searchParams.get("code"),state=u.searchParams.get("state"),saved=state?await env.OQERUN_KV.get("oqerun:cloud:dropbox:state:"+state):null;
+  const stateCookie=readCookie(request,STATE_COOKIE);
   if(u.searchParams.get("error"))return callbackHtml("Dropbox authorization was not completed.",false);
-  if(!code||!state||!saved)return callbackHtml("The Dropbox connection could not be verified. Please try again.",false);
+  if(!code||!state||saved!==state||stateCookie!==state)return callbackHtml("The Dropbox connection could not be verified. Please try again.",false);
   await env.OQERUN_KV.delete("oqerun:cloud:dropbox:state:"+state);
   if(missing(env))return callbackHtml("Dropbox backend configuration is incomplete.",false);
   try{
