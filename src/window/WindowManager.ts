@@ -1,4 +1,5 @@
 import { Window } from "./Window";
+import type { ProcessManager } from "../core/ProcessManager";
 
 export interface WindowOptions {
   id: string;
@@ -18,6 +19,7 @@ interface ManagedWindow {
   minimized: boolean;
   maximized: boolean;
   iconUrl?: string;
+  processId: number;
 }
 
 export class WindowManager {
@@ -30,7 +32,7 @@ export class WindowManager {
 
   private zIndex = 100;
 
-  constructor() {
+  constructor(private readonly processes: ProcessManager) {
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Tab" || !event.altKey) return;
       if (event.ctrlKey || event.metaKey) return;
@@ -83,6 +85,7 @@ export class WindowManager {
       });
 
     win.render();
+    const processId = this.processes.start(options.title);
 
     this.windows.set(
       options.id,
@@ -91,7 +94,8 @@ export class WindowManager {
         instance: win,
         minimized: false,
         maximized: false,
-        iconUrl: options.iconUrl
+        iconUrl: options.iconUrl,
+        processId
       }
     );
 
@@ -110,6 +114,7 @@ export class WindowManager {
     if (!managed) return;
 
     managed.instance.destroy();
+    this.processes.stop(managed.processId);
 
     this.windows.delete(id);
 
@@ -124,6 +129,16 @@ export class WindowManager {
     this.updateTaskbar();
   }
 
+  endProcess(pid: number): boolean {
+    const entry = [...this.windows.entries()].find(
+      ([, managed]) => managed.processId === pid
+    );
+
+    if (!entry) return this.processes.stop(pid);
+
+    this.close(entry[0]);
+    return true;
+  }
   minimize(
     id: string
   ): void {

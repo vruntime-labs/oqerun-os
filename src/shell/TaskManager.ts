@@ -46,32 +46,38 @@ export class TaskManager {
 
     requestAnimationFrame(() => {
       const win = document.getElementById(id);
-      win?.querySelector("[data-refresh]")?.addEventListener("click", () => {
-        const content = win.querySelector(".window-content") as HTMLElement | null;
-        if (content) content.innerHTML = render();
-        this.attach(id);
-      });
-      this.attach(id);
+      const content = win?.querySelector(".window-content") as HTMLElement | null;
+      if (content) content.innerHTML = render();
+      this.attach(id, render);
     });
   }
 
-  private attach(id: string): void {
+  private attach(id: string, render: () => string): void {
     const win = document.getElementById(id);
-    if (!win) return;
+    const content = win?.querySelector(".window-content") as HTMLElement | null;
+    if (!content || content.dataset.processActionsBound === "1") return;
 
-    win.querySelectorAll<HTMLElement>("[data-stop]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const pid = Number(button.dataset.stop);
-        if (this.kernel.processes.stop(pid)) {
-          this.kernel.notify.success("Task Manager", `Process ${pid} ended.`);
-          const content = win.querySelector(".window-content") as HTMLElement | null;
-          if (content) content.innerHTML = `
-            <div class="task-manager">
-              <div class="task-manager-head"><div><strong>Task Manager</strong><span>Oqerun processes</span></div></div>
-              <div class="task-empty">Process ended. Reopen Task Manager to refresh.</div>
-            </div>`;
+    content.dataset.processActionsBound = "1";
+    content.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement;
+
+      if (target.closest("[data-refresh]")) {
+        content.innerHTML = render();
+        return;
+      }
+
+      const stopButton = target.closest<HTMLElement>("[data-stop]");
+      if (!stopButton) return;
+
+      const pid = Number(stopButton.dataset.stop);
+      if (!Number.isInteger(pid) || pid <= 0) return;
+
+      if (this.wm.endProcess(pid)) {
+        this.kernel.notify.success("Task Manager", `Process ${pid} ended.`);
+        if (document.getElementById(id)) {
+          content.innerHTML = render();
         }
-      });
+      }
     });
   }
 
