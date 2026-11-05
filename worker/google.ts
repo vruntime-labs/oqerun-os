@@ -34,19 +34,22 @@ const ALLOWED_CORS_ORIGINS = new Set([
   "https://vruntime-labs.github.io"
 ]);
 
+export function isAllowedOrigin(origin: string | null): boolean {
+  return !origin || ALLOWED_CORS_ORIGINS.has(origin);
+}
+
 export function corsHeaders(request?: Request): Headers {
   const requestOrigin = request?.headers.get("Origin") ?? "";
-  const origin = ALLOWED_CORS_ORIGINS.has(requestOrigin)
-    ? requestOrigin
-    : "https://vruntime-labs.github.io";
-
   const headers = new Headers({
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Vary": "Origin"
   });
+
+  if (requestOrigin && ALLOWED_CORS_ORIGINS.has(requestOrigin)) {
+    headers.set("Access-Control-Allow-Origin", requestOrigin);
+    headers.set("Access-Control-Allow-Credentials", "true");
+  }
 
   return headers;
 }
@@ -256,7 +259,7 @@ function callbackHtml(
   message: string,
   success: boolean,
   sessionId?: string,
-  targetOrigin = "https://oqerun-os.vercel.app"
+  targetOrigin = "https://vruntime-labs.github.io"
 ): Response {
   const safeMessage = message
     .replaceAll("&", "&amp;")
@@ -285,18 +288,16 @@ function callbackHtml(
     "Cache-Control": "no-store"
   });
 
-  if (success) {
-    headers.append(
-      "Set-Cookie",
-      serializeCookie(STATE_COOKIE, "", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "Lax",
-        path: "/",
-        maxAge: 0
-      })
-    );
-  }
+  headers.append(
+    "Set-Cookie",
+    serializeCookie(STATE_COOKIE, "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: 0
+    })
+  );
 
   return new Response(`<!doctype html>
 <html>
@@ -459,10 +460,18 @@ export async function connect(
 
   await env.OQERUN_KV.put(
     `oqerun:cloud:oauth-state:${state}`,
-    JSON.stringify({
-      createdAt: new Date().toISOString()
-    }),
+    state,
     { expirationTtl: STATE_TTL }
+  );
+  headers.append(
+    "Set-Cookie",
+    serializeCookie(STATE_COOKIE, state, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: STATE_TTL
+    })
   );
 
   return new Response(null, {
@@ -484,6 +493,7 @@ export async function callback(
         `oqerun:cloud:oauth-state:${state}`
       )
     : null;
+  const stateCookie = readCookie(request, STATE_COOKIE);
 
   if (error) {
     return callbackHtml(
@@ -492,7 +502,7 @@ export async function callback(
     );
   }
 
-  if (!code || !state || !storedState) {
+  if (!code || !state || storedState !== state || stateCookie !== state) {
     return callbackHtml(
       "The Google connection could not be verified. Please start the connection again.",
       false
